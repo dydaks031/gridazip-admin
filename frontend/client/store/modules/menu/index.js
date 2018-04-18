@@ -1,10 +1,5 @@
 import * as types from '../../mutation-types'
 import lazyLoading from './lazyLoading'
-import charts from './charts'
-import uifeatures from './uifeatures'
-import components from './components'
-import tables from './tables'
-
 // show: meta.label -> name
 // name: component name
 // meta.label: display label
@@ -21,7 +16,16 @@ const state = {
       component: lazyLoading('dashboard', true)
     },
     {
-      name: 'Axios',
+      name: '상담요청조회',
+      path: '/request-list',
+      meta: {
+        icon: 'fa-rocket',
+        link: 'requestList/index.vue'
+      },
+      component: lazyLoading('requestList', true)
+    },
+    {
+      name: '포트폴리오',
       path: '/axiosDemo',
       meta: {
         auth: true,
@@ -29,11 +33,7 @@ const state = {
         link: 'axios/index.vue'
       },
       component: lazyLoading('axios', true)
-    },
-    charts,
-    uifeatures,
-    components,
-    tables
+    }
   ]
 }
 

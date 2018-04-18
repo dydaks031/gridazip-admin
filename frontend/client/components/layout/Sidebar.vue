@@ -1,7 +1,7 @@
 <template>
   <aside class="menu app-sidebar animated" :class="{ slideInLeft: show, slideOutLeft: !show }">
     <p class="menu-label">
-      General
+      Menu
     </p>
     <ul class="menu-list">
       <li v-for="(item, index) in menu">
@@ -141,7 +141,7 @@ export default {
   top: 50px;
   left: 0;
   bottom: 0;
-  padding: 20px 0 50px;
+  padding: 20px 10px 50px;
   width: 180px;
   min-width: 45px;
   max-height: 100vh;
@@ -170,10 +170,13 @@ export default {
   }
 
   .menu-list {
-    li a {
-      &[aria-expanded="true"] {
-        .is-angle {
-          transform: rotate(180deg);
+    li {
+      padding: 5px 0;
+      a {
+        &[aria-expanded="true"] {
+          .is-angle {
+            transform: rotate(180deg);
+          }
         }
       }
     }

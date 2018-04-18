@@ -24,11 +24,13 @@ module.exports = {
     autoOpenBrowser: true,
     assetsSubDirectory: 'assets',
     assetsPublicPath: '/',
-    '/api': {
-      target: 'http://localhost:3000/api',
-      changeOrigin: true,
-      pathRewrite: {
-        '^/api': ''
+    proxyTable: {
+      '/api/admin': {
+        target: 'http://localhost:3000/api/admin',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api/admin': ''
+        }
       }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"
