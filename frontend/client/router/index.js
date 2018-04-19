@@ -19,6 +19,11 @@ export default new Router({
       path: '/login',
       component: require('../views/auth/Login')
     },
+    {
+      name: 'Request-Detail',
+      path: '/request-list/:id',
+      component: require('../views/requestList/detail')
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',
