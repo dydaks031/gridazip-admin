@@ -91,33 +91,3 @@ Pagination.prototype.isEnd = function () {
   // syntax sugar
   return this.getEnd()
 }
-
-Pagination.prototype.getHtml = function () {
-  var htmlArr = []
-  var startIndex = 1
-  var middleCount = Math.ceil((this.max - 1) / 2)
-  var maxCount = Math.ceil(this.count / this.limit)
-
-  var prevIndex = Math.max(this.index - this.max, 1)
-  var nextIndex = Math.min(this.index + this.max, maxCount)
-
-  if (this.index > middleCount) {
-    startIndex = Math.max(Math.min(this.index - middleCount, maxCount - this.max + 1), 1)
-  }
-
-  var maxIndex = Math.max(Math.min(this.max, maxCount - startIndex + 1), 1)
-
-  if (this.index > 1) {
-    htmlArr.push('<a href="#" data-index="' + prevIndex + '" class="arrow prev"><i class="fa fa-angle-left"></i></a>')
-  }
-
-  for (var index = startIndex; index < startIndex + maxIndex; index++) {
-    htmlArr.push('<a href="#" data-index="' + index + '" ' + (index === this.index ? 'class="active"' : '') + '>' + index + '</a>')
-  }
-
-  if (this.index < maxCount) {
-    htmlArr.push('<a href="#" data-index="' + nextIndex + '" class="arrow next"><i class="fa fa-angle-right"></i></a>')
-  }
-
-  return htmlArr.join('')
-}

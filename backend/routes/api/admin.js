@@ -1508,38 +1508,38 @@ router.post('/request/save/:rqpk([0-9]+)', (req, res) => {
     let errorMsg = null;
     let updateObj = {};
 
-    const rq_is_valuable = req.body.request_is_valuable || 0;
-    const rq_is_contracted = req.body.request_is_contracted || 0;
+    const rq_is_valuable = req.body.rq_is_valuable || 0;
+    const rq_is_contracted = req.body.rq_is_contracted || 0;
 
     if (!rq_is_valuable) {
         ['0','1','2','3'].forEach(i => {
-            if(rq_is_valuable === i) errorMsg = '[request_is_valuable] 값이 올바르지 않습니다.';
+            if(rq_is_valuable === i) errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.';
         });
     }
     if (!rq_is_contracted) {
         ['0','1','2'].forEach(i => {
-            if(rq_is_contracted === i) errorMsg = '[request_is_contracted] 값이 올바르지 않습니다.';
+            if(rq_is_contracted === i) errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.';
         });
     }
 
     if (rq_is_valuable && rq_is_contracted) {
-        updateObj.rq_name = req.body.request_name || '';
-        updateObj.rq_family = req.body.request_family || '';
-        updateObj.rq_phone = req.body.request_phone || '';
-        updateObj.rq_size = req.body.request_size || '';
-        updateObj.rq_address_brief = req.body.request_address_brief || '';
-        updateObj.rq_address_detail = req.body.request_address_detail || '';
-        updateObj.rq_move_date = req.body.request_move_date || '';
-        updateObj.rq_style_likes = req.body.request_style_likes || '';
-        updateObj.rq_style_dislikes = req.body.request_style_dislikes || '';
-        updateObj.rq_color_likes = req.body.request_color_likes || '';
-        updateObj.rq_color_dislikes = req.body.request_color_dislikes || '';
-        updateObj.rq_budget = req.body.request_budget || '';
-        updateObj.rq_place = req.body.request_place || '';
-        updateObj.rq_date = req.body.request_date || '';
-        updateObj.rq_time = req.body.request_time || '';
-        updateObj.rq_request = req.body.request_request || '';
-        updateObj.rq_memo = req.body.request_memo || '';
+        updateObj.rq_name = req.body.rq_name || '';
+        updateObj.rq_family = req.body.rq_family || '';
+        updateObj.rq_phone = req.body.rq_phone || '';
+        updateObj.rq_size = req.body.rq_size || '';
+        updateObj.rq_address_brief = req.body.rq_address_brief || '';
+        updateObj.rq_address_detail = req.body.rq_address_detail || '';
+        updateObj.rq_move_date = req.body.rq_move_date || '';
+        updateObj.rq_style_likes = req.body.rq_style_likes || '';
+        updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
+        updateObj.rq_color_likes = req.body.rq_color_likes || '';
+        updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
+        updateObj.rq_budget = req.body.rq_budget || '';
+        updateObj.rq_place = req.body.rq_place || '';
+        updateObj.rq_date = req.body.rq_date || '';
+        updateObj.rq_time = req.body.rq_time || '';
+        updateObj.rq_request = req.body.rq_request || '';
+        updateObj.rq_memo = req.body.rq_memo || '';
         updateObj.rq_is_valuable = rq_is_valuable;
         updateObj.rq_is_contracted = rq_is_contracted;
 
@@ -1549,9 +1549,11 @@ router.post('/request/save/:rqpk([0-9]+)', (req, res) => {
         else if (updateObj.rq_phone === '') {
             errorMsg = '휴대폰 번호는 반드시 입력해야 합니다.';
         }
-        else if (regexPhone.test(updateObj.rq_phone) === false) {
+        else if (regexPhone.test(updateObj .rq_phone) === false) {
             errorMsg = '휴대폰 번호 형식이 올바르지 않습니다.';
         }
+
+        updateObj.rq_phone = cryptoHelper.encrypt(updateObj.rq_phone);
     }
     else {
         if (rq_is_valuable) {
@@ -1608,7 +1610,10 @@ router.post('/request/:rqpk([0-9]+)', (req, res) => {
                 request = response[0];
                 request.rq_size_str = request_size_map[request.rq_size];
                 request.rq_budget_str = request_budget_map[request.rq_budget];
-                request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
+                console.log(request.rq_phone)
+                request.rq_phone = cryptoHelper.decrypt(request.rq_phone);
+
+                // request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
             })
             .then(() => {
                 res.json(

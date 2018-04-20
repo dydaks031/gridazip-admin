@@ -20,7 +20,7 @@ export default new Router({
       component: require('../views/auth/Login')
     },
     {
-      name: 'Request-Detail',
+      name: '상담요청내역 상세',
       path: '/request-list/:id',
       component: require('../views/requestList/detail')
     },
