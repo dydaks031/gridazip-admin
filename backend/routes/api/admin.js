@@ -321,15 +321,16 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
     let pid = req.params.pid;
     let wkid = null;
 
-    let portfolio_title = req.body.portfolio_title || '';
-    let portfolio_designer = req.body.portfolio_designer || '';
-    let portfolio_description = req.body.portfolio_description || '';
-    let portfolio_address = req.body.portfolio_address || '';
-    let portfolio_style = req.body.portfolio_style || '';
-    let portfolio_size = req.body.portfolio_size || 0;
-    let portfolio_price = req.body.portfolio_price || 0;
-    let portfolio_document = req.body.portfolio_document_data || '';
-    let portfolio_is_dev = req.body.portfolio_is_dev || false;
+    let portfolio_title = req.body.pf_title || '';
+    let portfolio_designer = req.body.ds_pk || '';
+    let portfolio_description = req.body.pf_description || '';
+    let portfolio_address = req.body.pf_address || '';
+    let portfolio_style = req.body.pf_style || '';
+    let portfolio_size = req.body.pf_size || 0;
+    let portfolio_price = req.body.pf_price || 0;
+    let portfolio_document = req.body.pf_document_data || '';
+    let portfolio_is_dev = req.body.pf_is_dev || false;
+    let portfolio_image_list = req.body.portfolio_image_list || []
 
     let errorMsg = null;
 
@@ -365,36 +366,36 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
     }
     else {
         knexBuilder.getConnection().then(cur => {
-            let portfolio_before = [];
-            let portfolio_after = [];
-            const regex = /portfolio_(before|after)_data\[(\d*)\]/;
-
-            for (let idx in req.body) {
-                const value = req.body[idx];
-                const match = idx.match(regex);
-                if (match !== null && match.length > 0) {
-                    if (match[1] === 'before') {
-                        portfolio_before.push({
-                            index: parseInt(match[2]),
-                            value: value
-                        });
-                    }
-                    else if(match[1] === 'after') {
-                        portfolio_after.push({
-                            index: parseInt(match[2]),
-                            value: value
-                        });
-                    }
-                }
-            }
-
-            portfolio_before.sort(function (a, b) {
-                return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
-            });
-
-            portfolio_after.sort(function (a, b) {
-                return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
-            });
+            // let portfolio_before = [];
+            // let portfolio_after = [];
+            // const regex = /portfolio_(before|after)_data\[(\d*)\]/;
+            //
+            // for (let idx in req.body) {
+            //     const value = req.body[idx];
+            //     const match = idx.match(regex);
+            //     if (match !== null && match.length > 0) {
+            //         if (match[1] === 'before') {
+            //             portfolio_before.push({
+            //                 index: parseInt(match[2]),
+            //                 value: value
+            //             });
+            //         }
+            //         else if(match[1] === 'after') {
+            //             portfolio_after.push({
+            //                 index: parseInt(match[2]),
+            //                 value: value
+            //             });
+            //         }
+            //     }
+            // }
+            //
+            // portfolio_before.sort(function (a, b) {
+            //     return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
+            // });
+            //
+            // portfolio_after.sort(function (a, b) {
+            //     return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
+            // });
 
             if (pid) {
                 cur('portfolio_tbl')
@@ -445,23 +446,23 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
                     })
                     .then(response => {
                         let promises = [];
-                        portfolio_before.map((element, idx) => {
-                            let target = portfolio_after.filter(target => {
-                                return target.index === element.index;
-                            });
-                            target = target.length > 0? target[0]:null;
+                        portfolio_image_list.map((element, idx) => {
+                            // let target = portfolio_after.filter(target => {
+                            //     return target.index === element.index;
+                            // });
+                            // target = target.length > 0? target[0]:null;
 
-                            if (target !== null) {
+                            // if (target !== null) {
                                 promises.push(cur('portfolio_image_hst')
                                     .insert({
                                         pi_pfpk: pid,
                                         pi_dspk: portfolio_designer,
-                                        pi_before: element.value,
-                                        pi_after: target.value,
-                                        pi_is_primary: element.index === 0? 'Y':'N',
+                                        pi_before: '',
+                                        pi_after: element,
+                                        pi_is_primary: idx === 0? 'Y':'N',
                                         pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
                                     }));
-                            }
+                            // }
                         });
                         return Promise.all(promises);
                     })
@@ -528,29 +529,28 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
                             })
                     })
                     .then(response => {
-                        let promises = [];
-                        pid = response[0];
+                      let promises = [];
 
-                        portfolio_before.map((element, idx) => {
-                            let target = portfolio_after.filter(target => {
-                                return target.index === element.index;
-                            });
-                            target = target.length > 0? target[0]:null;
+                      pid = response[0];
+                      portfolio_image_list.map((element, idx) => {
+                      // let target = portfolio_after.filter(target => {
+                      //     return target.index === element.index;
+                      // });
+                      // target = target.length > 0? target[0]:null;
+                      // if (target !== null) {
+                          promises.push(cur('portfolio_image_hst')
+                            .insert({
+                              pi_pfpk: pid,
+                              pi_dspk: portfolio_designer,
+                              pi_before: '',
+                              pi_after: element,
+                              pi_is_primary: idx === 0? 'Y':'N',
+                              pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
+                            }));
+                        // }
+                      });
 
-                            if (target !== null) {
-                                promises.push(cur('portfolio_image_hst')
-                                    .insert({
-                                        pi_pfpk: pid,
-                                        pi_dspk: portfolio_designer,
-                                        pi_before: element.value,
-                                        pi_after: target.value,
-                                        pi_is_primary: element.index === 0? 'Y':'N',
-                                        pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
-                                    }));
-                            }
-                        });
-
-                        return Promise.all(promises);
+                      return Promise.all(promises);
                     })
                     .then(responses => {
                         if (portfolio_document !== '') {

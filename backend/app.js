@@ -36,6 +36,7 @@ const sessionStore = new mysqlSessionStore(Object.assign({
 
 const index = require('./routes/index');
 const apiAdmin = require('./routes/api/admin');
+const apiFile = require('./routes/api/file');
 
 raven.config('https://0f22cdb7d6f14189b765414605f7eb36:a76850f0a2e94b97a2dcc95da88af720@sentry.io/159366').install();
 
@@ -76,6 +77,7 @@ app.use(session({
 
 app.use('/', index);
 app.use('/api/admin', apiAdmin);
+app.use('/api/file/', apiFile);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

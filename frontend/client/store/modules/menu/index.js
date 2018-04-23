@@ -26,13 +26,12 @@ const state = {
     },
     {
       name: '포트폴리오',
-      path: '/axiosDemo',
+      path: '/portfolio',
       meta: {
-        auth: true,
         icon: 'fa-rocket',
-        link: 'axios/index.vue'
+        link: 'portfolio/index.vue'
       },
-      component: lazyLoading('axios', true)
+      component: lazyLoading('portfolio', true)
     }
   ]
 }
