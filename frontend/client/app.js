@@ -15,16 +15,18 @@ Vue.use(VueAxios, axios)
 Vue.use(VueAuth, {
   auth: {
     request: function (req, token) {
+      console.log(token)
       this.options.http._setHeaders.call(this, req, {Authorization: 'Bearer ' + token})
     },
     response: function (res) {
       // Get Token from response body
-      return res.data
+      return res.data.token
     }
   },
   http: require('@websanova/vue-auth/drivers/http/axios.1.x.js'),
   router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js'),
-  loginData: { url: 'http://localhost:6789/login', fetchUser: false },
+  loginData: { url: '/api/authentication/login', fetchUser: true },
+  fetchData: { url: '/api/authentication/user', method: 'GET' },
   refreshData: { enabled: false }
 })
 

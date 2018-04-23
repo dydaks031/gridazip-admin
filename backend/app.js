@@ -11,6 +11,7 @@ const mysqlSessionStore = require('./services/connection/session')(session);
 const subdomain = require('express-subdomain');
 const raven = require('raven');
 const moment = require('moment');
+const bearerToken = require('express-bearer-token');
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -37,6 +38,9 @@ const sessionStore = new mysqlSessionStore(Object.assign({
 const index = require('./routes/index');
 const apiAdmin = require('./routes/api/admin');
 const apiFile = require('./routes/api/file');
+const apiAuthentication = require('./routes/api/authentication');
+
+const authMiddleware = require('./middlewares/auth')
 
 raven.config('https://0f22cdb7d6f14189b765414605f7eb36:a76850f0a2e94b97a2dcc95da88af720@sentry.io/159366').install();
 
@@ -66,6 +70,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(compression());
+app.use(bearerToken());
 app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(session({
   key: appConfig.sess_key,
@@ -76,8 +81,9 @@ app.use(session({
 }));
 
 app.use('/', index);
-app.use('/api/admin', apiAdmin);
+app.use('/api/admin', authMiddleware, apiAdmin);
 app.use('/api/file/', apiFile);
+app.use('/api/authentication/', apiAuthentication);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
