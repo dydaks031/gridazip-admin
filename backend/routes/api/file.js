@@ -101,18 +101,16 @@ router.post('/upload', upload, (req, res, next) => {
       else {
         new Promise((resolve, reject) => {
           if (mimeSplited[0] === 'image') {
-        //     sharp(req.file.path)
-        //       .resize(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
-        //       .max()
-        //       .toBuffer()
-        //       .then(data => {
-        //         resolve(data);
-        //       })
-        //       .catch(error => {
-        //         reject(error);
-        //       });
-        //   }
-            resolve(fs.createReadStream(req.file.path));
+            sharp(req.file.path)
+              .resize(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
+              .max()
+              .toBuffer()
+              .then(data => {
+                resolve(data);
+              })
+              .catch(error => {
+                reject(error);
+              });
           }
           else {
             resolve(fs.createReadStream(req.file.path));
