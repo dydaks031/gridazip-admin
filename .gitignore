@@ -2,6 +2,7 @@
 backend/node_modules/
 frontend/node_modules/
 .idea/*
+.idea/workspace.xml
 frontend/npm-debug.log
 frontend/yarn-error.log
 frontend/selenium-debug.log
