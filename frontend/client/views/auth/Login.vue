@@ -70,7 +70,6 @@ export default {
           console.log('Auth Success')
           // console.log('Token: ' + this.$auth.token())
           // console.log(res)
-          console.log(this.$auth)
         },
         error (err) {
           if (err.response) {

@@ -56,8 +56,8 @@ global.auth = app.locals.auth = {
 };
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.use(raven.requestHandler());
 // uncomment after placing your favicon in /public
@@ -66,6 +66,8 @@ app.use(function (req, res, next) {
   req.ip = get_ip(req).clientIp;
   next();
 });
+
+app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -81,7 +83,9 @@ app.use(session({
 }));
 
 app.use('/', index);
-app.use('/api/admin', authMiddleware, apiAdmin);
+app.use(/^\/(?:[^api](.*))\/?(?=\/|$)/i, index)
+
+app.use('/api/admin', apiAdmin);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
 
@@ -89,8 +93,7 @@ app.use('/api/authentication/', apiAuthentication);
 app.use(function (req, res, next) {
   //let err = new Error('Not Found');
   //err.status = 404;
-  //next(err);
-  console.log(res);
+  // next(err);
   res.redirect('/');
 });
 

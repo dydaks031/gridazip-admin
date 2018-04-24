@@ -2,7 +2,6 @@ const jwtHelper = require('../services/jwt/helper')
 
 const authMiddleware = ((req, res, next) => {
   const token = req.token
-  console.log(token)
   if (!token) {
     return res.status(403).json({
       success: false,
@@ -18,6 +17,7 @@ const authMiddleware = ((req, res, next) => {
     })
     .catch((err) => {
       console.log(err)
+      next()
     })
 })
 

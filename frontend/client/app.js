@@ -15,7 +15,6 @@ Vue.use(VueAxios, axios)
 Vue.use(VueAuth, {
   auth: {
     request: function (req, token) {
-      console.log(token)
       this.options.http._setHeaders.call(this, req, {Authorization: 'Bearer ' + token})
     },
     response: function (res) {

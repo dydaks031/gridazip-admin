@@ -11,8 +11,6 @@ const s3Helper = require('../../services/s3/helper');
 const jwtHelper = require('../../services/jwt/helper')
 
 router.post('/login', (req, res) => {
-  console.log(req.body)
-
   let user_id = req.body['user_id'] || '';
   let user_pw = req.body['user_pw'] || '';
   let userResult;
@@ -41,7 +39,6 @@ router.post('/login', (req, res) => {
       .then(response => {
         if (response.length > 0) {
           userResult = response[0];
-          console.log(userResult)
           if ( userResult.user_permit === 'A' ) {
             return jwtHelper.sign({
               user_permit: userResult.user_permit,
@@ -61,7 +58,6 @@ router.post('/login', (req, res) => {
         }
       })
       .then((token) => {
-        console.log(token)
         res.json({
           message: 'success',
           token
