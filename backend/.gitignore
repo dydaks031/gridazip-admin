@@ -6,3 +6,8 @@ yarn-error.log
 selenium-debug.log
 test/unit/coverage
 test/e2e/reports
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
