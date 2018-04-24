@@ -1,7 +1,6 @@
 .DS_Store
 node_modules/
 public/
-.idea
 npm-debug.log
 yarn-error.log
 selenium-debug.log

@@ -1,0 +1,216 @@
+<template xmlns="http://www.w3.org/1999/html">
+  <div class="tile is-ancestor">
+    <div class="tile is-parent">
+      <article class="tile is-child box">
+        <h4 class="title">상담신청내역 상세</h4>
+        <div class="block">
+          <label class="label">유효여부</label>
+          <p class="control">
+            <label class="radio">
+              <input type="radio" value="1" id="rq_is_not_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
+              X
+            </label>
+            <label class="radio">
+              <input type="radio" value="3" id="rq_is_not_used" name="request_is_valuable" v-model="data.rq_is_valuable">
+              &#9651;
+            </label>
+            <label class="radio">
+              <input type="radio" value="2" id="rq_is_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
+              O
+            </label>
+          </p>
+          <label class="label">방문상담여부</label>
+          <p class="control">
+            <label class="radio">
+              <input type="radio" value="1" name="request_is_contracted" v-model="data.rq_is_contracted">
+              X
+            </label>
+            <label class="radio">
+              <input type="radio" value="2"  name="request_is_contracted" v-model="data.rq_is_contracted">
+              O
+            </label>
+          </p>
+          <label class="label">신청일자</label>
+          <p class="control">
+            {{ (data.rq_reg_dt === '0000-00-00' || !data.rq_reg_dt) ? '' : moment(data.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD') }}
+          </p>
+          <label class="label">이름</label>
+          <p class="control">
+            {{ data.rq_name }}
+          </p>
+          <label class="label">연락처</label>
+          <p class="control">
+            <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr' }" :value="data.rq_phone"></cleave>
+          </p>
+          <label class="label">평수</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select v-model="data.rq_size">
+                <option value="">평수 선택</option>
+                <option value="lt20">20평대 미만</option>
+                <option value="eq20">20평대</option>
+                <option value="eq30">30평대</option>
+                <option value="eq40">40평대</option>
+                <option value="eq50">50평대</option>
+                <option value="eq60">60평대</option>
+                <option value="gte70">70평대 이상</option>
+              </select>
+            </div>
+          </div>
+          <label class="label">예산</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select v-model="data.rq_budget">
+                <option value=''>예산 선택안함</option>
+                <option value='1500~2000'>1500~2000만원</option>
+                <option value='2000~2500'>2000~2500만원</option>
+                <option value='2500~3000'>2500~3000만원</option>
+                <option value='3000~3500'>3000~3500만원</option>
+                <option value='3500~4000'>3500~4000만원</option>
+                <option value='4000~4500'>4000~4500만원</option>
+                <option value='4500~5000'>4500~5000만원</option>
+                <option value='5000~5500'>5000~5500만원</option>
+                <option value='5500~6000'>5500~6000만원</option>
+                <option value='6000~6500'>6000~6500만원</option>
+                <option value='6500~7000'>6500~7000만원</option>
+                <option value='lt1500'>1500만원 미만</option>
+                <option value='lt2000'>2000만원 미만</option>
+                <option value='lt2500'>2500만원 미만</option>
+                <option value='lt3000'>3000만원 미만</option>
+                <option value='lt3500'>3500만원 미만</option>
+                <option value='lt4000'>4000만원 미만</option>
+                <option value='lt4500'>4500만원 미만</option>
+                <option value='lt5000'>5000만원 미만</option>
+                <option value='gte2500'>2500만원 이상</option>
+                <option value='gte3000'>3000만원 이상</option>
+                <option value='gte3500'>3500만원 이상</option>
+                <option value='gte4000'>4000만원 이상</option>
+                <option value='gte4500'>4500만원 이상</option>
+                <option value='gte5000'>5000만원 이상</option>
+                <option value='gte6000'>6000만원 이상</option>
+                <option value='gte7000'>7000만원 이상</option>
+                <option value='contact'>협의로 결정</option>
+              </select>
+            </div>
+          </div>
+          <label class="label">주소</label>
+          <p class="control">
+            <label>기본주소</label>
+            <input class="input" type="text" v-model="data.rq_address_brief" />
+            <label>상세주소</label>
+            <input class="input" type="text" v-model="data.rq_address_detail" />
+          </p>
+          <label class="label">원하시는 입주날짜</label>
+          <p class="control">
+            <datepicker v-model="data.rq_move_date" />
+          </p>
+          <label class="label">방문 상담일</label>
+          <p class="control">
+            <datepicker v-model="data.rq_date" />
+          </p>
+          <label class="label">방문 시간</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select v-model="data.rq_time">
+                <option value="">없음</option>
+                <option value="09:00 - 11:00">09:00 - 11:00</option>
+                <option value="11:00 - 13:00">11:00 - 13:00</option>
+                <option value="13:00 - 15:00">13:00 - 15:00</option>
+                <option value="15:00 - 17:00">15:00 - 17:00</option>
+                <option value="17:00 - 19:00">17:00 - 19:00</option>
+              </select>
+            </div>
+          </div>
+          <label class="label">메모</label>
+          <div class="control">
+            <div class="is-fullwidth">
+              <textarea class="textarea" name="request_memo" v-model="data.rq_memo"></textarea>
+            </div>
+          </div>
+          <p class="control">
+            <button class="button is-primary" v-on:click="submitData">Submit</button>
+            <button class="button is-link">Cancel</button>
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+</template>
+
+<script>
+  import Datepicker from 'vue-bulma-datepicker'
+  import moment from 'moment'
+  import Cleave from 'vue-cleave'
+  import 'cleave.js/dist/addons/cleave-phone.kr.js'
+
+  const queryApi = '/api/admin/request'
+  const submitApi = '/api/admin/request/save'
+
+  export default {
+    name: 'detail.vue',
+    components: {
+      Datepicker,
+      Cleave
+    },
+    data () {
+      return {
+        data: {},
+        id: '',
+        moment
+      }
+    },
+    mounted () {
+      console.log(this.$route)
+      this.id = this.$route.params.id
+      if (!this.id) {
+        this.$router.back()
+      }
+      this.loadDetail(this.id)
+    },
+    methods: {
+      loadDetail (id) {
+        console.log(`${queryApi}/${id}`)
+        this.$http.post(`${queryApi}/${id}`)
+        .then((response) => {
+          console.log(response)
+          if (response.data.code !== 200) {
+            return
+          }
+          this.data = response.data.data.data
+        }).catch((error) => {
+          console.log(error)
+        })
+      },
+      validate () {
+        if (this.data.rq_name === '') {
+          window.alert('고쳥!')
+          return false
+        } else if (this.data.rq_phone === '') {
+          window.alert('전화번호 없졍')
+          return false
+        }
+
+        return true
+      },
+      submitData () {
+        if (this.validate()) {
+          console.log(`${submitApi}/${this.id}`)
+          this.$http.post(`${submitApi}/${this.id}`, this.data)
+            .then((response) => {
+              console.log(response)
+              if (response.data.code !== 200) {
+                return false
+              }
+              // this.data = response.data.data.data
+            }).catch((error) => {
+              console.log(error)
+            })
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>

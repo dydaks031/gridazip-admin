@@ -19,6 +19,16 @@ export default new Router({
       path: '/login',
       component: require('../views/auth/Login')
     },
+    {
+      name: '상담요청내역 상세',
+      path: '/request-list/:id',
+      component: require('../views/requestList/detail')
+    },
+    {
+      name: '포트폴리오 상세',
+      path: '/portfolio/:id',
+      component: require('../views/portfolio/detail')
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',

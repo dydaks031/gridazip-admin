@@ -11,7 +11,8 @@ const state = {
       path: '/dashboard',
       meta: {
         icon: 'fa-tachometer',
-        link: 'dashboard/index.vue'
+        link: 'dashboard/index.vue',
+        auth: true
       },
       component: lazyLoading('dashboard', true)
     },
@@ -20,19 +21,20 @@ const state = {
       path: '/request-list',
       meta: {
         icon: 'fa-rocket',
-        link: 'requestList/index.vue'
+        link: 'requestList/index.vue',
+        auth: true
       },
       component: lazyLoading('requestList', true)
     },
     {
       name: '포트폴리오',
-      path: '/axiosDemo',
+      path: '/portfolio',
       meta: {
-        auth: true,
         icon: 'fa-rocket',
-        link: 'axios/index.vue'
+        link: 'portfolio/index.vue',
+        auth: true
       },
-      component: lazyLoading('axios', true)
+      component: lazyLoading('portfolio', true)
     }
   ]
 }

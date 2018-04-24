@@ -321,15 +321,16 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
     let pid = req.params.pid;
     let wkid = null;
 
-    let portfolio_title = req.body.portfolio_title || '';
-    let portfolio_designer = req.body.portfolio_designer || '';
-    let portfolio_description = req.body.portfolio_description || '';
-    let portfolio_address = req.body.portfolio_address || '';
-    let portfolio_style = req.body.portfolio_style || '';
-    let portfolio_size = req.body.portfolio_size || 0;
-    let portfolio_price = req.body.portfolio_price || 0;
-    let portfolio_document = req.body.portfolio_document_data || '';
-    let portfolio_is_dev = req.body.portfolio_is_dev || false;
+    let portfolio_title = req.body.pf_title || '';
+    let portfolio_designer = req.body.ds_pk || '';
+    let portfolio_description = req.body.pf_description || '';
+    let portfolio_address = req.body.pf_address || '';
+    let portfolio_style = req.body.pf_style || '';
+    let portfolio_size = req.body.pf_size || 0;
+    let portfolio_price = req.body.pf_price || 0;
+    let portfolio_document = req.body.pf_document_data || '';
+    let portfolio_is_dev = req.body.pf_is_dev || false;
+    let portfolio_image_list = req.body.portfolio_image_list || []
 
     let errorMsg = null;
 
@@ -365,36 +366,36 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
     }
     else {
         knexBuilder.getConnection().then(cur => {
-            let portfolio_before = [];
-            let portfolio_after = [];
-            const regex = /portfolio_(before|after)_data\[(\d*)\]/;
-
-            for (let idx in req.body) {
-                const value = req.body[idx];
-                const match = idx.match(regex);
-                if (match !== null && match.length > 0) {
-                    if (match[1] === 'before') {
-                        portfolio_before.push({
-                            index: parseInt(match[2]),
-                            value: value
-                        });
-                    }
-                    else if(match[1] === 'after') {
-                        portfolio_after.push({
-                            index: parseInt(match[2]),
-                            value: value
-                        });
-                    }
-                }
-            }
-
-            portfolio_before.sort(function (a, b) {
-                return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
-            });
-
-            portfolio_after.sort(function (a, b) {
-                return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
-            });
+            // let portfolio_before = [];
+            // let portfolio_after = [];
+            // const regex = /portfolio_(before|after)_data\[(\d*)\]/;
+            //
+            // for (let idx in req.body) {
+            //     const value = req.body[idx];
+            //     const match = idx.match(regex);
+            //     if (match !== null && match.length > 0) {
+            //         if (match[1] === 'before') {
+            //             portfolio_before.push({
+            //                 index: parseInt(match[2]),
+            //                 value: value
+            //             });
+            //         }
+            //         else if(match[1] === 'after') {
+            //             portfolio_after.push({
+            //                 index: parseInt(match[2]),
+            //                 value: value
+            //             });
+            //         }
+            //     }
+            // }
+            //
+            // portfolio_before.sort(function (a, b) {
+            //     return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
+            // });
+            //
+            // portfolio_after.sort(function (a, b) {
+            //     return a.index < b.index ? -1 : a.index > b.index ? 1 : 0;
+            // });
 
             if (pid) {
                 cur('portfolio_tbl')
@@ -445,23 +446,23 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
                     })
                     .then(response => {
                         let promises = [];
-                        portfolio_before.map((element, idx) => {
-                            let target = portfolio_after.filter(target => {
-                                return target.index === element.index;
-                            });
-                            target = target.length > 0? target[0]:null;
+                        portfolio_image_list.map((element, idx) => {
+                            // let target = portfolio_after.filter(target => {
+                            //     return target.index === element.index;
+                            // });
+                            // target = target.length > 0? target[0]:null;
 
-                            if (target !== null) {
+                            // if (target !== null) {
                                 promises.push(cur('portfolio_image_hst')
                                     .insert({
                                         pi_pfpk: pid,
                                         pi_dspk: portfolio_designer,
-                                        pi_before: element.value,
-                                        pi_after: target.value,
-                                        pi_is_primary: element.index === 0? 'Y':'N',
+                                        pi_before: '',
+                                        pi_after: element,
+                                        pi_is_primary: idx === 0? 'Y':'N',
                                         pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
                                     }));
-                            }
+                            // }
                         });
                         return Promise.all(promises);
                     })
@@ -528,29 +529,28 @@ router.post('/portfolio/save/:pid*?', (req, res) => {
                             })
                     })
                     .then(response => {
-                        let promises = [];
-                        pid = response[0];
+                      let promises = [];
 
-                        portfolio_before.map((element, idx) => {
-                            let target = portfolio_after.filter(target => {
-                                return target.index === element.index;
-                            });
-                            target = target.length > 0? target[0]:null;
+                      pid = response[0];
+                      portfolio_image_list.map((element, idx) => {
+                      // let target = portfolio_after.filter(target => {
+                      //     return target.index === element.index;
+                      // });
+                      // target = target.length > 0? target[0]:null;
+                      // if (target !== null) {
+                          promises.push(cur('portfolio_image_hst')
+                            .insert({
+                              pi_pfpk: pid,
+                              pi_dspk: portfolio_designer,
+                              pi_before: '',
+                              pi_after: element,
+                              pi_is_primary: idx === 0? 'Y':'N',
+                              pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
+                            }));
+                        // }
+                      });
 
-                            if (target !== null) {
-                                promises.push(cur('portfolio_image_hst')
-                                    .insert({
-                                        pi_pfpk: pid,
-                                        pi_dspk: portfolio_designer,
-                                        pi_before: element.value,
-                                        pi_after: target.value,
-                                        pi_is_primary: element.index === 0? 'Y':'N',
-                                        pi_recency: cur.raw('UNIX_TIMESTAMP() * -1')
-                                    }));
-                            }
-                        });
-
-                        return Promise.all(promises);
+                      return Promise.all(promises);
                     })
                     .then(responses => {
                         if (portfolio_document !== '') {
@@ -1508,38 +1508,38 @@ router.post('/request/save/:rqpk([0-9]+)', (req, res) => {
     let errorMsg = null;
     let updateObj = {};
 
-    const rq_is_valuable = req.body.request_is_valuable || 0;
-    const rq_is_contracted = req.body.request_is_contracted || 0;
+    const rq_is_valuable = req.body.rq_is_valuable || 0;
+    const rq_is_contracted = req.body.rq_is_contracted || 0;
 
     if (!rq_is_valuable) {
         ['0','1','2','3'].forEach(i => {
-            if(rq_is_valuable === i) errorMsg = '[request_is_valuable] 값이 올바르지 않습니다.';
+            if(rq_is_valuable === i) errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.';
         });
     }
     if (!rq_is_contracted) {
         ['0','1','2'].forEach(i => {
-            if(rq_is_contracted === i) errorMsg = '[request_is_contracted] 값이 올바르지 않습니다.';
+            if(rq_is_contracted === i) errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.';
         });
     }
 
     if (rq_is_valuable && rq_is_contracted) {
-        updateObj.rq_name = req.body.request_name || '';
-        updateObj.rq_family = req.body.request_family || '';
-        updateObj.rq_phone = req.body.request_phone || '';
-        updateObj.rq_size = req.body.request_size || '';
-        updateObj.rq_address_brief = req.body.request_address_brief || '';
-        updateObj.rq_address_detail = req.body.request_address_detail || '';
-        updateObj.rq_move_date = req.body.request_move_date || '';
-        updateObj.rq_style_likes = req.body.request_style_likes || '';
-        updateObj.rq_style_dislikes = req.body.request_style_dislikes || '';
-        updateObj.rq_color_likes = req.body.request_color_likes || '';
-        updateObj.rq_color_dislikes = req.body.request_color_dislikes || '';
-        updateObj.rq_budget = req.body.request_budget || '';
-        updateObj.rq_place = req.body.request_place || '';
-        updateObj.rq_date = req.body.request_date || '';
-        updateObj.rq_time = req.body.request_time || '';
-        updateObj.rq_request = req.body.request_request || '';
-        updateObj.rq_memo = req.body.request_memo || '';
+        updateObj.rq_name = req.body.rq_name || '';
+        updateObj.rq_family = req.body.rq_family || '';
+        updateObj.rq_phone = req.body.rq_phone || '';
+        updateObj.rq_size = req.body.rq_size || '';
+        updateObj.rq_address_brief = req.body.rq_address_brief || '';
+        updateObj.rq_address_detail = req.body.rq_address_detail || '';
+        updateObj.rq_move_date = req.body.rq_move_date || '';
+        updateObj.rq_style_likes = req.body.rq_style_likes || '';
+        updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
+        updateObj.rq_color_likes = req.body.rq_color_likes || '';
+        updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
+        updateObj.rq_budget = req.body.rq_budget || '';
+        updateObj.rq_place = req.body.rq_place || '';
+        updateObj.rq_date = req.body.rq_date || '';
+        updateObj.rq_time = req.body.rq_time || '';
+        updateObj.rq_request = req.body.rq_request || '';
+        updateObj.rq_memo = req.body.rq_memo || '';
         updateObj.rq_is_valuable = rq_is_valuable;
         updateObj.rq_is_contracted = rq_is_contracted;
 
@@ -1549,9 +1549,11 @@ router.post('/request/save/:rqpk([0-9]+)', (req, res) => {
         else if (updateObj.rq_phone === '') {
             errorMsg = '휴대폰 번호는 반드시 입력해야 합니다.';
         }
-        else if (regexPhone.test(updateObj.rq_phone) === false) {
+        else if (regexPhone.test(updateObj .rq_phone) === false) {
             errorMsg = '휴대폰 번호 형식이 올바르지 않습니다.';
         }
+
+        updateObj.rq_phone = cryptoHelper.encrypt(updateObj.rq_phone);
     }
     else {
         if (rq_is_valuable) {
@@ -1608,7 +1610,10 @@ router.post('/request/:rqpk([0-9]+)', (req, res) => {
                 request = response[0];
                 request.rq_size_str = request_size_map[request.rq_size];
                 request.rq_budget_str = request_budget_map[request.rq_budget];
-                request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
+                console.log(request.rq_phone)
+                request.rq_phone = cryptoHelper.decrypt(request.rq_phone);
+
+                // request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
             })
             .then(() => {
                 res.json(

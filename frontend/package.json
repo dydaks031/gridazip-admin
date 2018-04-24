@@ -1,14 +1,12 @@
 {
-  "name": "vue-admin",
-  "version": "0.1.12",
-  "description": "Vue Admin Panel Framework",
-  "repository": "vue-bulma/vue-admin",
-  "homepage": "https://admin.vuebulma.com",
-  "license": "MIT",
+  "name": "gridazip-admin",
+  "version": "0.1.0",
+  "description": "Gridazip admin site",
+  "homepage": "http://admin.gridazip.com",
   "author": {
-    "name": "Fangdun Cai",
-    "email": "cfddream@gmail.com",
-    "url": "fundon.me"
+    "name": "hyungwon.kang",
+    "email": "hyungwon.kang@gridazip.com",
+    "url": "gridazip.com"
   },
   "keywords": [
     "admin",
@@ -39,8 +37,11 @@
     "axios": "^0.15.3",
     "bulma": "^0.3.2",
     "font-awesome": "4.7.0",
+    "form-data": "^2.3.2",
     "mdi": "^1.8.36",
+    "moment": "^2.22.1",
     "plotly.js": "^1.24.2",
+    "underscore": "^1.8.3",
     "vue": "^2.2.2",
     "vue-axios": "^2.0.1",
     "vue-bulma-brace": "^0.1.0",

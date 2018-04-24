@@ -9,11 +9,11 @@
         <form v-on:submit.prevent="login">
           <label class="label">Email</label>
           <p class="control">
-            <input v-model="data.body.username" class="input" type="text" placeholder="email@example.org">
+            <input v-model="data.body.user_id" class="input" type="text" placeholder="email@example.org">
           </p>
           <label class="label">Password</label>
           <p class="control">
-            <input v-model="data.body.password" class="input" type="password" placeholder="password">
+            <input v-model="data.body.user_pw" class="input" type="password" placeholder="password">
           </p>
 
           <p class="control">
@@ -42,8 +42,8 @@ export default {
     return {
       data: {
         body: {
-          username: null,
-          password: null
+          user_id: null,
+          user_pw: null
         },
         rememberMe: false
       },
