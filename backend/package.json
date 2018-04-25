@@ -1,9 +1,8 @@
 {
   "name": "backend",
   "version": "0.0.0",
-  "private": true,
   "scripts": {
-    "start": "node ./node_modules/.bin/pm2 start bin/www --name gridazip-admin-site",
+    "start": "node ./node_modules/.bin/pm2 start bin/www --name gridazip-admin-site --watch",
     "poststart": "node ./node_modules/.bin/pm2 logs",
     "dev": "NODE_ENV=development nodemon ./bin/www"
   },
