@@ -8,7 +8,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import * as filters from './filters'
-import { TOGGLE_SIDEBAR } from 'vuex-store/mutation-types'
+import { TOGGLE_SIDEBAR } from './store/mutation-types'
 
 Vue.router = router
 Vue.use(VueAxios, axios)
@@ -42,7 +42,9 @@ const { state } = store
 
 router.beforeEach((route, redirect, next) => {
   if (state.app.device.isMobile && state.app.sidebar.opened) {
-    store.commit(TOGGLE_SIDEBAR, false)
+    store.commit(TOGGLE_SIDEBAR, {
+      opened: false
+    })
   }
   next()
 })

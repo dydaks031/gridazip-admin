@@ -51,7 +51,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      title: 'Vue Admin',
+      title: '그리다_집 어드민 페이지',
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
         : config.build.index,

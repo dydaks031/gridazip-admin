@@ -12,7 +12,10 @@ export default new Router({
     {
       name: 'Home',
       path: '/',
-      component: require('../views/Home')
+      component: require('../views/Home'),
+      meta: {
+        auth: true
+      }
     },
     {
       name: 'Login',
@@ -22,12 +25,18 @@ export default new Router({
     {
       name: '상담요청내역 상세',
       path: '/request-list/:id',
-      component: require('../views/requestList/detail')
+      component: require('../views/requestList/detail'),
+      meta: {
+        auth: true
+      }
     },
     {
       name: '포트폴리오 상세',
       path: '/portfolio/:id',
-      component: require('../views/portfolio/detail')
+      component: require('../views/portfolio/detail'),
+      meta: {
+        auth: true
+      }
     },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
