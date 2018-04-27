@@ -141,5 +141,7 @@
 </script>
 
 <style scoped>
-
+  article {
+    overflow: auto;
+  }
 </style>
