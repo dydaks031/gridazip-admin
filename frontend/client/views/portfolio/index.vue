@@ -56,7 +56,7 @@
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
 
-  const queryApi = '/api/admin/portfolio'
+  const queryApi = '/api/portfolio'
 
   export default {
     name: 'requestList',

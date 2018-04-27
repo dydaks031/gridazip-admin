@@ -71,8 +71,8 @@
   import _ from 'underscore'
   import 'cleave.js/dist/addons/cleave-phone.kr.js'
 
-  const queryApi = '/api/admin/portfolio'
-  const submitApi = '/api/admin/portfolio/save'
+  const queryApi = '/api/portfolio'
+  const submitApi = '/api/portfolio/save'
   const fileUploadApi = '/api/file/upload'
 
   export default {

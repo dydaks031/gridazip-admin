@@ -143,8 +143,8 @@
   import Cleave from 'vue-cleave'
   import 'cleave.js/dist/addons/cleave-phone.kr.js'
 
-  const queryApi = '/api/admin/request'
-  const submitApi = '/api/admin/request/save'
+  const queryApi = '/api/request'
+  const submitApi = '/api/request/save'
 
   export default {
     name: 'detail.vue',

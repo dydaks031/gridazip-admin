@@ -63,8 +63,8 @@
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
 
-  const queryApi = '/api/admin/request/list'
-  const rowStatusUpdateApi = '/api/admin/request/save'
+  const queryApi = '/api/request/list'
+  const rowStatusUpdateApi = '/api/request/save'
 
   export default {
     name: 'requestList',
