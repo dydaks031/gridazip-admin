@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const ip = require('ip');
 const paginationService = require('../../services/pagination/main');
+const FormatService = require('../../services/format/helper');
+const cryptoHelper = require('../../services/crypto/helper');
 const filterService = require('../../services/filter/main');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
@@ -130,7 +132,8 @@ router.post('/list', (req, res) => {
           })
         );
       })
-      .catch(() => {
+      .catch(err => {
+        console.log(err);
         res.json(
           resHelper.getError('상담요청 정보를 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
         )
