@@ -5,10 +5,9 @@ const logger = require('morgan');
 const get_ip = require('ipware')().get_ip;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const compression = require('compression')
+const compression = require('compression');
 const session = require('express-session');
 const mysqlSessionStore = require('./services/connection/session')(session);
-const subdomain = require('express-subdomain');
 const raven = require('raven');
 const moment = require('moment');
 const bearerToken = require('express-bearer-token');
@@ -16,7 +15,6 @@ const bearerToken = require('express-bearer-token');
 const env = process.env.NODE_ENV || 'development';
 
 const viewHelper = require('./services/view/helper');
-const cryptoHelper = require('./services/crypto/helper');
 const connectionHelper = require('./services/connection/helper');
 
 const global = require('./services/app/global');
@@ -36,11 +34,14 @@ const sessionStore = new mysqlSessionStore(Object.assign({
 }, sessConnectionOption));
 
 const index = require('./routes/index');
-const apiAdmin = require('./routes/api/admin');
+const apiCompany = require('./routes/api/company');
+const apiPortfolio = require('./routes/api/portfolio');
+const apiProfile = require('./routes/api/profile');
+const apiRequest = require('./routes/api/request');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 
-const authMiddleware = require('./middlewares/auth')
+const authMiddleware = require('./middlewares/auth');
 
 raven.config('https://0f22cdb7d6f14189b765414605f7eb36:a76850f0a2e94b97a2dcc95da88af720@sentry.io/159366').install();
 
@@ -83,9 +84,12 @@ app.use(session({
 }));
 
 app.use('/', index);
-app.use(/^\/(?:[^api](.*))\/?(?=\/|$)/i, index)
+app.use(/^\/(?:[^api](.*))\/?(?=\/|$)/i, index);
 
-app.use('/api/admin', apiAdmin);
+app.use('/api/company', apiCompany);
+app.use('/api/portfolio', apiPortfolio);
+app.use('/api/profile', apiProfile);
+app.use('/api/request', apiRequest);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
 
