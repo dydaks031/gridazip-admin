@@ -38,6 +38,7 @@ const apiCompany = require('./routes/api/company');
 const apiPortfolio = require('./routes/api/portfolio');
 const apiProfile = require('./routes/api/profile');
 const apiRequest = require('./routes/api/request');
+const apiConstruction = require('./routes/api/construction');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 
@@ -90,6 +91,7 @@ app.use('/api/company', apiCompany);
 app.use('/api/portfolio', apiPortfolio);
 app.use('/api/profile', apiProfile);
 app.use('/api/request', apiRequest);
+app.use('/api/construction', apiConstruction);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
 
