@@ -1,10 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const ip = require('ip');
-const paginationService = require('../../services/pagination/main');
-const FormatService = require('../../services/format/helper');
-const cryptoHelper = require('../../services/crypto/helper');
-const filterService = require('../../services/filter/main');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 
@@ -133,25 +128,27 @@ router.post('/process/list', (req, res) => {
   if (reqCtPk === '') {
     res.json(resHelper.getError('공사 키는 반드시 전송해야 합니다.'));
   }
-  knexBuilder.getConnection().then(cur => {
-    cur('construction_process_tbl')
-      .select('cp_pk', 'cp_name')
-      .where({'cp_ctpk':reqCtPk})
-      .orderBy('cp_name')
-      .then(response => {
-        res.json(
-          resHelper.getJson({
-            processList: response
-          })
-        );
-      })
-      .catch(err => {
-        console.log(err);
-        res.json(
-          resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
-        );
-      })
-  })
+  else {
+    knexBuilder.getConnection().then(cur => {
+      cur('construction_process_tbl')
+        .select('cp_pk', 'cp_name')
+        .where({'cp_ctpk':reqCtPk})
+        .orderBy('cp_name')
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              processList: response
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  }
 });
 
 
@@ -163,24 +160,27 @@ router.post('/process/detail/list', (req, res) => {
   if (reqCpPk === '') {
     res.json(resHelper.getError('공정 키는 반드시 전송해야 합니다.'));
   }
-  knexBuilder.getConnection().then(cur => {
-    cur('construction_process_tbl')
-      .select('cpd_pk', 'cpd_name')
-      .where({'cpd_cppk':reqCpPk})
-      .orderBy('cpd_name')
-      .then(response => {
-        res.json(
-          resHelper.getJson({
-            processDetailList: response
-          })
-        );
-      })
-      .catch(err => {
-        console.log(err);
-        res.json(
-          resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
-        );
-      })
-  })
+  else {
+    knexBuilder.getConnection().then(cur => {
+      cur('construction_process_detail_tbl')
+        .select('cpd_pk', 'cpd_name')
+        .where({'cpd_cppk':reqCpPk})
+        .orderBy('cpd_name')
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              processDetailList: response
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  }
+
 });
 module.exports = router;
