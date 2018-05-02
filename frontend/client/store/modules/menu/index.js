@@ -35,6 +35,16 @@ const state = {
         auth: true
       },
       component: lazyLoading('portfolio', true)
+    },
+    {
+      name: '협력업체 신청 목록',
+      path: '/partner-list',
+      meta: {
+        icon: 'fa-rocket',
+        link: 'partners/index.vue',
+        auth: true
+      },
+      component: lazyLoading('partners', true)
     }
   ]
 }

@@ -38,6 +38,14 @@ export default new Router({
         auth: true
       }
     },
+    {
+      name: '협력업체 상세',
+      path: '/partner-list/:id',
+      component: require('../views/partners/detail'),
+      meta: {
+        auth: true
+      }
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',
