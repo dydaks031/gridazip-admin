@@ -20,8 +20,7 @@
             </figure>
           </p>
           <label class="label">상세정보</label>
-          <p class="control">
-            {{ data.pn_qna }}
+          <p class="control" v-html="replaceNewLineCharQna">
           </p>
         </div>
       </article>
@@ -45,6 +44,11 @@
         imageList: [],
         id: '',
         moment
+      }
+    },
+    computed: {
+      replaceNewLineCharQna () {
+        return this.data.pn_qna.replace(/\n/gi, '<br />')
       }
     },
     mounted () {
