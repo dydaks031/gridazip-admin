@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const ip = require('ip');
 const paginationService = require('../../services/pagination/main');
 const FormatService = require('../../services/format/helper');
 const cryptoHelper = require('../../services/crypto/helper');
@@ -50,7 +49,7 @@ const request_budget_map = {
   'contact': '협의로 결정'
 };
 
-router.post('/list', (req, res) => {
+router.get('/', (req, res) => {
   let page = req.body['page'];
   let filter = req.body['filter'];
   let pageInst = new paginationService(page);
@@ -141,7 +140,81 @@ router.post('/list', (req, res) => {
   });
 });
 
-router.post('/save/:rqpk([0-9]+)', (req, res) => {
+
+router.post('/', (req, res) => {
+  const reqName = req.body.rq_name || '';
+  const reqPhone = req.body.rq_phone || '';
+  if (reqName.trim() === '') {
+    res.json(resHelper.getError('공사명은 반드시 입력해야 합니다.'));
+  }
+  else if (reqPhone.trim() === '') {
+    res.json(resHelper.getError('핸드폰번호는 반드시 입력해야 합니다.'));
+  }
+  else {
+    let insertObj = {};
+    insertObj.rq_name = reqName;
+    insertObj.rq_phone = reqPhone;
+    insertObj.rq_family = req.body.rq_family || '';
+    insertObj.rq_size = req.body.rq_size || '';
+    insertObj.rq_address_brief = req.body.rq_address_brief || '';
+    insertObj.rq_address_detail = req.body.rq_address_detail || '';
+    insertObj.rq_move_date = req.body.rq_move_date || '';
+    insertObj.rq_budget = req.body.rq_budget || '';
+    insertObj.rq_place = req.body.rq_place || '';
+    insertObj.rq_date = req.body.rq_date || '';
+    insertObj.rq_time = req.body.rq_time || '';
+    insertObj.rq_request = req.body.rq_request || '';
+    insertObj.rq_memo = req.body.rq_memo || '';
+    insertObj.rq_construction_type = req.body.rq_construction_type || '';
+    insertObj.rq_consulting_result = req.body.rq_consulting_result || '';
+    insertObj.rq_is_valuable = req.body.rq_is_valuable || 0;
+    insertObj.rq_is_contracted = req.body.rq_is_contracted || 0;
+
+    knexBuilder.getConnection().then(cur => {
+      cur('request_tbl')
+        .insert(insertObj)
+        .then(() => {
+          res.json(resHelper.getJson({
+            msg: '상담내역이 정상적으로 추가되었습니다.'
+          }));
+        })
+        .catch(err => {
+          console.error(err);
+          res.json(resHelper.getError('[0001] 상담내역을 추가하는 중 오류가 발생하였습니다.'));
+        })
+    })
+  }
+});
+
+router.delete('/:rqpk([0-9]+)', (req, res) => {
+  const reqPk = req.params.rqpk || '';
+  if (reqPk === '') {
+    res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
+  }
+  else {
+    knexBuilder.getConnection().then(cur => {
+      cur('request_tbl')
+        .delete({
+          rq_pk: reqPk
+        })
+        .finally(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        })
+        .catch(reason => {
+          console.error(reason);
+          res.json(
+            resHelper.getError('상담내역을 삭제하는 중 오류가 발생하였습니다.')
+          );
+        });
+    });
+  }
+}
+
+router.put('/:rqpk([0-9]+)', (req, res) => {
   const rq_pk = req.params.rqpk;
   const regexPhone = /^01([0|1|6|7|8|9]?)-?([0-9]{3,4})-?([0-9]{4})$/;
   let errorMsg = null;
@@ -179,6 +252,8 @@ router.post('/save/:rqpk([0-9]+)', (req, res) => {
     updateObj.rq_time = req.body.rq_time || '';
     updateObj.rq_request = req.body.rq_request || '';
     updateObj.rq_memo = req.body.rq_memo || '';
+    updateObj.rq_construction_type = req.body.rq_construction_type || '';
+    updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
     updateObj.rq_is_valuable = rq_is_valuable;
     updateObj.rq_is_contracted = rq_is_contracted;
 
@@ -231,7 +306,7 @@ router.post('/save/:rqpk([0-9]+)', (req, res) => {
   }
 });
 
-router.post('/:rqpk([0-9]+)', (req, res) => {
+router.get('/:rqpk([0-9]+)', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     let rq_pk = req.params.rqpk;
     let request;
@@ -249,7 +324,6 @@ router.post('/:rqpk([0-9]+)', (req, res) => {
         request = response[0];
         request.rq_size_str = request_size_map[request.rq_size];
         request.rq_budget_str = request_budget_map[request.rq_budget];
-        console.log(request.rq_phone)
         request.rq_phone = cryptoHelper.decrypt(request.rq_phone);
 
         // request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
