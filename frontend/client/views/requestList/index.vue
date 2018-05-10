@@ -14,6 +14,7 @@
               <col width="15%" />
               <col width="auto" />
               <col width="auto" />
+              <col width="auto" />
             </colgroup>
             <thead>
             <tr>
@@ -25,6 +26,7 @@
               <th>신청일자</th>
               <th>유효여부</th>
               <th>방문상담여부</th>
+              <th>삭제</th>
             </tr>
             </thead>
             <tbody>
@@ -44,6 +46,9 @@
                 <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="1" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >X</label>
                 <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="2" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >O</label>
               </td>
+              <td>
+                <button class="button" v-on:click.stop="deleteRow(item)">삭제</button>
+              </td>
             </tr>
             </tbody>
           </table>
@@ -62,14 +67,32 @@
   import router from '../../router'
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
 
-  const queryApi = '/api/request/list'
-  const rowStatusUpdateApi = '/api/request/save'
+  const NotificationComponent = Vue.extend(Notification)
+
+  const queryApi = '/api/request'
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   export default {
     name: 'requestList',
     components: {
-      PaginationVue
+      PaginationVue,
+      Notification
     },
     data () {
       return {
@@ -84,7 +107,7 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        this.$http.post(queryApi, {
+        this.$http.get(queryApi, {
           page: this.page.get(),
           filter: this.filter.get()
         }).then((response) => {
@@ -106,8 +129,8 @@
         })
       },
       updateRowState: function (sendData = {}, key) {
-        console.log(`${rowStatusUpdateApi}/${key}`)
-        this.$http.post(`${rowStatusUpdateApi}/${key}`, sendData)
+        console.log(`${queryApi}/${key}`)
+        this.$http.put(`${queryApi}/${key}`, sendData)
           .then((data) => {
 
           })
@@ -124,6 +147,19 @@
         const sendData = {}
         sendData[key] = curItem[key]
         this.updateRowState(sendData, curItem.rq_pk)
+      },
+      deleteRow (curItem) {
+        this.$http.delete(`${queryApi}/${curItem.rq_pk}`, {})
+          .then((data) => {
+            openNotification({
+              message: '삭제되었습니다.',
+              type: 'success',
+              duration: 500
+            })
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       },
       doThis () {
 
