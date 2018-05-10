@@ -52,6 +52,8 @@ const request_budget_map = {
 router.get('/', (req, res) => {
   let page = req.body['page'];
   let filter = req.body['filter'];
+  let point= req.query.point;
+  let pageIndex = req.query.page;
   let pageInst = new paginationService(page);
   let filterInst = new filterService(filter);
   let pageData = pageInst.get();
@@ -65,6 +67,12 @@ router.get('/', (req, res) => {
       })
     );
     return;
+  }
+
+  if (point !== 'null' && pageIndex !== 'null') {
+    pageInst.setPoint(point)
+    pageInst.setPage(pageIndex)
+    pageData = pageInst.get()
   }
 
   knexBuilder.getConnection().then(cur => {

@@ -4,6 +4,9 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <h4 class="title">상담신청내역</h4>
+          <div class="buttons has-addons is-right">
+            <a class="button is-primary">등록</a>
+          </div>
           <table class="table">
             <colgroup>
               <col width="10%" />
@@ -107,7 +110,7 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        this.$http.get(queryApi, {
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
           page: this.page.get(),
           filter: this.filter.get()
         }).then((response) => {
@@ -154,8 +157,11 @@
             openNotification({
               message: '삭제되었습니다.',
               type: 'success',
-              duration: 500
+              duration: 1500
             })
+            this.page.setPage(this.page.getPage() - this.page.getLimit())
+            this.page.setLimit(20)
+            this.loadData()
           })
           .catch((error) => {
             console.log(error)
@@ -167,6 +173,8 @@
       moveToPagination (index) {
         console.log('curIndex' + index)
         this.page.setIndex(index)
+        console.log(this.page)
+        console.log(this.filter)
         this.loadData()
       }
     },
