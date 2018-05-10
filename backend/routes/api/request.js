@@ -194,10 +194,11 @@ router.delete('/:rqpk([0-9]+)', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       cur('request_tbl')
-        .delete({
+        .where({
           rq_pk: reqPk
         })
-        .finally(() => {
+        .del()
+        .then(() => {
           res.json(
             resHelper.getJson({
               msg: 'ok'
