@@ -102,6 +102,7 @@ app.use(function (req, res, next) {
   //let err = new Error('Not Found');
   //err.status = 404;
   // next(err);
+  // console.log(req)
   res.redirect('/');
 });
 
@@ -113,7 +114,11 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.redirect('error');
+  console.log(err.message)
+  res.json({
+    error: err.message,
+    code: err.status || 500
+  });
 });
 
 module.exports = app;

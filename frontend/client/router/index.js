@@ -48,8 +48,16 @@ export default new Router({
     },
     {
       name: '협력업체 상세',
-      path: '/partner-list/:id',
+      path: '/partner-list/:id([0-9]+)',
       component: require('../views/partners/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '협력업체 상세',
+      path: '/partner-list/register',
+      component: require('../views/partners/register'),
       meta: {
         auth: true
       }

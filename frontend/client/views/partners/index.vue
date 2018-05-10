@@ -4,6 +4,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <h4 class="title">상담신청내역</h4>
+          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>
               <col width="10%" />
@@ -49,8 +50,7 @@
   import PaginationVue from '../components/pagination'
   import AppLink from '../components/app-link'
 
-  const queryApi = '/api/partner/list'
-  const rowStatusUpdateApi = '/api/request/save'
+  const queryApi = '/api/partner'
 
   export default {
     name: 'partnerList',
@@ -71,7 +71,8 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        this.$http.post(queryApi, {
+        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`)
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
           page: this.page.get(),
           filter: this.filter.get()
         }).then((response) => {
@@ -92,26 +93,6 @@
           params: curItem
         })
       },
-      updateRowState: function (sendData = {}, key) {
-        console.log(`${rowStatusUpdateApi}/${key}`)
-        this.$http.post(`${rowStatusUpdateApi}/${key}`, sendData)
-          .then((data) => {
-
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      },
-      updateRowValuable (curItem, key) {
-        const sendData = {}
-        sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.pn_pk)
-      },
-      updateRowContracted (curItem, key) {
-        const sendData = {}
-        sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.pn_pk)
-      },
       doThis () {
 
       },
@@ -119,7 +100,19 @@
         console.log('curIndex' + index)
         this.page.setIndex(index)
         this.loadData()
+      },
+      moveToRegister () {
+        router.push({
+          path: '/partner-list/register'
+        })
       }
+    },
+    beforeRouteUpdate (to, from, next) {
+      // just use `this`
+      console.log(`to: ${to}`)
+      console.log(`from: ${from}`)
+      this.loadData()
+      next()
     },
     mounted () {
       this.loadData()

@@ -123,7 +123,19 @@
               </select>
             </div>
           </div>
-          <label class="label">메모</label>
+          <label class="label">공사종류</label>
+          <div class="control">
+            <div class="is-fullwidth">
+              <textarea class="textarea" name="request_memo" v-model="data.rq_construction_type"></textarea>
+            </div>
+          </div>
+          <label class="label">상담결과</label>
+          <div class="control">
+            <div class="is-fullwidth">
+              <textarea class="textarea" name="request_memo" v-model="data.rq_consulting_result"></textarea>
+            </div>
+          </div>
+          <label class="label">공사내용</label>
           <div class="control">
             <div class="is-fullwidth">
               <textarea class="textarea" name="request_memo" v-model="data.rq_memo"></textarea>
@@ -148,7 +160,7 @@
   import Notification from 'vue-bulma-notification'
 
   const NotificationComponent = Vue.extend(Notification)
-
+  // @TODO require Cleave library bug fixed
   const openNotification = (propsData = {
     title: '',
     message: '',

@@ -4,7 +4,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <h4 class="title">상담신청내역</h4>
-          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegist">등록</a>
+          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>
               <col width="10%" />
@@ -175,7 +175,7 @@
         console.log(this.filter)
         this.loadData()
       },
-      moveToRegist () {
+      moveToRegister () {
         router.push({
           path: '/request-list/register'
         })
