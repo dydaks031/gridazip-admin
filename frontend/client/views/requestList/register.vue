@@ -2,7 +2,6 @@
   <div class="tile is-ancestor">
     <div class="tile is-parent">
       <article class="tile is-child box">
-        <h4 class="title">상담신청내역 상세</h4>
         <div class="block">
           <label class="label">유효여부</label>
           <p class="control">
@@ -30,17 +29,13 @@
               O
             </label>
           </p>
-          <label class="label">신청일자</label>
+          <label class="label" for="rqName">이름</label>
           <p class="control">
-            {{ (data.rq_reg_dt === '0000-00-00' || !data.rq_reg_dt) ? '' : moment(data.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD') }}
-          </p>
-          <label class="label">이름</label>
-          <p class="control">
-            {{ data.rq_name }}
+            <input class="input" type="text" v-model="data.rq_name" id="rqName"/>
           </p>
           <label class="label">연락처</label>
           <p class="control">
-            <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr'}" v-model="data.rq_phone" v-on:change="updateValue">
+            <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr' }" v-model="data.rq_phone">
 
             </cleave>
           </p>
@@ -163,17 +158,30 @@
     })
   }
 
-  const queryApi = '/api/request'
+  // const queryApi = '/api/request'
+  const submitApi = '/api/request'
 
   export default {
-    name: 'detail',
+    name: 'regist',
     components: {
       Datepicker,
-      Cleave
+      Cleave,
+      Notification
     },
     data () {
       return {
         data: {
+          rq_is_valuable: '',
+          rq_is_contracted: '',
+          rq_name: '',
+          rq_size: '',
+          rq_budget: '',
+          rq_address_brief: '',
+          rq_address_detail: '',
+          rq_move_date: '',
+          rq_date: '',
+          rq_time: '',
+          rq_memo: '',
           rq_phone: ''
         },
         id: '',
@@ -181,32 +189,9 @@
       }
     },
     mounted () {
-      console.log(this.$route)
-      this.id = this.$route.params.id
-      if (!this.id) {
-        this.$router.back()
-      }
-      this.loadDetail(this.id)
+
     },
     methods: {
-      loadDetail (id) {
-        console.log(`${queryApi}/${id}`)
-        this.$http.get(`${queryApi}/${id}`)
-        .then((response) => {
-          console.log(response)
-          if (response.data.code !== 200) {
-            return
-          }
-          this.data = response.data.data.data
-          Vue.set(this.data, 'rq_phone', this.data.rq_phone)
-        }).catch((error) => {
-          console.log(error)
-        })
-      },
-      updateValue (newValue, oldValue) {
-        console.log(`newValue: ${newValue}`)
-        console.log(`oldValue: ${oldValue}`)
-      },
       validate () {
         if (this.data.rq_name === '') {
           openNotification({
@@ -227,26 +212,32 @@
         return true
       },
       submitData () {
+        console.log(this.data)
+
         if (this.validate()) {
-          debugger
-          console.log(`${queryApi}/${this.id}`)
           this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
-          this.$http.put(`${queryApi}/${this.id}`, this.data)
+
+          console.log(`${submitApi}/${this.id}`)
+          this.$http.post(`${submitApi}`, this.data)
             .then((response) => {
               console.log(response)
               if (response.data.code !== 200) {
                 return false
               }
-              openNotification({
-                message: '상담신청 수정이 완료되었습니다.',
-                type: 'success',
-                duration: 2500
-              })
-              this.$router.back()
+
+              this.openModalCard()
             }).catch((error) => {
               console.log(error)
             })
         }
+      },
+      openModalCard () {
+        openNotification({
+          message: '상담신청 등록이 완료되었습니다.',
+          type: 'success',
+          duration: 2500
+        })
+        this.$router.back()
       }
     }
   }

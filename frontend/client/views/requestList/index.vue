@@ -4,9 +4,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <h4 class="title">상담신청내역</h4>
-          <div class="buttons has-addons is-right">
-            <a class="button is-primary">등록</a>
-          </div>
+          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegist">등록</a>
           <table class="table">
             <colgroup>
               <col width="10%" />
@@ -176,7 +174,19 @@
         console.log(this.page)
         console.log(this.filter)
         this.loadData()
+      },
+      moveToRegist () {
+        router.push({
+          path: '/request-list/register'
+        })
       }
+    },
+    beforeRouteUpdate (to, from, next) {
+      // just use `this`
+      console.log(`to: ${to}`)
+      console.log(`from: ${from}`)
+      this.loadData()
+      next()
     },
     mounted () {
       this.loadData()
@@ -187,5 +197,8 @@
 <style scoped>
   article {
     overflow: auto;
+  }
+  #addBtn {
+    margin: 1rem 0;
   }
 </style>

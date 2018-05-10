@@ -24,8 +24,16 @@ export default new Router({
     },
     {
       name: '상담요청내역 상세',
-      path: '/request-list/:id',
+      path: '/request-list/:id([0-9]+)',
       component: require('../views/requestList/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '상담요청내용 등록',
+      path: '/request-list/register',
+      component: require('../views/requestList/register'),
       meta: {
         auth: true
       }
