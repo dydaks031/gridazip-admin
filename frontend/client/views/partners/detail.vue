@@ -48,6 +48,10 @@
     },
     computed: {
       replaceNewLineCharQna () {
+        if (!this.data.pn_qna) {
+          return ''
+        }
+
         return this.data.pn_qna.replace(/\n/gi, '<br />')
       }
     },
