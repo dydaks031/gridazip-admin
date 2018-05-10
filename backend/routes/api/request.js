@@ -212,7 +212,7 @@ router.delete('/:rqpk([0-9]+)', (req, res) => {
         });
     });
   }
-}
+});
 
 router.put('/:rqpk([0-9]+)', (req, res) => {
   const rq_pk = req.params.rqpk;
