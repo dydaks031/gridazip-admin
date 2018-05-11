@@ -240,8 +240,6 @@
       },
       submitData () {
         if (this.validate()) {
-          debugger
-          console.log(`${queryApi}/${this.id}`)
           this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
           this.$http.put(`${queryApi}/${this.id}`, this.data)
             .then((response) => {
