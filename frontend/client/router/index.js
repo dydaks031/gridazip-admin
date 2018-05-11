@@ -54,14 +54,6 @@ export default new Router({
         auth: true
       }
     },
-    {
-      name: '협력업체 상세',
-      path: '/partner-list/register',
-      component: require('../views/partners/register'),
-      meta: {
-        auth: true
-      }
-    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',
