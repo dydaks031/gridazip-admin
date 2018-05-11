@@ -126,19 +126,19 @@
           <label class="label">공사종류</label>
           <div class="control">
             <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_construction_type"></textarea>
+              <textarea class="textarea" name="rq_construction_type" v-model="data.rq_construction_type"></textarea>
             </div>
           </div>
           <label class="label">상담결과</label>
           <div class="control">
             <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_consulting_result"></textarea>
+              <textarea class="textarea" name="rq_consulting_result" v-model="data.rq_consulting_result"></textarea>
             </div>
           </div>
           <label class="label">공사내용</label>
           <div class="control">
             <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_memo"></textarea>
+              <textarea class="textarea" name="rq_memo" v-model="data.rq_memo"></textarea>
             </div>
           </div>
           <p class="control">
@@ -254,7 +254,7 @@
                 type: 'success',
                 duration: 2500
               })
-              this.$router.back()
+              // this.$router.back()
             }).catch((error) => {
               console.log(error)
             })
