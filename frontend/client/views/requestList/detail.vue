@@ -252,7 +252,7 @@
                 type: 'success',
                 duration: 2500
               })
-              // this.$router.back()
+              this.$router.back()
             }).catch((error) => {
               console.log(error)
             })
