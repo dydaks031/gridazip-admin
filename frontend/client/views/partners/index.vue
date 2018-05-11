@@ -121,8 +121,14 @@
               type: 'success',
               duration: 1500
             })
-            this.page.setPage(this.page.getPage() - this.page.getLimit())
+            if (this.page.getPage() > this.page.getLimit()) {
+              this.page.setPage(this.page.getPage() - this.page.getLimit())
+            } else {
+              this.page.setPage(0)
+              this.page.setPoint(null)
+            }
             this.page.setLimit(20)
+
             this.loadData()
           })
           .catch((error) => {

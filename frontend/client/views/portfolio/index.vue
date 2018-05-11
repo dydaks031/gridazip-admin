@@ -4,6 +4,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <h4 class="title">포트폴리오</h4>
+          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>
               <col />
@@ -36,7 +37,7 @@
               <td>{{item.pf_size}} 평</td>
               <td>{{item.pf_price}} 만원</td>
               <td>{{(item.pf_reg_dt === '0000-00-00' || !item.pf_reg_dt) ? '' : moment(item.pf_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
-              <td><button class="button">삭제</button></td>
+              <td><button class="button" v-on:click.stop="deleteRow(item)">삭제</button></td>
             </tr>
             </tbody>
           </table>
@@ -55,6 +56,24 @@
   import router from '../../router'
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   const queryApi = '/api/portfolio'
 
@@ -76,7 +95,8 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        this.$http.post(queryApi, {
+        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`)
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
           page: this.page.get(),
           filter: this.filter.get()
         }).then((response) => {
@@ -101,7 +121,41 @@
         console.log('curIndex' + index)
         this.page.setIndex(index)
         this.loadData()
+      },
+      moveToRegister () {
+        router.push({
+          path: `/portfolio/register`
+        })
+      },
+      deleteRow (curItem) {
+        this.$http.delete(`${queryApi}/${curItem.pf_pk}`, {})
+          .then((data) => {
+            openNotification({
+              message: '삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            if (this.page.getPage() > this.page.getLimit()) {
+              this.page.setPage(this.page.getPage() - this.page.getLimit())
+            } else {
+              this.page.setPage(0)
+              this.page.setPoint(null)
+            }
+
+            this.page.setLimit(20)
+            this.loadData()
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       }
+    },
+    beforeRouteUpdate (to, from, next) {
+      // just use `this`
+      console.log(`to: ${to}`)
+      console.log(`from: ${from}`)
+      this.loadData()
+      next()
     },
     mounted () {
       this.loadData()

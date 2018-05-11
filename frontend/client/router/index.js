@@ -40,8 +40,16 @@ export default new Router({
     },
     {
       name: '포트폴리오 상세',
-      path: '/portfolio/:id',
+      path: '/portfolio/:id([0-9]+)',
       component: require('../views/portfolio/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '포트폴리오 등록',
+      path: '/portfolio/register',
+      component: require('../views/portfolio/register'),
       meta: {
         auth: true
       }

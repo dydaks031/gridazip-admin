@@ -67,13 +67,8 @@
   import Cleave from 'vue-cleave'
   import FormData from 'form-data'
   import Vue from 'vue'
-  import _ from 'underscore'
   import 'cleave.js/dist/addons/cleave-phone.kr.js'
   import Notification from 'vue-bulma-notification'
-
-  const queryApi = '/api/portfolio'
-  const submitApi = '/api/portfolio'
-  const fileUploadApi = '/api/file/upload'
 
   const NotificationComponent = Vue.extend(Notification)
   // @TODO require Cleave library bug fixed
@@ -91,8 +86,11 @@
     })
   }
 
+  const submitApi = '/api/portfolio'
+  const fileUploadApi = '/api/file/upload'
+
   export default {
-    name: 'portfolioDetail',
+    name: 'portfolioRegister',
     components: {
       Datepicker,
       Cleave
@@ -106,25 +104,9 @@
       }
     },
     mounted () {
-      this.id = this.$route.params.id
-      if (!this.id) {
-        this.$router.back()
-      }
-      this.loadDetail(this.id)
+
     },
     methods: {
-      loadDetail (id) {
-        this.$http.get(`${queryApi}/${id}`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            this.data = response.data.data.data
-            this.imageList = _.pluck(response.data.data.images, 'pi_after')
-          }).catch((error) => {
-            console.log(error)
-          })
-      },
       callFileUpload (index) {
         const currentTarget = this.$refs[index]
         if (currentTarget.length > 0) {
@@ -167,19 +149,18 @@
       submitData () {
         if (this.validate()) {
           this.data.portfolio_image_list = this.imageList
-          this.$http.put(`${submitApi}/${this.id}`, this.data)
+          this.$http.post(`${submitApi}`, this.data)
             .then((response) => {
               if (response.data.code !== 200) {
                 return false
               }
-
+              // this.data = response.data.data.data
               openNotification({
                 message: '포트폴리오 수정이 완료되었습니다.',
                 type: 'success',
                 duration: 2500
               })
               this.$router.back()
-              // this.data = response.data.data.data
             }).catch((error) => {
               console.log(error)
             })
