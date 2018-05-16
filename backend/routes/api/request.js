@@ -153,7 +153,7 @@ router.post('/', (req, res) => {
   const reqName = req.body.rq_name || '';
   const reqPhone = req.body.rq_phone || '';
   if (reqName.trim() === '') {
-    res.json(resHelper.getError('공사명은 반드시 입력해야 합니다.'));
+    res.json(resHelper.getError('고객명은 반드시 입력해야 합니다.'));
   }
   else if (reqPhone.trim() === '') {
     res.json(resHelper.getError('핸드폰번호는 반드시 입력해야 합니다.'));
