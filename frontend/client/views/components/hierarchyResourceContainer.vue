@@ -40,9 +40,6 @@
       removeChildData (model) {
         let currentId = model.id
         let child
-
-        this.treeCount += 1
-
         child = _.filter(this.curData, (item) => {
           return item.parentId === currentId
         })
@@ -53,7 +50,6 @@
             this.removeChildData(child[i])
           }
         }
-        console.log(`treeCount: ${this.treeCount}`)
       }
     },
     mounted () {

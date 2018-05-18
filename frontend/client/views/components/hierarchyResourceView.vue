@@ -19,7 +19,7 @@
     },
     data () {
       return {
-        isEnableCallApi: false,
+        isEnableCallApi: false
       }
     },
     mounted () {
