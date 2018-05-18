@@ -45,6 +45,16 @@ const state = {
         auth: true
       },
       component: lazyLoading('partners', true)
+    },
+    {
+      name: 'Sandbox',
+      path: '/estimate',
+      meta: {
+        icon: 'fa-rocket',
+        link: 'estimate/index.vue',
+        auth: true
+      },
+      component: lazyLoading('estimate', true)
     }
   ]
 }
