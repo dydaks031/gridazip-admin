@@ -38,21 +38,34 @@
         })
         this.removeChildData(model, curDepthTarget, model)
       },
+      /**
+       * recursive function
+       * @param model model to removed
+       * @param target selected element's one depth child
+       * @param parent selected element
+       *
+       */
       removeChildData (model, target, parent) {
         let currentId = model.id
         let child
         child = _.filter(this.curData, (item) => {
           return item.parentId === currentId
         })
+
+        // has child element in parent element
         if (child.length > 0) {
           for (let i = 0; i < child.length; i += 1) {
+            // haven't data property when initialize component
             if (!child[i].hasOwnProperty('data') || !child[i].data) {
               child[i].data = []
             }
+            // remove child data
             child[i].data.length = 0
             const isReloadItem = target.find((item) => { return item.id === child[i].id })
-            // reload 할 대상인 경우
+
+            // if child element need api request (selected element's one depth child)
             if (typeof isReloadItem === 'object') {
+              // call to child's method
               EventBus.$emit('reloadView', {
                 id: isReloadItem.id,
                 data: _.find(parent.data, (_item) => {

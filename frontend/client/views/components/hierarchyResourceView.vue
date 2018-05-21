@@ -11,7 +11,6 @@
   import _ from 'underscore'
   import EventBus from '../../services/eventBus'
   import utils from '../../services/utils'
-  import Vue from 'vue'
 
   export default {
     name: 'hierarchy-resource-view',
@@ -26,7 +25,6 @@
       }
     },
     mounted () {
-      // TODO: call Api and isEnableCallApi to false
       this.keyList = this.model.keyList
 
       if (this.model.parentId === null) {
@@ -36,7 +34,6 @@
     methods: {
       changedView (data) {
         data.is_modify = !data.is_modify
-        this.$forceUpdate()
       },
       changedColor (data) {
         this.model.data = _.map(this.model.data, (item) => {
@@ -44,6 +41,7 @@
           return item
         })
         data.isSelected = true
+        this.$forceUpdate()
         this.$emit('selectedView', this.model)
       },
       loadData (data = {}) {
@@ -68,13 +66,16 @@
     },
     created () {
       EventBus.$on('reloadView', (options) => {
+        // update target model id
         const id = options.id
+        // parent's data
         const data = options.data
+        // parent's object keyList
         const keyList = options.keyList
-        Vue.set(this.model, 'data', this.model.data)
         this.$forceUpdate()
         if (this.model.id === id) {
           const sendData = {}
+          // send to parent's pk
           sendData[keyList.id] = data[keyList.id]
           this.loadData(sendData)
         }
