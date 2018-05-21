@@ -111,7 +111,7 @@ router.delete('/:pk([0-9]+)', (req, res) => {
         .catch(reason => {
           console.error(reason);
           res.json(
-            resHelper.getError('상담내역을 삭제하는 중 오류가 발생하였습니다.')
+            resHelper.getError('협력업체를 삭제하는 중 오류가 발생하였습니다.')
           );
         });
     });

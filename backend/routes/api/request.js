@@ -161,7 +161,7 @@ router.post('/', (req, res) => {
   else {
     let insertObj = {};
     insertObj.rq_name = reqName;
-    insertObj.rq_phone = reqPhone;
+    insertObj.rq_phone = cryptoHelper.encrypt(reqPhone);
     insertObj.rq_family = req.body.rq_family || '';
     insertObj.rq_size = req.body.rq_size || '';
     insertObj.rq_address_brief = req.body.rq_address_brief || '';
