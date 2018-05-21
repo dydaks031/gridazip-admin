@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="columns" >
-      <hierarchy-resource-view v-for="tree in curData" :model="tree" :key="tree.id" v-on:changed-view="changedSelectedData" v-on:selectedView="changedSelectedView"/>
+      <hierarchy-resource-view v-for="tree in curData" :model="tree" :key="tree.id" v-on:changed-view="changedSelectedData" v-on:selectedView="changedSelectedView" />
     </div>
   </div>
 </template>
@@ -11,6 +11,7 @@
   import META_LODING_CONFIG from '../../config/meta-loading-config'
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
+  import EventBus from '../../services/eventBus'
 
   export default {
     name: 'hierarchy-resource-container',
@@ -32,12 +33,12 @@
         console.log(changed, type)
       },
       changedSelectedView (model) {
-        console.log(model)
-        // model.isSelected = !model.isSelected
-        this.treeCount = 0
-        this.removeChildData(model)
+        const curDepthTarget = _.filter(this.curData, (item) => {
+          return item.parentId === model.id
+        })
+        this.removeChildData(model, curDepthTarget, model)
       },
-      removeChildData (model) {
+      removeChildData (model, target, parent) {
         let currentId = model.id
         let child
         child = _.filter(this.curData, (item) => {
@@ -45,9 +46,22 @@
         })
         if (child.length > 0) {
           for (let i = 0; i < child.length; i += 1) {
-            console.log(child[i].id)
-            child[i].data = []
-            this.removeChildData(child[i])
+            if (!child[i].hasOwnProperty('data') || !child[i].data) {
+              child[i].data = []
+            }
+            child[i].data.length = 0
+            const isReloadItem = target.find((item) => { return item.id === child[i].id })
+            // reload 할 대상인 경우
+            if (typeof isReloadItem === 'object') {
+              EventBus.$emit('reloadView', {
+                id: isReloadItem.id,
+                data: _.find(parent.data, (_item) => {
+                  return _item.isSelected
+                }),
+                keyList: parent.keyList
+              })
+            }
+            this.removeChildData(child[i], target, parent)
           }
         }
       }

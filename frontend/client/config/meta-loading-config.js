@@ -9,54 +9,49 @@ export default {
         'label': '공사',
         'id': 'construction',
         'parentId': null,
-        'data': [{
-          '_id': 1,
-          'name': '타일'
-        }, {
-          '_id': 2,
-          'name': '목공'
-        }, {
-          '_id': 3,
-          'name': '전기'
-        }, {
-          '_id': 4,
-          'name': '철거'
-        }, {
-          '_id': 5,
-          'name': '도배'
-        }]
+        'api': '/api/construction',
+        'keyList': {
+          list: 'constructionList',
+          id: 'ct_pk',
+          name: 'ct_name',
+          order: 'ct_order'
+        }
       },
       {
         'label': '공정',
         'id': 'constructionProcess',
         'parentId': 'construction',
-        'data': [{
-          '_id': 1,
-          'name': '벽, 본드'
-        }, {
-          '_id': 2,
-          'name': '벽, 떠발이'
-        }]
+        'api': '/api/construction/process',
+        'keyList': {
+          list: 'processList',
+          id: 'cp_pk',
+          name: 'cp_name',
+          order: 'cp_order'
+        }
       },
       {
         'label': '상세공정',
         'id': 'constructionProcessDetail',
         'parentId': 'constructionProcess',
-        'data': [{
-          '_id': 1,
-          'name': '가로일자'
-        }, {
-          '_id': 2,
-          'name': '세로일자'
-        }, {
-          '_id': 3,
-          'name': '가로지그재그'
-        }]
+        'api': '/api/construction/process/detail',
+        'keyList': {
+          list: 'processDetailList',
+          id: 'cpd_pk',
+          name: 'cpd_name',
+          order: 'cpd_order'
+        }
       },
       {
         'label': '공사 위치',
         'id': 'constructionPosition',
-        'parentId': null
+        'api': '/api/construction/place',
+        'parentId': null,
+        'keyList': {
+          list: 'placeList',
+          id: 'cp_pk',
+          name: 'cp_name',
+          order: 'cp_order'
+        }
       }
     ],
     resource: [

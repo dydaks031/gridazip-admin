@@ -297,7 +297,7 @@ router.put('/place/order', (req, res) => {
 /* 공정 */
 
 router.get('/process', (req, res) => {
-  const reqCtPk = req.query.ctPk || '';
+  const reqCtPk = req.query.ct_pk || '';
   if (reqCtPk === '') {
     res.json(resHelper.getError('공사 키는 반드시 전송해야 합니다.'));
   }
@@ -326,7 +326,7 @@ router.get('/process', (req, res) => {
 });
 
 router.post('/process', (req, res) => {
-  const reqCtPk = req.body.ctPk || '';
+  const reqCtPk = req.body.ct_pk || '';
   const reqName = req.body.name || '';
 
   if (reqName.trim() === '' || reqCtPk === '') {
@@ -406,7 +406,7 @@ router.delete('/process/:pk([0-9]+)', (req, res) => {
 /* 공정상세 */
 
 router.get('/process/detail', (req, res) => {
-  const reqCpPk = req.query.cpPk || '';
+  const reqCpPk = req.query.cp_pk || '';
   if (reqCpPk === '') {
     res.json(resHelper.getError('공정 키는 반드시 전송해야 합니다.'));
   }
@@ -435,7 +435,7 @@ router.get('/process/detail', (req, res) => {
 
 router.post('/process/detail', (req, res) => {
   const reqName = req.body.name || '';
-  const reqCpPk = req.body.cpPk || '';
+  const reqCpPk = req.body.cp_pk || '';
   const reqLaborCosts = req.body.laborCosts || '';
   if (reqName.trim() === '' || reqCpPk === '' || reqLaborCosts === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
