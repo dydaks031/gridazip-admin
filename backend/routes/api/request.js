@@ -179,6 +179,7 @@ router.post('/', (req, res) => {
     insertObj.rq_is_contracted = req.body.rq_is_contracted || 0;
 
     knexBuilder.getConnection().then(cur => {
+      insertObj.rq_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
