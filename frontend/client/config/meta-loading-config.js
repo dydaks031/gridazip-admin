@@ -63,55 +63,52 @@ export default {
         'label': '자재분류',
         'id': 'resourceCategory',
         'parentId': null,
-        'data': [{
-          _id: 1,
-          name: '목자재'
-        }, {
-          _id: 2,
-          name: '타일자재'
-        }],
+        'api': '/api/resource/category',
+        'keyList': {
+          list: 'resourceCategoryList',
+          id: 'rc_pk',
+          name: 'rc_name',
+          order: 'rc_order'
+        },
         isDetailEdit: false
       },
       {
         'label': '자재군',
         'id': 'resourceType',
         'parentId': 'resourceCategory',
-        'data': [{
-          _id: 1,
-          name: '사각타일'
-        }, {
-          _id: 2,
-          name: '육각타일'
-        }, {
-          _id: 3,
-          name: '12각타일'
-        }],
+        'api': '/api/resource/type',
+        'keyList': {
+          list: 'resourceTypeList',
+          id: 'rt_pk',
+          name: 'rt_name',
+          order: 'rt_order'
+        },
         isDetailEdit: true
       },
       {
         'label': '자재단위',
         'id': 'resourceUnit',
         'parentId': 'resourceCategory',
-        'data': [{
-          _id: 1,
-          name: 'Box(1.14m^2)'
-        }, {
-          _id: 2,
-          name: 'Box(0.9m^2)'
-        }],
+        'api': '/api/resource/unit',
+        'keyList': {
+          list: 'resourceUnitList',
+          id: 'ru_pk',
+          name: 'ru_name',
+          order: 'ru_order'
+        },
         isDetailEdit: true
       },
       {
         'label': '자재',
         'id': 'resource',
         'parentId': 'resourceType',
-        'data': [{
-          _id: 1,
-          name: '핑크타일'
-        }, {
-          _id: 2,
-          name: '블랙타일'
-        }],
+        'api': '/api/resource',
+        'keyList': {
+          list: 'resourceList',
+          id: 'rs_pk',
+          name: 'rs_name',
+          order: 'rs_order'
+        },
         isDetailEdit: true
       }
     ]

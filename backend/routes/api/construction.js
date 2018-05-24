@@ -181,8 +181,8 @@ router.post('/place', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('construction_place_tbl')
         .max('cp_order as order')
-        .then(res => {
-          const order = res[0].order + 1;
+        .then(queryRes => {
+          const order = queryRes[0].order + 1;
           cur('construction_place_tbl')
             .insert({
               cp_name: reqName,
@@ -413,7 +413,7 @@ router.get('/process/detail', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_detail_tbl')
-        .select('cpd_pk', 'cpd_name', 'cpd_labor_costs')
+        .select('cpd_pk', 'cpd_name', 'cpd_labor_costs', 'cpd_min_amount', 'cpd_unit')
         .where('cpd_cppk',reqCpPk)
         .orderBy('cpd_name')
         .then(response => {
@@ -434,10 +434,13 @@ router.get('/process/detail', (req, res) => {
 });
 
 router.post('/process/detail', (req, res) => {
-  const reqName = req.body.name || '';
+  const reqName = req.body.cpd_name || '';
   const reqCpPk = req.body.cp_pk || '';
-  const reqLaborCosts = req.body.laborCosts || '';
-  if (reqName.trim() === '' || reqCpPk === '' || reqLaborCosts === '') {
+  const reqLaborCosts = req.body.cpd_labor_costs || '';
+  const reqMinAmount = req.body.cpd_min_amount || '';
+  const reqUnit = req.body.cpd_unit || '';
+
+  if (reqName.trim() === '' || reqCpPk === '' || reqLaborCosts === '' || reqMinAmount ===  '' || reqUnit === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -446,7 +449,9 @@ router.post('/process/detail', (req, res) => {
         .insert({
           cpd_name: reqName,
           cpd_cppk: reqCpPk,
-          cpd_labor_costs: reqLaborCosts
+          cpd_labor_costs: reqLaborCosts,
+          cpd_min_amount: reqMinAmount,
+          cpd_unit: reqUnit
         })
         .then(() => {
           res.json(resHelper.getJson({

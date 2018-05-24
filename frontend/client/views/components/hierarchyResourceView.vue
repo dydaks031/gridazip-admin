@@ -2,7 +2,7 @@
   <div class="column">
     <p v-for="data in model.data" @dblclick.stop="changedView(data)" @click.stop="changedColor(data)" :class="{active: data.isSelected}">
       <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
-      <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true"/>
+      <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
       <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
       <button class="button" v-show="data.is_modify === true" @click="modifyData(data)">수정</button>
     </p>
@@ -31,8 +31,7 @@
         isEnableCallApi: false,
         newData: '',
         isShowEditView: false,
-        parentData: {},
-        vm: this
+        parentData: {}
       }
     },
     mounted () {
@@ -56,6 +55,7 @@
       },
       loadData (data = {}) {
         const api = this.model.api
+        console.log(api)
         if (!api) {
           console.error('API IS NOT DEFINED')
           return false
@@ -77,8 +77,9 @@
       },
       addNewItems () {
         if (this.model.isDetailEdit) {
-
+          this.$emit('newDetailItem', this.model)
         } else {
+          this.newData = ''
           this.isShowEditView = true
         }
       },

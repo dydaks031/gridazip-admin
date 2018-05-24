@@ -8,8 +8,15 @@
                                v-on:selectedView="changedSelectedView"
                                v-on:createItem="createItem"
                                v-on:deleteItem="deleteItem"
-                               v-on:modifyItem="modifyItem"/>
-      <resource-detail-view class="column is-half" :selected-data="selectedData" :type="type"/>
+                               v-on:modifyItem="modifyItem"
+                               v-on:newDetailItem="newDetailItem" />
+      <resource-detail-view class="column is-half"
+                            :selected-data="selectedData"
+                            :selected-model="selectedModel"
+                            :full-data="curData"
+                            :type="type"
+                            v-on:createItem="createItem"
+                            v-on:modifyItem="modifyItem" />
     </div>
   </div>
 </template>
@@ -31,7 +38,8 @@
     data () {
       return {
         curData: [],
-        selectedData: {}
+        selectedData: {},
+        selectedModel: {}
       }
     },
     props: ['type'],
@@ -46,10 +54,13 @@
         const curDepthTarget = _.filter(this.curData, (item) => {
           return item.parentId === model.id
         })
-        this.selectedData = model
+        this.selectedModel = model
+        this.selectedData = _.find(model.data, (item) => {
+          return item.isSelected
+        })
         this.removeChildData(model, curDepthTarget, model)
       },
-      callApi (options) {
+      callApi (options, callback = () => {}) {
         const action = options.action
         const api = options.api || options.model.api
         const sendData = options.sendData
@@ -73,19 +84,36 @@
             data: _data,
             keyList: keyList
           })
+          callback()
         }).catch((error) => {
           console.error(error)
         })
       },
-      createItem (options) {
-        const data = options.parentId
-        data[options.model.keyList.id] = options.data
-        console.log('a')
+      newDetailItem (model) {
+        this.selectedModel = model
+        this.selectedData = {}
+      },
+      createItem (options, callback) {
+        let data = {
+          ...options.parentId
+        }
+
+        if (typeof options.data === 'object') {
+          data = {
+            ...options.parentId,
+            ...options.data
+          }
+        } else {
+          data.name = options.data
+        }
+        console.log(data)
+        this.selectedData = {}
+        this.selectedModel = {}
         this.callApi({
           action: 'post',
           sendData: data,
           ...options
-        })
+        }, callback)
       },
       deleteItem (options) {
         console.log(options)
@@ -150,6 +178,7 @@
     mounted () {
       this.curData = deepClone(META_LODING_CONFIG.order[this.type])
       // this.curData = META_LODING_CONFIG.order[this.type]
+      console.log(this.curData)
     },
     created () {
       // EventBus.$on('createItem', )

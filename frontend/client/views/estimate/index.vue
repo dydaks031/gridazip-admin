@@ -81,7 +81,7 @@
         page: new Pagenation(),
         filter: new Filter(),
         data: {},
-        type: 'construction',
+        type: 'resource',
         isLoading: false,
         moment
       }
