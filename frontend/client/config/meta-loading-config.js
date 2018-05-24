@@ -15,7 +15,8 @@ export default {
           id: 'ct_pk',
           name: 'ct_name',
           order: 'ct_order'
-        }
+        },
+        isDetailEdit: false
       },
       {
         'label': '공정',
@@ -27,7 +28,8 @@ export default {
           id: 'cp_pk',
           name: 'cp_name',
           order: 'cp_order'
-        }
+        },
+        isDetailEdit: false
       },
       {
         'label': '상세공정',
@@ -39,7 +41,8 @@ export default {
           id: 'cpd_pk',
           name: 'cpd_name',
           order: 'cpd_order'
-        }
+        },
+        isDetailEdit: true
       },
       {
         'label': '공사 위치',
@@ -51,7 +54,8 @@ export default {
           id: 'cp_pk',
           name: 'cp_name',
           order: 'cp_order'
-        }
+        },
+        isDetailEdit: false
       }
     ],
     resource: [
@@ -65,7 +69,8 @@ export default {
         }, {
           _id: 2,
           name: '타일자재'
-        }]
+        }],
+        isDetailEdit: false
       },
       {
         'label': '자재군',
@@ -80,7 +85,8 @@ export default {
         }, {
           _id: 3,
           name: '12각타일'
-        }]
+        }],
+        isDetailEdit: true
       },
       {
         'label': '자재단위',
@@ -92,7 +98,8 @@ export default {
         }, {
           _id: 2,
           name: 'Box(0.9m^2)'
-        }]
+        }],
+        isDetailEdit: true
       },
       {
         'label': '자재',
@@ -104,7 +111,8 @@ export default {
         }, {
           _id: 2,
           name: '블랙타일'
-        }]
+        }],
+        isDetailEdit: true
       }
     ]
   },

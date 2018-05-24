@@ -35,8 +35,8 @@ router.post('/', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('construction_tbl')
         .max('ct_order as order')
-        .then(res => {
-          const order = res[0].order + 1;
+        .then(queryRes => {
+          const order = queryRes[0].order + 1;
           cur('construction_tbl')
             .insert({
               ct_name: reqName,
@@ -62,7 +62,7 @@ router.post('/', (req, res) => {
 
 router.put('/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.ct_name || '';
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -208,7 +208,7 @@ router.post('/place', (req, res) => {
 
 router.put('/place/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -354,7 +354,7 @@ router.post('/process', (req, res) => {
 
 router.put('/process/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -463,8 +463,8 @@ router.post('/process/detail', (req, res) => {
 
 router.put('/process/detail/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
-  const reqLaborCosts = req.body.laborCosts || '';
+  const reqName = req.body.cpd_name || '';
+  const reqLaborCosts = req.body.cpd_labor_costs || '';
   if (reqPk === '' || reqName === '' || reqLaborCosts === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
