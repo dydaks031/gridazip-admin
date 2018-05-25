@@ -179,6 +179,7 @@ router.post('/', (req, res) => {
     insertObj.rq_is_contracted = req.body.rq_is_contracted || 0;
 
     knexBuilder.getConnection().then(cur => {
+      insertObj.rq_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
@@ -229,61 +230,30 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
   let errorMsg = null;
   let updateObj = {};
 
-  const rq_is_valuable = req.body.rq_is_valuable || 0;
-  const rq_is_contracted = req.body.rq_is_contracted || 0;
+  const rq_is_valuable = req.body.rq_is_valuable || '0';
+  const rq_is_contracted = req.body.rq_is_contracted || '0';
 
-  if (!rq_is_valuable) {
-    ['0','1','2','3'].forEach(i => {
-      if(rq_is_valuable === i) errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.';
-    });
-  }
-  if (!rq_is_contracted) {
-    ['0','1','2'].forEach(i => {
-      if(rq_is_contracted === i) errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.';
-    });
-  }
-
-  if (rq_is_valuable && rq_is_contracted) {
-    updateObj.rq_name = req.body.rq_name || '';
-    updateObj.rq_family = req.body.rq_family || '';
-    updateObj.rq_phone = req.body.rq_phone || '';
-    updateObj.rq_size = req.body.rq_size || '';
-    updateObj.rq_address_brief = req.body.rq_address_brief || '';
-    updateObj.rq_address_detail = req.body.rq_address_detail || '';
-    updateObj.rq_move_date = req.body.rq_move_date || '';
-    updateObj.rq_style_likes = req.body.rq_style_likes || '';
-    updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
-    updateObj.rq_color_likes = req.body.rq_color_likes || '';
-    updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
-    updateObj.rq_budget = req.body.rq_budget || '';
-    updateObj.rq_place = req.body.rq_place || '';
-    updateObj.rq_date = req.body.rq_date || '';
-    updateObj.rq_time = req.body.rq_time || '';
-    updateObj.rq_request = req.body.rq_request || '';
-    updateObj.rq_memo = req.body.rq_memo || '';
-    updateObj.rq_construction_type = req.body.rq_construction_type || '';
-    updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
-    updateObj.rq_is_valuable = rq_is_valuable;
-    updateObj.rq_is_contracted = rq_is_contracted;
-
-    if (updateObj.rq_name === '') {
+  const isExistValuable = req.body.hasOwnProperty('rq_is_valuable');
+  const isExistContracted = req.body.hasOwnProperty('rq_is_contracted');
+  if (isExistValuable && isExistContracted) {
+    if (req.body.rq_name === '') {
       errorMsg = '이름은 반드시 입력해야 합니다.';
     }
-    else if (updateObj.rq_phone === '') {
+    else if (req.body.rq_phone === '') {
       errorMsg = '휴대폰 번호는 반드시 입력해야 합니다.';
     }
-    else if (regexPhone.test(updateObj .rq_phone) === false) {
+    else if (regexPhone.test(req.body.rq_phone) === false) {
       errorMsg = '휴대폰 번호 형식이 올바르지 않습니다.';
     }
-
-    updateObj.rq_phone = cryptoHelper.encrypt(updateObj.rq_phone);
   }
-  else {
-    if (rq_is_valuable) {
-      updateObj.rq_is_valuable = rq_is_valuable;
+  if (isExistValuable) {
+    if (['0','1','2','3'].indexOf(rq_is_valuable) < 0) {
+      errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.'
     }
-    if (rq_is_contracted) {
-      updateObj.rq_is_contracted = rq_is_contracted;
+  }
+  if (isExistContracted) {
+    if (['0','1','2'].indexOf(rq_is_contracted) < 0) {
+      errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.'
     }
   }
 
@@ -293,6 +263,37 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
     );
   }
   else {
+    if (isExistValuable && isExistContracted) {
+      updateObj.rq_name = req.body.rq_name || '';
+      updateObj.rq_family = req.body.rq_family || '';
+      updateObj.rq_phone = cryptoHelper.encrypt(req.body.rq_phone) || '';
+      updateObj.rq_size = req.body.rq_size || '';
+      updateObj.rq_address_brief = req.body.rq_address_brief || '';
+      updateObj.rq_address_detail = req.body.rq_address_detail || '';
+      updateObj.rq_move_date = req.body.rq_move_date || '';
+      updateObj.rq_style_likes = req.body.rq_style_likes || '';
+      updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
+      updateObj.rq_color_likes = req.body.rq_color_likes || '';
+      updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
+      updateObj.rq_budget = req.body.rq_budget || '';
+      updateObj.rq_place = req.body.rq_place || '';
+      updateObj.rq_date = req.body.rq_date || '';
+      updateObj.rq_time = req.body.rq_time || '';
+      updateObj.rq_request = req.body.rq_request || '';
+      updateObj.rq_memo = req.body.rq_memo || '';
+      updateObj.rq_construction_type = req.body.rq_construction_type || '';
+      updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
+      updateObj.rq_is_valuable = rq_is_valuable;
+      updateObj.rq_is_contracted = rq_is_contracted;
+    }
+    else {
+      if (isExistValuable) {
+        updateObj.rq_is_valuable = rq_is_valuable;
+      }
+      if (isExistContracted) {
+        updateObj.rq_is_contracted = rq_is_contracted;
+      }
+    }
     knexBuilder.getConnection().then(cur => {
       cur('request_tbl')
         .where({
@@ -307,6 +308,7 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
           );
         })
         .catch(reason => {
+          console.error(reason);
           res.json(
             resHelper.getError(reason)
           );
