@@ -451,7 +451,7 @@ router.get('/unit', (req, res) => {
         .then(response => {
           res.json(
             resHelper.getJson({
-              resourceUnitList: response
+              unitList: response
             })
           );
         })
