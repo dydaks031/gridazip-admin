@@ -1,6 +1,6 @@
 <template>
   <div class="column">
-    <p v-for="data in model.data" @dblclick.stop="changedView(data)" @click.stop="changedColor(data)" :class="{active: data.isSelected}">
+    <p v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}">
       <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
       <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
       <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
@@ -41,10 +41,10 @@
       }
     },
     methods: {
-      changedView (data) {
+      changedEditView (data) {
         data.is_modify = !data.is_modify
       },
-      changedColor (data) {
+      itemClickEvent (data) {
         this.model.data = _.map(this.model.data, (item) => {
           item.isSelected = false
           return item
