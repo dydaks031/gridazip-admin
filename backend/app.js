@@ -39,6 +39,7 @@ const apiPortfolio = require('./routes/api/portfolio');
 const apiProfile = require('./routes/api/profile');
 const apiRequest = require('./routes/api/request');
 const apiConstruction = require('./routes/api/construction');
+const apiResource = require('./routes/api/resource');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 const apiPartner = require('./routes/api/partner');
@@ -93,6 +94,7 @@ app.use('/api/portfolio', apiPortfolio);
 app.use('/api/profile', apiProfile);
 app.use('/api/request', apiRequest);
 app.use('/api/construction', apiConstruction);
+app.use('/api/resource', apiResource);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
 app.use('/api/partner', apiPartner)
