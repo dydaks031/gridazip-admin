@@ -14,7 +14,7 @@ router.get('/category', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            categoryList: response
+            resourceCategoryList: response
           })
         );
       })
@@ -168,7 +168,7 @@ router.get('/type', (req, res) => {
         .then(response => {
           res.json(
             resHelper.getJson({
-              typeList: response
+              resourceTypeList: response
             })
           );
         })
