@@ -40,17 +40,17 @@ router.post('/edin', (req, res) => {
   // const rs_pk = req.body.rs_pk;
   // const ru_pk = req.body.ru_pk;
   // const input_value = req.body.input_value;
-  const pc_pk = 1;
-  const place_pk = 3;
-  const ct_pk = 3;
-  const cp_pk = 1;
-  const cpd_pk = 1;
-  const rt_pk = 1;
-  const rs_pk = 1;
-  const ru_pk = 1;
-  const input_value = 5;
+  const reqPcPk = 1;
+  const reqPlacePk = 3;
+  const reqCtPk = 3;
+  const reqCpPk = 1;
+  const reqCpdPk = 1;
+  const reqRtPk = 1;
+  const reqRsPk = 1;
+  const reqRuPk = 1;
+  const reqInputValue = 5;
 
-
+  let minAmount;
   let laborCosts;
   let resourcePrice;
   let calcExpression;
@@ -61,24 +61,31 @@ router.post('/edin', (req, res) => {
     cur('construction_process_detail_tbl')
       .first('cpd_labor_costs')
       .where({
-        cpd_pk: cpd_pk
+        cpd_pk: reqCpdPk
       })
       .then(row => {
+        minAmount = row.cpd_min_amount;
         laborCosts = row.cpd_labor_costs;
 
         return cur('resource_type_tbl')
           .first('rt_extra_labor_costs')
           .where({
-            rt_pk: rt_pk
+            rt_pk: reqRtPk
           })
       })
       .then(row => {
+        laborCosts +=  row.cpd_labor_costs;
+        if (reqInputValue % minAmount === 0) {
+          laborCosts = laborCosts * reqInputValue;
+        } else {
+          laborCosts = laborCosts * (reqInputValue + minAmount - reqInputValue % minAmount)
+        }
         laborCosts += row.rt_extra_labor_costs;
 
         return cur('resource_tbl')
           .first('rs_price')
           .where({
-            rs_pk: rs_pk
+            rs_pk: reqRsPk
           })
       })
       .then(row => {
@@ -87,28 +94,28 @@ router.post('/edin', (req, res) => {
         return cur('resource_unit_tbl')
           .first('ru_name', 'ru_calc_expression')
           .where({
-            ru_pk: ru_pk
+            ru_pk: reqRuPk
           })
       })
       .then(row => {
         calcExpression = row.ru_calc_expression;
 
         const fn = calc.func(`f(x) = ${calcExpression}`);
-        let resourceAmount = fn(input_value);
+        let resourceAmount = fn(reqInputValue);
         resourceAmount = parseFloat(resourceAmount.toFixed(2));
 
         return cur('estimate_detail_hst')
           .insert({
-            ed_pcpk: pc_pk,
-            ed_place_pk: place_pk,
+            ed_pcpk: reqPcPk,
+            ed_place_pk: reqPlacePk,
             ed_detail_place: '테스트 위치',
-            ed_ctpk: ct_pk,
-            ed_cppk: cp_pk,
-            ed_cpdpk: cpd_pk,
-            ed_rtpk: rt_pk,
-            ed_rspk: rs_pk,
-            ed_rupk: ru_pk,
-            ed_input_value: input_value,
+            ed_ctpk: reqCtPk,
+            ed_cppk: reqCpPk,
+            ed_cpdpk: reqCpdPk,
+            ed_rtpk: reqRtPk,
+            ed_rspk: reqRsPk,
+            ed_rupk: reqRuPk,
+            ed_input_value: reqInputValue,
             ed_resource_amount: resourceAmount,
             ed_calculated_amount: resourceAmount,
             ed_recency: cur.raw('UNIX_TIMESTAMP() * -1')
