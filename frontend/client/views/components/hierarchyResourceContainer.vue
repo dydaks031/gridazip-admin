@@ -104,7 +104,7 @@
             ...options.data
           }
         } else {
-          data.name = options.data
+          data[options.model.keyList.name] = options.data
         }
         console.log(data)
         this.selectedData = {}

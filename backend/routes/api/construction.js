@@ -27,7 +27,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const reqName = req.body.name || '';
+  const reqName = req.body.ct_name || '';
   if (reqName.trim() === '') {
     res.json(resHelper.getError('공사명은 반드시 입력해야 합니다.'));
   }
@@ -173,7 +173,7 @@ router.get('/place', (req, res) => {
 });
 
 router.post('/place', (req, res) => {
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
   if (reqName.trim() === '') {
     res.json(resHelper.getError('공사위치는 반드시 입력해야 합니다.'));
   }
@@ -327,7 +327,7 @@ router.get('/process', (req, res) => {
 
 router.post('/process', (req, res) => {
   const reqCtPk = req.body.ct_pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
 
   if (reqName.trim() === '' || reqCtPk === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
