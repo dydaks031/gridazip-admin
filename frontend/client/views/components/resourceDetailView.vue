@@ -259,7 +259,9 @@
             this.data.ru_pk = ''
           }
         }
-        this.loadUnitData()
+        if (this.selectedModel.id === 'resource') {
+          this.loadUnitData()
+        }
       }
     }
   }

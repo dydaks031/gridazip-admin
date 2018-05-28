@@ -135,6 +135,9 @@ router.put('/order', (req, res) => {
       })
         .then(function(updates) {
           console.log(updates.length + 'lines updated.');
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
         })
         .catch(function(err) {
           res.json(
@@ -282,6 +285,9 @@ router.put('/place/order', (req, res) => {
         })
           .then(function(updates) {
             console.log(updates.length + 'lines updated.');
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
           })
           .catch(function(err) {
             res.json(

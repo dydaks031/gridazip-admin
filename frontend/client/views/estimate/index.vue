@@ -32,6 +32,8 @@
           <!--</table>-->
           <hierarchy-resource-container :type="type">
           </hierarchy-resource-container>
+          <hierarchy-resource-container :type="type_2">
+          </hierarchy-resource-container>
         </article>
       </div>
     </div>
@@ -82,6 +84,7 @@
         filter: new Filter(),
         data: {},
         type: 'resource',
+        type_2: 'construction',
         isLoading: false,
         moment
       }

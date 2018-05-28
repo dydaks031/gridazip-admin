@@ -1,11 +1,15 @@
 <template>
   <div class="column">
-    <p v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}">
-      <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
-      <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
-      <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
-      <button class="button" v-show="data.is_modify === true" @click="modifyData(data)">수정</button>
-    </p>
+    <draggable v-model="model.data" @end="updateView">
+      <transition-group>
+        <div v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
+          <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
+          <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
+          <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
+          <button class="button" v-show="data.is_modify === true" @click="modifyData(data)">수정</button>
+        </div>
+      </transition-group>
+    </draggable>
     <p v-show="model.isEnableAddItem">
       <span @click="addNewItems" v-show="!isShowEditView">+</span>
       <input type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput"/>
@@ -16,11 +20,15 @@
 
 <script>
   import _ from 'underscore'
+  import draggable from 'vuedraggable'
   import EventBus from '../../services/eventBus'
   import utils from '../../services/utils'
 
   export default {
     name: 'hierarchy-resource-view',
+    components: {
+      draggable
+    },
     props: {
       model: {
         type: Object
@@ -120,6 +128,26 @@
             data: item,
             parentId: this.parentData
           })
+        })
+      },
+      updateView () {
+        this.$forceUpdate()
+
+        const api = this.model.api
+        console.log(api)
+        if (!api) {
+          console.error('API IS NOT DEFINED')
+          return false
+        }
+        const param = {}
+        param[this.model.keyList.list] = this.model.data
+        this.$http.put(`${api}/order`, param).then((response) => {
+          if (response.data.code !== 200) {
+            return
+          }
+          console.log(response)
+        }).catch((error) => {
+          console.error(error)
         })
       }
     },
