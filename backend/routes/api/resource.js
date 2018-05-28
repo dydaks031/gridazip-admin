@@ -113,15 +113,15 @@ router.delete('/category/:pk([0-9]+)', (req, res) => {
 });
 
 router.put('/category/order', (req, res) => {
-  const reqCategoryList = req.body.categoryList || '';
-  if (reqCategoryList === '') {
+  const reqResourceCategoryList = req.body.resourceCategoryList || '';
+  if (reqResourceCategoryList === '') {
     res.json(resHelper.getError('자재 분류 목록은 반드시 전송해야 합니다.'));
   }
   else {
     knexBuilder.getConnection().then(cur => {
       cur.transaction(function(trx) {
         const queries = [];
-        reqCategoryList.forEach((obj, i) => {
+        reqResourceCategoryList.forEach((obj, i) => {
           const query = cur.table('resource_category_tbl')
             .where('rc_pk', obj.rc_pk)
             .update({
@@ -273,15 +273,15 @@ router.delete('/type/:pk([0-9]+)', (req, res) => {
 });
 
 router.put('/type/order', (req, res) => {
-  const reqTypeList = req.body.typeList || '';
-  if (reqTypeList === '') {
+  const reqResourceTypeList = req.body.resourceTypeList || '';
+  if (reqResourceTypeList === '') {
     res.json(resHelper.getError('자재군 목록은 반드시 전송해야 합니다.'));
   }
   else {
     knexBuilder.getConnection().then(cur => {
       cur.transaction(function(trx) {
         const queries = [];
-        reqTypeList.forEach((obj, i) => {
+        reqResourceTypeList.forEach((obj, i) => {
           const query = cur.table('resource_type_tbl')
             .where('rt_pk', obj.rt_pk)
             .update({
