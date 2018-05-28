@@ -256,9 +256,7 @@
         this.data = deepClone(val)
         if (this.selectedModel) {
           if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('ru_pk')) {
-            this.data = {
-              ru_pk: ''
-            }
+            this.data.ru_pk = ''
           }
         }
         this.loadUnitData()
