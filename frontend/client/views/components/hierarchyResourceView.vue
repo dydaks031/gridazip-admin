@@ -1,8 +1,9 @@
 <template>
   <div class="column">
-    <draggable v-model="model.data" @end="updateView">
+    <span class="subtitle">{{model.label}}</span>
+    <draggable v-model="model.data" @end="updateView" element="div" class="list-group">
       <transition-group>
-        <div v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
+        <div class="list-item" v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
           <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
           <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
           <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
@@ -175,8 +176,21 @@
   }
 </script>
 
-<style scoped>
-  p.active {
+<style lang="scss" scoped>
+  div.active {
     background-color: grey;
+  }
+  div.list-group {
+    .list-item {
+      margin: 0.5rem 0;
+      border: 1px solid #7d7d7d;
+      border-radius: 5px;
+      padding: 1rem;
+
+      &.active {
+        background-color: grey;
+        color: white;
+      }
+    }
   }
 </style>

@@ -421,6 +421,7 @@ router.get('/process/detail', (req, res) => {
       cur('construction_process_detail_tbl')
         .select('cpd_pk', 'cpd_name', 'cpd_labor_costs', 'cpd_min_amount', 'cpd_unit')
         .where('cpd_cppk',reqCpPk)
+        .andWhere('cpd_deleted', false)
         .orderBy('cpd_name')
         .then(response => {
           res.json(
@@ -507,7 +508,7 @@ router.delete('/process/detail/:pk([0-9]+)', (req, res) => {
   }
   else {
     knexBuilder.getConnection().then(cur => {
-      cur('construction_process_tbl')
+      cur('construction_process_detail_tbl')
         .update({
           cpd_deleted: true
         })
