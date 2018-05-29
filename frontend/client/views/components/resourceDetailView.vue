@@ -109,7 +109,7 @@
             <label class="label">자재단위</label>
             <div class="control">
               <div class="select">
-                <select v-model="data.ru_pk">
+                <select v-model="data.rs_rupk">
                   <option value="" disabled>Please Select one</option>
                   <option v-for="data in unitData" :value="data.ru_pk">
                     {{data.ru_name}}
@@ -157,7 +157,7 @@
     data () {
       return {
         data: {
-          ru_pk: ''
+          rs_rupk: ''
         },
         unitData: []
       }
@@ -199,7 +199,7 @@
         this.$nextTick(() => {
           this.$emit('createItem', _data, () => {
             this.data = {
-              ru_pk: ''
+              rs_rupk: ''
             }
           })
         })
@@ -208,7 +208,7 @@
         this.$nextTick(() => {
           this.$emit('modifyItem', _data, () => {
             this.data = {
-              ru_pk: ''
+              rs_rupk: ''
             }
           })
         })
@@ -255,8 +255,8 @@
         console.log(this.selectedModel)
         this.data = deepClone(val)
         if (this.selectedModel) {
-          if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('ru_pk')) {
-            this.data.ru_pk = ''
+          if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('rs_rupk')) {
+            this.data.rs_rupk = ''
           }
         }
         if (this.selectedModel.id === 'resource') {
