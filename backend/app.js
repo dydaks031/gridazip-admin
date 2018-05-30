@@ -42,6 +42,7 @@ const apiConstruction = require('./routes/api/construction');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 const apiPartner = require('./routes/api/partner');
+const apiTest = require('./routes/api/test');
 
 const authMiddleware = require('./middlewares/auth');
 
@@ -95,7 +96,8 @@ app.use('/api/request', apiRequest);
 app.use('/api/construction', apiConstruction);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
-app.use('/api/partner', apiPartner)
+app.use('/api/partner', apiPartner);
+app.use('/api/test', apiTest);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
