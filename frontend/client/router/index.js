@@ -62,6 +62,22 @@ export default new Router({
         auth: true
       }
     },
+    {
+      name: '진행계약 상세',
+      path: '/estimate/:id([0-9]+)',
+      component: require('../views/estimate/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '상세견적서 등록',
+      path: '/estimate/register',
+      component: require('../views/estimate/estimateRegister'),
+      meta: {
+        auth: true
+      }
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',

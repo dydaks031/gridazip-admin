@@ -47,14 +47,33 @@ const state = {
       component: lazyLoading('partners', true)
     },
     {
-      name: 'Sandbox',
-      path: '/estimate',
+      name: '견적보조시스템',
       meta: {
-        icon: 'fa-rocket',
-        link: 'estimate/index.vue',
-        auth: true
+        icon: 'fa-table',
+        expanded: false
       },
-      component: lazyLoading('estimate', true)
+      children: [
+        {
+          name: '진행계약 목록',
+          path: '/estimate',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'estimate/index.vue',
+            auth: true
+          },
+          component: lazyLoading('estimate', true)
+        },
+        {
+          name: '메타데이터 등록',
+          path: '/meta-register',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'meta-register/index.vue',
+            auth: true
+          },
+          component: lazyLoading('meta-register', true)
+        }
+      ]
     }
   ]
 }

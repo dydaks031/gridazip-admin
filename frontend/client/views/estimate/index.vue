@@ -5,35 +5,31 @@
         <article class="tile is-child box">
           <h4 class="title">진행계약 목록</h4>
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
-          <!--<table class="table">-->
-            <!--<colgroup>-->
-              <!--<col width="auto" />-->
-              <!--<col width="auto" />-->
-              <!--<col width="auto" />-->
-              <!--<col width="auto" />-->
-            <!--</colgroup>-->
-            <!--<thead>-->
-            <!--<tr>-->
-              <!--<th>고객명</th>-->
-              <!--<th>전화번호</th>-->
-              <!--<th>주소</th>-->
-              <!--<th>이사일자</th>-->
-              <!--<th></th>-->
-            <!--</tr>-->
-            <!--</thead>-->
-            <!--<tbody>-->
-            <!--<tr>-->
-              <!--<td>고객님</td>-->
-              <!--<td>010-1234-1234</td>-->
-              <!--<td>서울시 동작구 동작동 10-10</td>-->
-              <!--<td>2018-10-10</td>-->
-            <!--</tr>-->
-            <!--</tbody>-->
-          <!--</table>-->
-          <hierarchy-resource-container :type="type">
-          </hierarchy-resource-container>
-          <hierarchy-resource-container :type="type_2">
-          </hierarchy-resource-container>
+          <table class="table">
+            <colgroup>
+              <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
+            </colgroup>
+            <thead>
+            <tr>
+              <th>고객명</th>
+              <th>전화번호</th>
+              <th>주소</th>
+              <th>이사일자</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>고객님</td>
+              <td>010-1234-1234</td>
+              <td>서울시 동작구 동작동 10-10</td>
+              <td>2018-10-10</td>
+            </tr>
+            </tbody>
+          </table>
         </article>
       </div>
     </div>

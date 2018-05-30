@@ -9,6 +9,7 @@ import router from './router'
 import store from './store'
 import * as filters from './filters'
 import { TOGGLE_SIDEBAR } from './store/mutation-types'
+import 'expose-loader?$!expose-loader?jQuery!jquery'
 
 Vue.router = router
 Vue.use(VueAxios, axios)
