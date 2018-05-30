@@ -176,7 +176,7 @@
       }
     },
     mounted () {
-      this.curData = deepClone(META_LODING_CONFIG.order[this.type])
+      this.curData = deepClone(META_LODING_CONFIG[this.type])
       // this.curData = META_LODING_CONFIG.order[this.type]
       console.log(this.curData)
     },

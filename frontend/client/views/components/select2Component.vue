@@ -34,7 +34,6 @@
         // update value
         $(this.$el)
           .val(value)
-          .trigger('change')
       },
       options: function (options) {
         // update options
@@ -47,6 +46,9 @@
   }
 </script>
 
-<style scoped>
-@import '../../../node_modules/select2/dist/css/select2.min.css';
+<style>
+  @import '../../../node_modules/select2/dist/css/select2.min.css';
+  .select2-container {
+    width: 100% !important;
+  }
 </style>
