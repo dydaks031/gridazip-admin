@@ -40,6 +40,9 @@
         <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.size"/>
       </td>
       <td>
+        <input type="text" placeholder="물량 입력" class="input" />
+      </td>
+      <td>
         100,000
       </td>
       <td>
