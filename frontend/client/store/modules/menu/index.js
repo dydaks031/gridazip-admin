@@ -72,6 +72,16 @@ const state = {
             auth: true
           },
           component: lazyLoading('meta-register', true)
+        },
+        {
+          name: '기술자 및 거래처',
+          path: '/manage-constructor',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'manageConstructor/index.vue',
+            auth: true
+          },
+          component: lazyLoading('manageConstructor', true)
         }
       ]
     }

@@ -78,6 +78,22 @@ export default new Router({
         auth: true
       }
     },
+    {
+      name: '거래처 상세',
+      path: '/manage-constructor/correspondent/:id([0-9]+)',
+      component: require('../views/manageConstructor/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '기술자 상세',
+      path: '/manage-constructor/constructor/:id([0-9]+)',
+      component: require('../views/manageConstructor/detail'),
+      meta: {
+        auth: true
+      }
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',
