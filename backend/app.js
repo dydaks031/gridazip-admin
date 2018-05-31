@@ -43,6 +43,7 @@ const apiResource = require('./routes/api/resource');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 const apiPartner = require('./routes/api/partner');
+const apiContract = require('./routes/api/contract');
 const apiTest = require('./routes/api/test');
 
 const authMiddleware = require('./middlewares/auth');
@@ -99,6 +100,7 @@ app.use('/api/resource', apiResource);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
 app.use('/api/partner', apiPartner);
+app.use('/api/contract', apiContract);
 app.use('/api/test', apiTest);
 
 // catch 404 and forward to error handler
