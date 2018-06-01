@@ -36,8 +36,8 @@ router.post('/category', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('resource_category_tbl')
         .max('rc_order as order')
-        .then(queryRes => {
-          const order = queryRes[0].order + 1;
+        .then(response => {
+          const order = response[0].order + 1;
           cur('resource_category_tbl')
             .insert({
               rc_name: reqName,

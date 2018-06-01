@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
-
 const moment = require('moment');
 const calc = require('calculator');
 
@@ -42,13 +41,13 @@ router.post('/edin', (req, res) => {
   // const input_value = req.body.input_value;
   const reqPcPk = 1;
   const reqPlacePk = 3;
-  const reqCtPk = 3;
+  const reqCtPk = 1;
   const reqCpPk = 1;
   const reqCpdPk = 1;
   const reqRtPk = 1;
-  const reqRsPk = 1;
-  const reqRuPk = 1;
-  const reqInputValue = 5;
+  const reqRsPk = 5;
+  const reqDetailPlace = '테스트 위치';
+  const reqInputValue = 20;
 
   let minAmount;
   let laborCosts;
@@ -59,13 +58,18 @@ router.post('/edin', (req, res) => {
   // select cpd_labor_costs from construction_process_detail_tbl
   knexBuilder.getConnection().then(cur => {
     cur('construction_process_detail_tbl')
-      .first('cpd_labor_costs')
+      .first('cpd_labor_costs', 'cpd_min_amount')
       .where({
         cpd_pk: reqCpdPk
       })
       .then(row => {
         minAmount = row.cpd_min_amount;
         laborCosts = row.cpd_labor_costs;
+
+        console.log('minAmount : ');
+        console.log(minAmount);
+        console.log('laborCosts : ');
+        console.log(laborCosts);
 
         return cur('resource_type_tbl')
           .first('rt_extra_labor_costs')
@@ -74,13 +78,20 @@ router.post('/edin', (req, res) => {
           })
       })
       .then(row => {
-        laborCosts +=  row.cpd_labor_costs;
+        laborCosts +=  row.rt_extra_labor_costs;
+        console.log('extraLaborCosts : ' + row.rt_extra_labor_costs);
+        console.log('totalLaborCosts : ' + laborCosts);
+
         if (reqInputValue % minAmount === 0) {
           laborCosts = laborCosts * reqInputValue;
         } else {
-          laborCosts = laborCosts * (reqInputValue + minAmount - reqInputValue % minAmount)
+          console.log(reqInputValue + ' + ' + minAmount + ' - (' + reqInputValue + ' % ' + minAmount + ') = ');
+          console.log(reqInputValue + minAmount - reqInputValue % minAmount);
+          console.log(' x ' + laborCosts);
+          laborCosts = laborCosts * (reqInputValue + minAmount - reqInputValue % minAmount);
+          console.log(' = ' + laborCosts);
         }
-        laborCosts += row.rt_extra_labor_costs;
+        console.log('laborCosts after : ' + laborCosts);
 
         return cur('resource_tbl')
           .first('rs_price')
@@ -94,7 +105,7 @@ router.post('/edin', (req, res) => {
         return cur('resource_unit_tbl')
           .first('ru_name', 'ru_calc_expression')
           .where({
-            ru_pk: reqRuPk
+            ru_pk: row.rs_rupk
           })
       })
       .then(row => {
@@ -103,18 +114,18 @@ router.post('/edin', (req, res) => {
         const fn = calc.func(`f(x) = ${calcExpression}`);
         let resourceAmount = fn(reqInputValue);
         resourceAmount = parseFloat(resourceAmount.toFixed(2));
+        console.log('resourceAmount : ' + resourceAmount);
 
         return cur('estimate_detail_hst')
           .insert({
             ed_pcpk: reqPcPk,
             ed_place_pk: reqPlacePk,
-            ed_detail_place: '테스트 위치',
+            ed_detail_place: reqDetailPlace,
             ed_ctpk: reqCtPk,
             ed_cppk: reqCpPk,
             ed_cpdpk: reqCpdPk,
             ed_rtpk: reqRtPk,
             ed_rspk: reqRsPk,
-            ed_rupk: reqRuPk,
             ed_input_value: reqInputValue,
             ed_resource_amount: resourceAmount,
             ed_calculated_amount: resourceAmount,
@@ -122,6 +133,7 @@ router.post('/edin', (req, res) => {
           })
       })
       .then(() => {
+        console.log('인건비 계산 끝남 ㅅㄱ');
         res.json(
           resHelper.getJson({
             msg: 'ok'
@@ -135,6 +147,16 @@ router.post('/edin', (req, res) => {
         console.log(reason);
         throw reason;
       })
+  });
+});
+
+router.get('/estimate/:pk([0-9]+)', (req, res) => {
+  const reqEsPk = req.params.pk || '';
+
+  knexBuilder.getConnection().then(cur => {
+    cur('estimate_detail_hst')
+      .select('*')
+      .leftJoin('')
   });
 });
 
@@ -341,3 +363,5 @@ router.get('/redirect_uri', (req, res) => {
 
   }
 });
+
+module.exports = router;

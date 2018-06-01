@@ -43,6 +43,9 @@ const apiResource = require('./routes/api/resource');
 const apiFile = require('./routes/api/file');
 const apiAuthentication = require('./routes/api/authentication');
 const apiPartner = require('./routes/api/partner');
+const apiContract = require('./routes/api/contract');
+const apiEstimate = require('./routes/api/estimate');
+const apiTest = require('./routes/api/test');
 
 const authMiddleware = require('./middlewares/auth');
 
@@ -97,10 +100,13 @@ app.use('/api/construction', apiConstruction);
 app.use('/api/resource', apiResource);
 app.use('/api/file/', apiFile);
 app.use('/api/authentication/', apiAuthentication);
-app.use('/api/partner', apiPartner)
+app.use('/api/partner', apiPartner);
+app.use('/api/contract', apiContract);
+app.use('/api/estimate', apiEstimate);
+app.use('/api/test', apiTest);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function (req, res) {
   //let err = new Error('Not Found');
   //err.status = 404;
   // next(err);
@@ -109,14 +115,14 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
   res.status(err.status || 500);
-  console.log(err.message)
+  console.log(err.message);
   res.json({
     error: err.message,
     code: err.status || 500
