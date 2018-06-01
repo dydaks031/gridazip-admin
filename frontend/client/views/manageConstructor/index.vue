@@ -64,7 +64,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
+            <tr v-for="item in data.correspondent">
               <td>타일, 도기, 수전</td>
               <td>대원세라믹스</td>
               <td>010-xxxx-xxxx</td>
@@ -91,6 +91,8 @@
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
 
+  const queryApi = ''
+
   export default {
     name: 'manageConstructorIndex',
     components: {
@@ -103,12 +105,34 @@
         openTab: '',
         page: new Pagenation(),
         filter: new Filter(),
+        data: {
+          constructor: [],
+          correspondent: []
+        },
         moment
       }
     },
     methods: {
       activeView (type) {
         this.openTab = type
+        this.loadData()
+      },
+      loadData () {
+        this.isLoading = true
+        this.data[this.openTab] = []
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
+          page: this.page.get(),
+          filter: this.filter.get()
+        }).then((response) => {
+          if (response.data.code !== 200) {
+            return
+          }
+          const dataList = response.data.data
+          this.page.set(dataList.page)
+          this.data[this.openTab] = dataList
+        }).catch((error) => {
+          console.log(error)
+        })
       },
       moveToPagination (index) {
         console.log('curIndex' + index)
@@ -120,6 +144,7 @@
     },
     mounted () {
       this.openTab = this.constructor
+      // this.loadData()
     }
   }
 </script>
