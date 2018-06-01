@@ -15,50 +15,45 @@
     <tbody>
       <tr>
         <td>
-          <select2 :options="options.constructionPlace" v-model="selected.constructionPlace">
+          <select2 :options="options.constructionPlace" v-model="selected.place_pk">
             <option disabled value="0">공사 위치 선택</option>
           </select2>
         </td>
         <td>
-          <input type="text" class="input" placeholder="상세위치" v-model="selected.constructionDetailPlace"/>
+          <input type="text" class="input" placeholder="상세위치" v-model="selected.detail_place"/>
         </td>
         <td>
-          <select2 :options="options.construction" v-model="selected.construction" v-on:input="changedData('construction')">
+          <select2 :options="options.construction" v-model="selected.ct_pk" v-on:input="changedData('construction')">
             <option disabled value="0">공사 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcess" v-model="selected.constructionProcess" v-on:input="changedData('constructionProcess')">
+          <select2 :options="options.constructionProcess" v-model="selected.cp_pk" v-on:input="changedData('constructionProcess')">
             <option disabled value="0">공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcessDetail" v-model="selected.constructionProcessDetail" v-on:input="changedData('constructionProcessDetail')">
+          <select2 :options="options.constructionProcessDetail" v-model="selected.cpd_pk" v-on:input="changedData('constructionProcessDetail')">
             <option disabled value="0">상세공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceCategory" v-model="selected.resourceCategory" v-on:input="changedData('resourceCategory')">
+          <select2 :options="options.resourceCategory" v-model="selected.rc_pk" v-on:input="changedData('resourceCategory')">
             <option disabled value="0">자재단위 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceType" v-model="selected.resourceType" v-on:input="changedData('resourceType')">
+          <select2 :options="options.resourceType" v-model="selected.rt_pk" v-on:input="changedData('resourceType')">
             <option disabled value="0">자재군 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceUnit" v-model="selected.resourceUnit" v-on:input="changedData('resourceUnit')">
-            <option disabled value="0">자재단위 선택</option>
-          </select2>
-        </td>
-        <td>
-          <select2 :options="options.resource" v-model="selected.resource" v-on:input="changedData('resource')">
+          <select2 :options="options.resource" v-model="selected.rs_pk" v-on:input="changedData('resource')">
             <option disabled value="0">자재 선택</option>
           </select2>
         </td>
         <td>
-          <input type="text" placeholder="면적 입력" class="input" v-model="selected.size"/>
+          <input type="text" placeholder="입력값 입력" class="input" v-model="selected.input_value"/>
         </td>
         <td>
           <button class="button" @click="getSelectedData">등록</button>
@@ -75,6 +70,8 @@
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
 
+  const queryApi = '/api/estimate/'
+
   export default {
     name: 'estimate-select',
     components: {
@@ -83,17 +80,17 @@
     data () {
       return {
         metaData: {},
+        params: {},
         selected: {
-          construction: 0,
-          constructionPlace: 0,
-          constructionProcess: 0,
-          constructionProcessDetail: 0,
-          resourceCategory: 0,
-          resourceType: 0,
-          resourceUnit: 0,
-          resource: 0,
-          constructionDetailPlace: '',
-          size: ''
+          ct_pk: 0,
+          place_pk: 0,
+          cp_pk: 0,
+          cpd_pk: 0,
+          rc_pk: 0,
+          rt_pk: 0,
+          rs_pk: 0,
+          detail_place: '',
+          input_value: ''
         },
         options: {
           construction: [],
@@ -186,7 +183,7 @@
             if (typeof isReloadItem === 'object') {
               // // call to child's method
               const data = {}
-              data[parent.keyList.id] = this.selected[parent.id]
+              data[parent.keyList.id] = this.selected[parent.keyList.id]
               this.loadData({
                 metaData: child[i],
                 data: data
@@ -207,14 +204,27 @@
       },
       getSelectedData () {
         console.log(this.selected)
-        this.$emit('registerData', {
-          selectedData: this.selected,
-          options: this.options
-        })
+        const id = this.params.id
+        if (!id) {
+          return false
+        }
+        this.$http.post(`${queryApi}/${id}`, this.selected)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.$emit('registerData', {
+              selectedData: this.selected,
+              options: this.options
+            })
+          }).catch((error) => {
+            console.log(error)
+          })
       }
     },
     mounted () {
       console.log(META_LODING_CONFIG)
+      this.params = this.$route.params
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)

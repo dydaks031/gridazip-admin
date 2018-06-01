@@ -13,31 +13,35 @@
           <div class="block">
             <label class="label">고객명</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_name" />
             </p>
             <label class="label">연락처</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_phone" />
             </p>
             <label class="label">평수</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_size" />
             </p>
             <label class="label">주소</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_address_brief" />
+            </p>
+            <label class="label">상세 주소</label>
+            <p class="control">
+              <input class="input" type="text" v-model="detailData.pc_address_detail" />
             </p>
             <label class="label">이사일</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_move_date"/>
             </p>
             <label class="label">예산</label>
             <p class="control">
-              <input class="input" type="text" />
+              <input class="input" type="text" v-model="detailData.pc_budget"/>
             </p>
             <label class="label">메모</label>
             <p class="control">
-              <textarea class="textarea" ></textarea>
+              <textarea class="textarea" v-model="detailData.pc_memo"></textarea>
             </p>
             <p class="control">
               <button class="button is-primary">등록</button>
@@ -55,6 +59,9 @@
 
 <script>
   import estimateSheet from './estimateSheet'
+  import router from '../../router'
+
+  const queryApi = '/api/contract'
 
   export default {
     name: 'estimateDetail',
@@ -68,15 +75,41 @@
           estimateView: 'estimateView',
           managerAndShop: 'managerAndShop'
         },
-        currentTab: ''
+        currentTab: '',
+        param: {},
+        detailData: {}
       }
     },
     mounted () {
       this.currentTab = this.tabType.info
+      this.param = this.$route.params
+      console.log(router)
+      this.loadDetail()
+    },
+    computed: {
+      getFullAddress () {
+        return `${this.detailData.pc_address_brief} ${this.detailData.pc_address_detail}`
+      }
     },
     methods: {
       activeView (type) {
         this.currentTab = type
+      },
+      loadDetail () {
+        const id = this.param.id
+        if (!id) {
+          return false
+        }
+        this.$http.get(`${queryApi}/${id}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            console.log(response)
+            this.detailData = response.data.data.contract
+          }).catch((error) => {
+            console.log(error)
+          })
       }
     }
   }

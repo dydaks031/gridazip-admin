@@ -123,12 +123,21 @@
 
   export default {
     name: 'estimate-sheet',
+    data () {
+      return {
+        param: {}
+      }
+    },
     methods: {
       moveToRegister () {
         router.push({
-          path: `/estimate/register`
+          path: `/estimate/${this.param.id}/register`
         })
       }
+    },
+    mounted () {
+      this.param = this.$route.params
+      console.log(this.param)
     }
   }
 </script>
