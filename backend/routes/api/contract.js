@@ -224,7 +224,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
     cur('estimate_detail_hst')
       .select('*')
       .where('ed_pcpk', reqPcPk)
-      .orderBy('ed_place_pk', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk')
+      .orderBy('ed_pk')
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -420,6 +420,51 @@ router.delete('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
         })
     });
   }
+});
+
+
+
+
+router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+
+  knexBuilder.getConnection().then(cur => {
+
+    cur.raw(`
+    select ct.ct_name,
+           cp.cp_name,
+           cpd.cpd_name,
+           rt.rt_name,
+           rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_costs,
+           sum(ed.ed_input_value) input_value,
+           cpd.cpd_min_amount,
+           case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+             then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+             else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ( sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount )
+           end total_costs
+      from estimate_detail_hst ed
+      left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+      left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+     where ed.ed_pcpk = ?
+     group by ed.ed_pcpk, ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
+     order by ed.ed_ctpk,ed.ed_cppk,ed.ed_cpdpk,ed.ed_rtpk
+    `, reqPcPk)
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            estimateList: response[0]
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('상세견적 목록을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
 });
 
 module.exports = router;
