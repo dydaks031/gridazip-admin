@@ -70,7 +70,7 @@
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
 
-  const queryApi = '/api/estimate/'
+  const queryApi = '/api/contract/'
 
   export default {
     name: 'estimate-select',
@@ -208,11 +208,12 @@
         if (!id) {
           return false
         }
-        this.$http.post(`${queryApi}/${id}`, this.selected)
+        this.$http.post(`${queryApi}/${id}/estimate`, this.selected)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
+            console.log(response.data.data)
             this.$emit('registerData', {
               selectedData: this.selected,
               options: this.options
