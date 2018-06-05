@@ -6,7 +6,7 @@ const FormatService = require('../../services/format/helper');
 const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
-
+const calc = require('calculator')
 
 router.get('/', (req, res) => {
   let point = req.query.point;
@@ -303,11 +303,14 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
           return cur('estimate_detail_hst')
             .insert(insertObj)
         })
-        .then(() => {
+        .then((response) => {
           console.log('ok');
+          console.log(response)
+          delete insertObj.ed_recency
           res.json(
             resHelper.getJson({
-              msg: 'ok'
+              msg: 'ok',
+              data: insertObj
             })
           );
         })
