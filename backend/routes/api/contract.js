@@ -461,7 +461,49 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
       .catch(err => {
         console.log(err);
         res.json(
-          resHelper.getError('상세견적 목록을 조회하는 중 오류가 발생하였습니다.')
+          resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
+});
+
+router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+
+  knexBuilder.getConnection().then(cur => {
+
+    cur.raw(`
+    select ed.ed_pcpk,
+           pl.cp_name,
+           rt.rt_name,
+           rs.rs_name,
+           rs.rs_price,
+           sum(ed.ed_resource_amount) resource_amount,
+           ru.ru_name,
+           rs.rs_price * sum(ed.ed_resource_amount) total_price
+      from estimate_detail_hst ed
+      left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
+      left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+      left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+      left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+      left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+     where ed.ed_pcpk = ?
+     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_rtpk, ed.ed_rspk
+     order by ed.ed_place_pk, ed.ed_rtpk, ed.ed_rspk
+    `, reqPcPk)
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            estimateList: response[0]
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('상세견적서(자재)를 조회하는 중 오류가 발생하였습니다.')
         );
       })
   })
