@@ -16,6 +16,18 @@
           <table class="table">
             <colgroup>
               <col />
+              <col width="12%" />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col width="10%" />
+              <col width="10%" />
+              <col />
+              <col />
+              <col />
             </colgroup>
             <thead>
             <tr>
@@ -31,6 +43,7 @@
               <th>물량</th>
               <th>인건비</th>
               <th>자재비</th>
+              <th></th>
             </tr>
             </thead>
             <estimate-modify :rowData="{}"/>
@@ -45,6 +58,8 @@
   import estimateSelect from './estimateSelect'
   import estimateModify from './estimateModify'
   import EventBus from '../../services/eventBus'
+
+  const queryApi = '/api/contract/'
 
   export default {
     name: 'estimateRegister',
@@ -63,6 +78,7 @@
     },
     mounted () {
       this.currentTab = this.tabType.register
+      this.loadData()
     },
     methods: {
       activeView (type) {
@@ -71,6 +87,19 @@
       updateModifyView (data) {
         console.log(data)
         EventBus.$emit('updateModifyView', data)
+      },
+      loadData () {
+        const id = this.$route.params.id
+        this.$http.get(`${queryApi}/${id}/estimate`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            var data = response.data.data
+            EventBus.$emit('updateModifyView', data.estimateList)
+          }).catch((error) => {
+            console.log(error)
+          })
       }
     }
   }

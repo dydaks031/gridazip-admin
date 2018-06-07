@@ -6,7 +6,6 @@
     </div>
     <table class="table position-base-table">
       <colgroup>
-        <col width="auto"/>
       </colgroup>
       <thead>
         <tr>

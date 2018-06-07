@@ -307,6 +307,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
           console.log('ok');
           console.log(response)
           delete insertObj.ed_recency
+          insertObj.id = response[0]
+
           res.json(
             resHelper.getJson({
               msg: 'ok',

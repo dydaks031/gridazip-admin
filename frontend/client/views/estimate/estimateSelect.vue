@@ -214,8 +214,13 @@
               return
             }
             console.log(response.data.data)
+            var data = response.data.data.data
+
             this.$emit('registerData', {
-              selectedData: this.selected,
+              selectedData: {
+                ...this.selected,
+                id: data.id
+              },
               options: this.options
             })
           }).catch((error) => {
