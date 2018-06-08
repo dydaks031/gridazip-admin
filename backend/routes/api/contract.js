@@ -231,10 +231,17 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
         'ed_pk',
         {place_name: 'pl.cp_name'},
         'ed_detail_place',
+        'ed_ctpk',
         'ct.ct_name',
+        'ed_cppk',
         'cp.cp_name',
+        'ed_cpdpk',
         'cpd.cpd_name',
+        'rc.rc_pk',
+        'rc.rc_name',
+        'ed_rtpk',
         'rt.rt_name',
+        'ed_rspk',
         'rs.rs_name',
         'ru.ru_name',
         'ed_input_value',
@@ -249,6 +256,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
       .leftJoin({cp: 'construction_process_tbl'}, 'ed.ed_cppk', 'cp.cp_pk')
       .leftJoin({cpd: 'construction_process_detail_tbl'}, 'ed.ed_cpdpk', 'cpd.cpd_pk')
       .leftJoin({rt: 'resource_type_tbl'}, 'ed.ed_rtpk', 'rt.rt_pk')
+      .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
       .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
       .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
 
@@ -477,10 +485,114 @@ router.delete('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.get('/:pk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
-  const reqPcPk = req.params.pk || '';
-  knexBuilder.getConnection().then(cur => {
+router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
+  const reqEdPk = req.params.pk || '';
 
+  let constructionPk;
+  let constructionProcessPk;
+  let constructionProcessDetailPk;
+  let resourceCategoryPk;
+  let resourceTypePk;
+  let resourcePk;
+
+  let constructionPlaceList;
+  let constructionList;
+  let constructionProcessList;
+  let constructionProcessDetailList;
+  let resourceCategoryList;
+  let resourceTypeList;
+  let resourceList;
+
+  knexBuilder.getConnection().then(cur => {
+    cur('estimate_detail_hst')
+      .first('ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk')
+      .where('ed_pk', reqEdPk)
+      .then(row => {
+        constructionPk = row.ed_ctpk;
+        constructionProcessPk = row.ed_cppk;
+        constructionProcessDetailPk = row.ed_cpdpk;
+        resourceTypePk = row.ed_rtpk;
+        resourcePk = row.ed_rspk;
+
+        return cur('construction_place_tbl')
+          .select('cp_pk', 'cp_name', 'cp_order')
+          .where('cp_deleted', false)
+          .orderBy('cp_order')
+      })
+      .then(response => {
+        constructionPlaceList = response;
+
+        return cur('construction_tbl')
+          .select('ct_pk', 'ct_name', 'ct_order')
+          .where('ct_deleted', false)
+          .orderBy('ct_order')
+      })
+      .then(response => {
+        constructionList = response;
+
+        return cur('construction_process_tbl')
+          .select('cp_pk', 'cp_name')
+          .where('cp_ctpk',constructionPk)
+          .andWhere('cp_deleted', false)
+          .orderBy('cp_name')
+      })
+      .then(response => {
+        constructionProcessList = response;
+
+        return cur('construction_process_detail_tbl')
+          .select('cpd_pk', 'cpd_name', 'cpd_labor_costs', 'cpd_min_amount', 'cpd_unit')
+          .where('cpd_cppk',constructionProcessPk)
+          .andWhere('cpd_deleted', false)
+          .orderBy('cpd_name')
+      })
+      .then(response => {
+        constructionProcessDetailList = response;
+
+        return cur('resource_type_tbl')
+          .first('rt_rcpk')
+          .where('rt_pk',resourceTypePk)
+      })
+      .then(row => {
+        resourceCategoryPk = row.rt_rcpk;
+
+        return cur('resource_category_tbl')
+          .select('rc_pk', 'rc_name', 'rc_order')
+          .where('rc_deleted', false)
+          .orderBy('rc_order')
+      })
+      .then(response => {
+        resourceCategoryList = response;
+
+        return cur('resource_type_tbl')
+          .select('rt_pk', 'rt_name', 'rt_extra_labor_costs')
+          .where('rt_rcpk',resourceCategoryPk)
+          .andWhere('rt_deleted', false)
+          .orderBy('rt_order')
+      })
+      .then(response => {
+        resourceTypeList = response;
+
+        return cur('resource_tbl')
+          .select('rs_pk', 'rs_name', 'rs_code', 'rs_price', 'rs_rupk')
+          .where('rs_rtpk',resourceTypePk)
+          .andWhere('rs_deleted', false)
+          .orderBy('rs_name')
+      })
+      .then(response => {
+        resourceList = response;
+
+        res.json(
+          resHelper.getJson({
+            constructionPlaceList,
+            constructionList,
+            constructionProcessList,
+            constructionProcessDetailList,
+            resourceCategoryList,
+            resourceTypeList,
+            resourceList
+          })
+        );
+      })
   });
 });
 
