@@ -248,14 +248,14 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
 
 router.post('/:pk([0-9]+)/estimate', (req, res) => {
   const reqPcPk = req.params.pk || '';
-  const reqPlacePk = req.body.place_pk || '';
-  const reqCtPk = req.body.ct_pk || '';
-  const reqCpPk = req.body.cp_pk || '';
-  const reqCpdPk = req.body.cpd_pk || '';
-  const reqRtPk = req.body.rt_pk || '';
-  const reqRsPk = req.body.rs_pk || '';
-  const reqInputValue = req.body.input_value || '';
-  const reqDetailPlace = req.body.detail_place || '';
+  const reqPlacePk = req.body.ed_place_pk || '';
+  const reqCtPk = req.body.ed_ctpk || '';
+  const reqCpPk = req.body.ed_cppk || '';
+  const reqCpdPk = req.body.ed_cpdpk || '';
+  const reqRtPk = req.body.ed_rtpk || '';
+  const reqRsPk = req.body.ed_rspk || '';
+  const reqInputValue = req.body.ed_input_value || '';
+  const reqDetailPlace = req.body.ed_detail_place || '';
 
   if (reqPcPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
@@ -299,7 +299,6 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
 
           const fn = calc.func(`f(x) = ${calcExpression}`);
           let resourceAmount = fn(reqInputValue);
-          console.log('resourceAmount : ' + resourceAmount);
 
           insertObj.ed_resource_amount = parseFloat(resourceAmount.toFixed(2));
           insertObj.ed_calculated_amount = parseFloat(resourceAmount.toFixed(2));
@@ -309,10 +308,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
             .insert(insertObj)
         })
         .then((response) => {
-          console.log('ok');
-          console.log(response)
-          delete insertObj.ed_recency
-          insertObj.id = response[0]
+          delete insertObj.ed_recency;
+          insertObj.id = response[0];
 
           res.json(
             resHelper.getJson({
@@ -333,14 +330,14 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
 
 router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.pk || '';
-  const reqPlacePk = req.body.place_pk || '';
-  const reqCtPk = req.body.ct_pk || '';
-  const reqCpPk = req.body.cp_pk || '';
-  const reqCpdPk = req.body.cpd_pk || '';
-  const reqRtPk = req.body.rt_pk || '';
-  const reqRsPk = req.body.rs_pk || '';
-  const reqInputValue = req.body.input_value || '';
-  const reqDetailPlace = req.body.detail_place || '';
+  const reqPlacePk = req.body.ed_place_pk || '';
+  const reqCtPk = req.body.ed_ctpk || '';
+  const reqCpPk = req.body.ed_cppk || '';
+  const reqCpdPk = req.body.ed_cpdpk || '';
+  const reqRtPk = req.body.ed_rtpk || '';
+  const reqRsPk = req.body.ed_rspk || '';
+  const reqInputValue = req.body.ed_input_value || '';
+  const reqDetailPlace = req.body.ed_detail_place || '';
 
   if (reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
