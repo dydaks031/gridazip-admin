@@ -468,8 +468,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
         })
         .then(row => {
           labor_costs += row.rt_extra_labor_costs;
-          updateObj.labor_costs = labor_costs * reqInputValue;
-          updateObj.resource_costs = resource_price * updateObj.ed_resource_amount;
+          updateObj.labor_costs = (labor_costs * reqInputValue).toFixed(0);
+          updateObj.resource_costs = (resource_price * updateObj.ed_resource_amount).toFixed(0);
 
           res.json(
             resHelper.getJson({
