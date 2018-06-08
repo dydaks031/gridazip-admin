@@ -54,7 +54,7 @@
     <div class="tile is-ancestor" v-show="currentTab === tabType.preview">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn="true"/>
+          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn=true />
         </article>
       </div>
     </div>

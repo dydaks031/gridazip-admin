@@ -39,7 +39,7 @@
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceCategory" v-model="selected.ed_rcpk" v-on:input="changedData('resourceCategory', 'ed_rcpk')">
+          <select2 :options="options.resourceCategory" v-model="selected.rc_pk" v-on:input="changedData('resourceCategory', 'rc_pk')">
             <option disabled value="0">자재단위 선택</option>
           </select2>
         </td>
@@ -92,7 +92,7 @@
           ed_place_pk: 0,
           ed_cppk: 0,
           ed_cpdpk: 0,
-          ed_rcpk: 0,
+          rc_pk: 0,
           ed_rtpk: 0,
           ed_rspk: 0,
           ed_detail_place: '',

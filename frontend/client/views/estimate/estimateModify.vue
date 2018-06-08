@@ -25,8 +25,8 @@
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.ed_rcpk) || data.selectedData.rc_name}}</span>
-        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.ed_rcpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.rc_pk) || data.selectedData.rc_name}}</span>
+        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
@@ -52,7 +52,7 @@
         {{data.selectedData.resource_costs}}
       </td>
       <td>
-        <button class="button" @click="data.isModify = !data.isModify">{{data.isModify ? '취소': '수정'}}</button>
+        <button class="button" @click="changedModifyView(data)">{{data.isModify ? '취소': '수정'}}</button>
         <button class="button" :class="{hide: data.isModify}" @click="deleteRow(data)">삭제</button>
         <button class="button" :class="{hide: !data.isModify}" @click="updateRow(data)">확인</button>
       </td>
@@ -156,6 +156,9 @@
           }).catch((error) => {
             console.log(error)
           })
+      },
+      changedModifyView (data) {
+        data.isModify = !data.isModify
       }
     }
   }

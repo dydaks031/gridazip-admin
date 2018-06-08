@@ -2,7 +2,7 @@
   <div>
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
-      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn">등록/수정</a>
+      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">등록/수정</a>
     </div>
     <table class="table position-base-table">
       <colgroup>
@@ -127,11 +127,11 @@
           general: [],
           labor: [],
           resource: []
-        },
-        deleteRegisterBtn: {
-          type: Boolean,
-          default: false
         }
+      },
+      deleteRegisterBtn: {
+        type: Boolean,
+        default: false
       }
     },
     data () {
@@ -148,7 +148,8 @@
     },
     mounted () {
       this.param = this.$route.params
-      console.log(this.estimateData)
+    },
+    created () {
     },
     watch: {
       estimateData: {
