@@ -423,11 +423,13 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
     // select cpd_labor_costs from construction_process_detail_tbl
     knexBuilder.getConnection().then(cur => {
       cur('resource_tbl')
-        .first('rs_rupk')
+        .first('rs_rupk', 'rs_price')
         .where({
           rs_pk: reqRsPk
         })
         .then(row => {
+          resource_price = row.rs_price;
+
           return cur('resource_unit_tbl')
             .first('ru_name', 'ru_calc_expression')
             .where({
