@@ -291,6 +291,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   }
   else {
     let insertObj = {};
+    let labor_costs;
+    let resource_price;
 
     insertObj.ed_pcpk = reqPcPk;
     insertObj.ed_place_pk = reqPlacePk;
@@ -306,11 +308,13 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
     // select cpd_labor_costs from construction_process_detail_tbl
     knexBuilder.getConnection().then(cur => {
       cur('resource_tbl')
-        .first('rs_rupk')
+        .first('rs_rupk', 'rs_price')
         .where({
           rs_pk: reqRsPk
         })
         .then(row => {
+          resource_price = row.rs_price;
+
           return cur('resource_unit_tbl')
             .first('ru_name', 'ru_calc_expression')
             .where({
@@ -333,6 +337,26 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
         .then((response) => {
           delete insertObj.ed_recency;
           insertObj.ed_pk = response[0];
+
+          return cur('construction_process_detail_tbl')
+            .first('cpd_labor_costs')
+            .where({
+              cpd_pk: reqCpdPk
+            })
+        })
+        .then(row => {
+          labor_costs = row.cpd_labor_costs;
+
+          return cur('resource_type_tbl')
+            .first('rt_extra_labor_costs')
+            .where({
+              rt_pk: reqRtPk
+            })
+        })
+        .then(row => {
+          labor_costs += row.rt_extra_labor_costs;
+          insertObj.labor_costs = labor_costs * reqInputValue;
+          insertObj.resource_costs = resource_price * insertObj.ed_resource_amount;
 
           res.json(
             resHelper.getJson({
