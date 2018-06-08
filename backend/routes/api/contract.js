@@ -407,6 +407,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   else {
 
     let updateObj = {};
+    let resource_price;
+    let labor_costs;
 
     updateObj.ed_place_pk = reqPlacePk;
     updateObj.ed_ctpk = reqCtPk;
@@ -446,6 +448,27 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
             .where('ed_pk', reqEdPk)
         })
         .then(() => {
+
+          return cur('construction_process_detail_tbl')
+            .first('cpd_labor_costs')
+            .where({
+              cpd_pk: reqCpdPk
+            })
+        })
+        .then(row => {
+          labor_costs = row.cpd_labor_costs;
+
+          return cur('resource_type_tbl')
+            .first('rt_extra_labor_costs')
+            .where({
+              rt_pk: reqRtPk
+            })
+        })
+        .then(row => {
+          labor_costs += row.rt_extra_labor_costs;
+          updateObj.labor_costs = labor_costs * reqInputValue;
+          updateObj.resource_costs = resource_price * updateObj.ed_resource_amount;
+
           res.json(
             resHelper.getJson({
               msg: 'ok',
