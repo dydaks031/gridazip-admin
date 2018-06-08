@@ -485,7 +485,7 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur.raw(`
-    select pl.cp_name,
+    select pl.cp_name as place_name,
            ct.ct_name,
            cp.cp_name,
            cpd.cpd_name,
@@ -533,7 +533,7 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur.raw(`
-    select pl.cp_name,
+    select pl.cp_name as place_name,
            ct.ct_name,
            cp.cp_name,
            cpd.cpd_name,
@@ -581,7 +581,7 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
 
     cur.raw(`
     select ed.ed_pcpk,
-           pl.cp_name,
+           pl.cp_name as place_name,
            rt.rt_name,
            rs.rs_name,
            rs.rs_price,
