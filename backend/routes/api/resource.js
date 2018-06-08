@@ -29,6 +29,7 @@ router.get('/category', (req, res) => {
 
 router.post('/category', (req, res) => {
   const reqName = req.body.rc_name || '';
+  let order;
   if (reqName.trim() === '') {
     res.json(resHelper.getError('자재 분류명은 반드시 입력해야 합니다.'));
   }
@@ -37,15 +38,22 @@ router.post('/category', (req, res) => {
       cur('resource_category_tbl')
         .max('rc_order as order')
         .then(response => {
-          const order = response[0].order + 1;
+          order = response[0].order + 1;
           cur('resource_category_tbl')
             .insert({
               rc_name: reqName,
               rc_order: order
             })
-            .then(() => {
+            .returning('rc_pk')
+            .then((response) => {
+              console.log(response);
               res.json(resHelper.getJson({
-                msg: '자재 분류가 정상적으로 추가되었습니다.'
+                msg: '자재 분류가 정상적으로 추가되었습니다.',
+                data: {
+                  rc_pk: response[0],
+                  rc_name: reqName,
+                  rc_order: order
+                }
               }));
             })
             .catch(err => {
@@ -76,7 +84,11 @@ router.put('/category/:pk([0-9]+)', (req, res) => {
         .where('rc_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재 분류가 정상적으로 변경되었습니다.'
+            msg: '자재 분류가 정상적으로 변경되었습니다.',
+            data: {
+              rc_pk: reqPk,
+              rc_name: reqName
+            }
           }));
         })
         .catch(err => {
@@ -186,25 +198,25 @@ router.post('/type', (req, res) => {
   const reqName = req.body.rt_name || '';
   const reqRcPk = req.body.rc_pk || '';
   const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  let obj = {};
   if (reqName.trim() === '' || reqRcPk === '' || reqExtraLaborCosts === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.rt_rcpk = reqRcPk;
+    obj.rt_name = reqName.trim();
+    obj.rt_extra_labor_costs = reqExtraLaborCosts;
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .max('rt_order as order')
         .then(response => {
-          const order = response[0].order + 1;
+          obj.rt_order = response[0].order + 1;
           cur('resource_type_tbl')
-            .insert({
-              rt_rcpk: reqRcPk,
-              rt_name: reqName,
-              rt_order: order,
-              rt_extra_labor_costs: reqExtraLaborCosts
-            })
+            .insert(obj)
             .then(() => {
               res.json(resHelper.getJson({
-                msg: '자재군이 정상적으로 추가되었습니다.'
+                msg: '자재군이 정상적으로 추가되었습니다.',
+                data: obj
               }));
             })
             .catch(err => {
@@ -224,20 +236,21 @@ router.put('/type/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.rt_name || '';
   const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  let obj = {};
   if (reqPk === '' || reqName === '' || reqExtraLaborCosts === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.rt_name = reqName.trim();
+    obj.rt_extra_labor_costs = reqExtraLaborCosts;
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
-        .update({
-          rt_name: reqName,
-          rt_extra_labor_costs: reqExtraLaborCosts
-        })
+        .update(obj)
         .where('rt_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재군이 정상적으로 변경되었습니다.'
+            msg: '자재군이 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -348,22 +361,23 @@ router.post('/', (req, res) => {
   const reqRuPk = req.body.ru_pk || '';
   const reqCode = req.body.rs_code || '';
   const reqPrice = req.body.rs_price || '';
+  let obj = {};
   if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
+    obj.rs_rtpk = reqRtPk;
+    obj.rs_rupk = reqRuPk;
+    obj.rs_name = reqName;
+    obj.rs_code = reqCode;
+    obj.rs_price = reqPrice;
     knexBuilder.getConnection().then(cur => {
       cur('resource_tbl')
-        .insert({
-          rs_rtpk: reqRtPk,
-          rs_rupk: reqRuPk,
-          rs_name: reqName,
-          rs_code: reqCode,
-          rs_price: reqPrice
-        })
+        .insert(obj)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재가 정상적으로 추가되었습니다.'
+            msg: '자재가 정상적으로 추가되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -380,23 +394,24 @@ router.put('/:pk([0-9]+)', (req, res) => {
   const reqRuPk = req.body.rs_rupk || '';
   const reqCode = req.body.rs_code || '';
   const reqPrice = req.body.rs_price || '';
+  let obj = {};
 
   if(reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
+    obj.rs_rupk = reqRuPk;
+    obj.rs_name = reqName;
+    obj.rs_code = reqCode;
+    obj.rs_price = reqPrice;
     knexBuilder.getConnection().then(cur => {
       cur('resource_tbl')
-        .update({
-          rs_rupk: reqRuPk,
-          rs_name: reqName,
-          rs_code: reqCode,
-          rs_price: reqPrice
-        })
+        .update(obj)
         .where('rs_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재가 정상적으로 변경되었습니다.'
+            msg: '자재가 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -470,21 +485,23 @@ router.post('/unit', (req, res) => {
   const reqRcPk = req.body.rc_pk || '';
   const reqCalcExpression = req.body.ru_calc_expression || '';
   const reqCeilFlag = req.body.ru_ceil_flag || '';
-  if(reqName === '') {
-    res.json(resHelper.getError('자재단위 명은 반드시 입력해야 합니다.'))
+  let obj = {};
+
+  if(reqName === '' || reqRcPk === '' || reqCalcExpression === '' || reqCeilFlag === '') {
+    res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'))
   }
   else {
+    obj.ru_name = reqName;
+    obj.ru_rcpk = reqRcPk;
+    obj.ru_calc_expression = reqCalcExpression;
+    obj.ru_ceil_flag = reqCeilFlag;
     knexBuilder.getConnection().then(cur => {
       cur('resource_unit_tbl')
-        .insert({
-          ru_name: reqName,
-          ru_rcpk: reqRcPk,
-          ru_calc_expression: reqCalcExpression,
-          ru_ceil_flag: reqCeilFlag
-        })
+        .insert(obj)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재단위가 정상적으로 추가되었습니다.'
+            msg: '자재단위가 정상적으로 추가되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -500,21 +517,22 @@ router.put('/unit/:pk([0-9]+)', (req, res) => {
   const reqName = req.body.ru_name || '';
   const reqCalcExpression = req.body.ru_calc_expression || '';
   const reqCeilFlag = req.body.ru_ceil_flag || '';
+  let obj = {};
   if (reqPk === '' || reqName === '' || reqCalcExpression === '' || reqCeilFlag === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.ru_name = reqName;
+    obj.ru_calc_expression = reqCalcExpression;
+    obj.ru_ceil_flag = reqCeilFlag;
     knexBuilder.getConnection().then(cur => {
       cur('resource_unit_tbl')
-        .update({
-          ru_name: reqName,
-          ru_calc_expression: reqCalcExpression,
-          ru_ceil_flag: reqCeilFlag
-        })
+        .update(obj)
         .where('ru_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재단위가 정상적으로 변경되었습니다.'
+            msg: '자재단위가 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
