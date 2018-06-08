@@ -19,7 +19,7 @@ export default {
       'parentId': 'construction',
       'api': '/api/construction/process',
       'keyList': {
-        list: 'processList',
+        list: 'constructionProcessList',
         id: 'cp_pk',
         name: 'cp_name',
         order: 'cp_order'
@@ -32,7 +32,7 @@ export default {
       'parentId': 'constructionProcess',
       'api': '/api/construction/process/detail',
       'keyList': {
-        list: 'processDetailList',
+        list: 'constructionProcessDetailList',
         id: 'cpd_pk',
         name: 'cpd_name',
         order: 'cpd_order'
@@ -45,7 +45,7 @@ export default {
       'api': '/api/construction/place',
       'parentId': null,
       'keyList': {
-        list: 'placeList',
+        list: 'constructionPlaceList',
         id: 'cp_pk',
         name: 'cp_name',
         order: 'cp_order'

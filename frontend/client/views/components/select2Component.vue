@@ -37,7 +37,11 @@
       },
       options: function (options) {
         // update options
-        $(this.$el).empty().select2({ data: options })
+        $(this.$el).empty().select2({
+          data: options
+        })
+          .val(this.value || '')
+          .trigger('change')
       }
     },
     destroyed: function () {

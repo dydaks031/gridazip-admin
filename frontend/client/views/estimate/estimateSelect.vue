@@ -135,6 +135,7 @@
           if (metaData.id === 'constructionProcessDetail') {
             this.cpdData = response.data.data[metaData.keyList.list]
           }
+          console.log(this.options)
         }).catch((error) => {
           console.error(error)
         })
@@ -161,7 +162,7 @@
         if (metaData.id === 'constructionProcessDetail') {
           const selectedData = _.find(this.cpdData, (item) => {
             return item[metaData.keyList.id].toString() === this.selected[key].toString()
-          })
+          }) || {}
           this.cpdUnit = selectedData.cpd_unit
         }
 

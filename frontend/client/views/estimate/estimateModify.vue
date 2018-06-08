@@ -64,6 +64,8 @@
   import select2 from '../components/select2Component'
   import EventBus from '../../services/eventBus'
   import _ from 'underscore'
+  import META_LODING_CONFIG from '../../config/meta-loading-config'
+  import deepClone from '../../services/deepClone'
 
   const queryApi = '/api/contract/'
 
@@ -82,10 +84,13 @@
         dataGroup: [],
         options: {
 
-        }
+        },
+        metaData: {}
       }
     },
     created () {
+      this.metaData = deepClone(META_LODING_CONFIG)
+
       EventBus.$on('updateModifyView', (data) => {
         if (_.isArray(data)) {
           const target = data[0]
@@ -159,6 +164,54 @@
       },
       changedModifyView (data) {
         data.isModify = !data.isModify
+        if (data.isFirstSelectDataLoaded) {
+          return false
+        }
+        data.isFirstSelectDataLoaded = true
+        const sendData = data.selectedData
+        const id = this.$route.params.id
+        this.$http.get(`${queryApi}/${id}/estimate/${sendData.ed_pk}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            console.log(response.data.data)
+            const selectBoxData = response.data.data
+            for (const key in selectBoxData) {
+              const type = this.getType(key)
+              const realKey = key.replace(/List$/, '')
+              const meta = _.find(this.metaData[type], (item) => {
+                return item.id === realKey
+              })
+              data.options[realKey] = this.changedDataToSelect2Data(meta.keyList, selectBoxData[key])
+              data.options[realKey].unshift({
+                text: `${meta.label} 선택`,
+                id: ''
+              })
+            }
+            console.log(data.options)
+          }).catch((error) => {
+            console.log(error)
+          })
+      },
+      changedDataToSelect2Data (keyList = {}, data = []) {
+        const convertData = []
+        _.forEach(data, (item) => {
+          convertData.push({
+            id: item[keyList.id],
+            text: item[keyList.name]
+          })
+        })
+        return convertData
+      },
+      getType (id) {
+        const metaData = this.metaData
+        const keyList = Object.keys(metaData)
+        for (let i = 0; i < keyList.length; i += 1) {
+          if (id.indexOf(keyList[i]) > -1) {
+            return keyList[i]
+          }
+        }
       }
     }
   }

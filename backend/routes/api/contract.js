@@ -230,6 +230,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
       .select([
         'ed_pk',
         {place_name: 'pl.cp_name'},
+        {'ed_place_pk': 'pl.cp_pk'},
         'ed_detail_place',
         'ed_ctpk',
         'ct.ct_name',
