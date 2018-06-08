@@ -477,7 +477,12 @@ router.delete('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   }
 });
 
+router.get('/:pk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  knexBuilder.getConnection().then(cur => {
 
+  });
+});
 
 router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
   const reqPcPk = req.params.pk || '';
@@ -533,30 +538,25 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur.raw(`
-    select pl.cp_name as place_name,
-           ct.ct_name,
-           cp.cp_name,
-           cpd.cpd_name,
-           rt.rt_name,
-           rs.rs_name,
-           ed.ed_resource_amount resource_amount,
-           ru.ru_name,
-           rs.rs_price,
-           ed.ed_resource_amount * rs.rs_price resource_costs,
-           ed.ed_input_value,
-           cpd.cpd_min_amount,
-           ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
-      from estimate_detail_hst ed
-      left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
-      left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
-      left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
-      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-      left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-      left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
-     where ed.ed_pcpk = ?
-     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk
-     order by 1,2,3,4,5,6
+      select ct.ct_name,
+             cp.cp_name,
+             cpd.cpd_name,
+             rt.rt_name,
+             rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
+             sum(ed.ed_input_value) input_value,
+             cpd.cpd_min_amount,
+             case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+               then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+               else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ( sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount )
+             end as labor_costs
+        from estimate_detail_hst ed
+        left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+        left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+        left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+        left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+       where ed.ed_pcpk = ?
+       group by ed.ed_pcpk, ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
+       order by ed.ed_ctpk,ed.ed_cppk,ed.ed_cpdpk,ed.ed_rtpk
     `, reqPcPk)
       .then(response => {
         res.json(
@@ -580,25 +580,18 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur.raw(`
-    select ed.ed_pcpk,
-           pl.cp_name as place_name,
-           rt.rt_name,
-           rs.rs_name,
-           rs.rs_price,
-           sum(ed.ed_resource_amount) resource_amount,
-           ru.ru_name,
-           rs.rs_price * sum(ed.ed_resource_amount) total_price
-      from estimate_detail_hst ed
-      left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
-      left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
-      left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
-      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-      left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-      left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
-     where ed.ed_pcpk = ?
-     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_rtpk, ed.ed_rspk
-     order by ed.ed_place_pk, ed.ed_rtpk, ed.ed_rspk
+      select rs.rs_name,
+             rs.rs_price,
+             ceil(sum(ed.ed_resource_amount)) as resource_amount,
+             ru.ru_name,
+             rs.rs_price * ceil(sum(ed.ed_resource_amount)) as resource_costs
+        from estimate_detail_hst ed
+        left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+        left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+       where ed.ed_pcpk = ?
+       group by ed.ed_rspk
+       order by rs.rs_name
     `, reqPcPk)
       .then(response => {
         res.json(
