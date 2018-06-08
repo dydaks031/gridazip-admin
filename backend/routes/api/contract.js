@@ -239,6 +239,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
         'ru.ru_name',
         'ed_input_value',
         'ed_resource_amount',
+        'cpd.cpd_unit',
         cur.raw(`ed.ed_input_value * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs`),
         cur.raw(`ed.ed_resource_amount * rs.rs_price as resource_costs`)
       ])
