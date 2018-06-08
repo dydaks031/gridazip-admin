@@ -163,7 +163,7 @@ router.get('/place', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            placeList: response
+            constructionPlaceList: response
           })
         );
       })
@@ -264,7 +264,7 @@ router.delete('/place/:pk([0-9]+)', (req, res) => {
 });
 
 router.put('/place/order', (req, res) => {
-  const reqPlaceList = req.body.placeList || '';
+  const reqPlaceList = req.body.constructionPlaceList || '';
   if (reqPlaceList === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
@@ -319,7 +319,7 @@ router.get('/process', (req, res) => {
         .then(response => {
           res.json(
             resHelper.getJson({
-              processList: response
+              constructionProcessList: response
             })
           );
         })
@@ -430,7 +430,7 @@ router.get('/process/detail', (req, res) => {
         .then(response => {
           res.json(
             resHelper.getJson({
-              processDetailList: response
+              constructionProcessDetailList: response
             })
           );
         })
