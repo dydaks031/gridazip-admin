@@ -106,7 +106,6 @@
         } else {
           data[options.model.keyList.name] = options.data
         }
-        console.log(data)
         this.selectedData = {}
         this.selectedModel = {}
         this.callApi({
@@ -116,8 +115,6 @@
         }, callback)
       },
       deleteItem (options) {
-        console.log(options)
-        console.log(`${options.model.api}/${options.data[options.model.keyList.id]}`)
         this.callApi({
           action: 'delete',
           api: `${options.model.api}/${options.data[options.model.keyList.id]}`,
@@ -125,7 +122,6 @@
         })
       },
       modifyItem (options) {
-        console.log('c')
         this.callApi({
           action: 'put',
           api: `${options.model.api}/${options.data[options.model.keyList.id]}`,

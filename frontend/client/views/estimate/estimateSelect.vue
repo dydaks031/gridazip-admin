@@ -9,6 +9,7 @@
       <col width="10%" />
       <col width="10%" />
       <col width="10%" />
+      <col width="7%" />
       <col width="10%" />
       <col width="10%" />
     </colgroup>
@@ -23,34 +24,39 @@
           <input type="text" class="input" placeholder="상세위치" v-model="selected.ed_detail_place"/>
         </td>
         <td>
-          <select2 :options="options.construction" v-model="selected.ed_ctpk" v-on:input="changedData('construction')">
+          <select2 :options="options.construction" v-model="selected.ed_ctpk" v-on:input="changedData('construction', 'ed_ctpk')">
             <option disabled value="0">공사 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcess" v-model="selected.ed_cppk" v-on:input="changedData('constructionProcess')">
+          <select2 :options="options.constructionProcess" v-model="selected.ed_cppk" v-on:input="changedData('constructionProcess', 'ed_cppk')">
             <option disabled value="0">공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcessDetail" v-model="selected.ed_cpdpk" v-on:input="changedData('constructionProcessDetail')">
+          <select2 :options="options.constructionProcessDetail" v-model="selected.ed_cpdpk" v-on:input="changedData('constructionProcessDetail', 'ed_cpdpk')">
             <option disabled value="0">상세공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceCategory" v-model="selected.ed_rcpk" v-on:input="changedData('resourceCategory')">
+          <select2 :options="options.resourceCategory" v-model="selected.ed_rcpk" v-on:input="changedData('resourceCategory', 'ed_rcpk')">
             <option disabled value="0">자재단위 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceType" v-model="selected.ed_rtpk" v-on:input="changedData('resourceType')">
+          <select2 :options="options.resourceType" v-model="selected.ed_rtpk" v-on:input="changedData('resourceType', 'ed_rtpk')">
             <option disabled value="0">자재군 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resource" v-model="selected.ed_rspk" v-on:input="changedData('resource')">
+          <select2 :options="options.resource" v-model="selected.ed_rspk" v-on:input="changedData('resource', 'ed_rspk')">
             <option disabled value="0">자재 선택</option>
           </select2>
+        </td>
+        <td>
+          <span v-show="cpdUnit === 0">(단위: 개)</span>
+          <span v-show="cpdUnit === 1">(단위: M)</span>
+          <span v-show="cpdUnit === 2">(단위: M^2)</span>
         </td>
         <td>
           <input type="text" placeholder="입력값 입력" class="input" v-model="selected.ed_input_value"/>
@@ -101,7 +107,9 @@
           resourceType: [],
           resourceUnit: [],
           resource: []
-        }
+        },
+        cpdUnit: '',
+        cpdData: []
       }
     },
     methods: {
@@ -119,12 +127,14 @@
           if (response.data.code !== 200) {
             return
           }
-          console.log(response)
           this.options[metaData.id] = this.changedDataToSelect2Data(metaData.keyList, response.data.data[metaData.keyList.list])
           this.options[metaData.id].unshift({
             text: `${metaData.label} 선택`,
             id: ''
           })
+          if (metaData.id === 'constructionProcessDetail') {
+            this.cpdData = response.data.data[metaData.keyList.list]
+          }
         }).catch((error) => {
           console.error(error)
         })
@@ -139,7 +149,7 @@
         })
         return convertData
       },
-      changedData (id) {
+      changedData (id, key) {
         const type = this.getType(id)
         const metaData = _.find(this.metaData[type], (item) => {
           return item.id === id
@@ -147,8 +157,16 @@
         const curDepthTarget = _.filter(this.metaData[type], (item) => {
           return item.parentId === metaData.id
         })
+
+        if (metaData.id === 'constructionProcessDetail') {
+          const selectedData = _.find(this.cpdData, (item) => {
+            return item[metaData.keyList.id].toString() === this.selected[key].toString()
+          })
+          this.cpdUnit = selectedData.cpd_unit
+        }
+
         console.log(metaData)
-        this.removeChildData(type, metaData, curDepthTarget, metaData)
+        this.removeChildData(type, metaData, curDepthTarget, metaData, key)
       },
       /**
        * recursive function
@@ -157,7 +175,7 @@
        * @param parent selected element
        *
        */
-      removeChildData (type, model, target, parent) {
+      removeChildData (type, model, target, parent, key) {
         let currentId = model.id
         let child
         child = _.filter(this.metaData[type], (item) => {
@@ -183,13 +201,13 @@
             if (typeof isReloadItem === 'object') {
               // // call to child's method
               const data = {}
-              data[parent.keyList.id] = this.selected[parent.keyList.id]
+              data[parent.keyList.id] = this.selected[key]
               this.loadData({
                 metaData: child[i],
                 data: data
               })
             }
-            this.removeChildData(type, child[i], target, parent)
+            this.removeChildData(type, child[i], target, parent, key)
           }
         }
       },

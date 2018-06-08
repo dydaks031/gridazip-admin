@@ -3,7 +3,7 @@
     <tr v-for="data in dataGroup">
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk)}}</span>
-        <select2 :options="data.options.constructionPlace" v-model="data.selectedData.place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
@@ -11,32 +11,32 @@
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk)}}</span>
-        <select2 :options="data.options.construction" v-model="data.selectedData.ct_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk)}}</span>
-        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.cp_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk)}}</span>
-        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.cpd_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.ed_rcpk)}}</span>
-        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.ed_rcpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk)}}</span>
-        <select2 :options="data.options.resourceType" v-model="data.selectedData.rt_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk)}}</span>
-        <select2 :options="data.options.resource" v-model="data.selectedData.rs_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
@@ -107,7 +107,7 @@
             }
             specificationData.isModify = false
             specificationData.selectedData = item
-            this.dataGroup.push(item)
+            this.dataGroup.push(specificationData)
           })
         } else {
           data.isModify = false
@@ -116,15 +116,7 @@
       })
     },
     methods: {
-      changeObjectKey (item, oldKey, newKey) {
-        if (oldKey !== newKey) {
-          Object.defineProperty(item, newKey,
-            Object.getOwnPropertyDescriptor(item, oldKey))
-          delete item[oldKey]
-        }
-      },
       getSelectedText (selectList, id) {
-        console.log(selectList)
         const target = _.find(selectList, (item) => {
           return item.id.toString() === id.toString()
         })
@@ -152,13 +144,14 @@
         console.log(data)
         const id = this.$route.params.id
         const sendData = data.selectedData
-        this.$http.put(`${queryApi}/${id}/estimate/${sendData.id}`, sendData)
+        this.$http.put(`${queryApi}/${id}/estimate/${sendData.ed_pk}`, sendData)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             console.log(response.data.data)
             data.isModify = false
+            data.selectedData = response.data.data.data
           }).catch((error) => {
             console.log(error)
           })

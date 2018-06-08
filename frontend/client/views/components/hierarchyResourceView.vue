@@ -1,4 +1,4 @@
-<template>
+ㄷ<template>
   <div class="column">
     <span class="subtitle">{{model.label}}</span>
     <draggable v-model="model.data" @end="updateView" element="div" class="list-group">
@@ -51,7 +51,9 @@
     },
     methods: {
       changedEditView (data) {
-        data.is_modify = !data.is_modify
+        if (!this.model.isDetailEdit) {
+          data.is_modify = !data.is_modify
+        }
       },
       itemClickEvent (data) {
         this.model.data = _.map(this.model.data, (item) => {
