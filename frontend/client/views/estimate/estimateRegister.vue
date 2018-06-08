@@ -93,7 +93,7 @@
         this.$http.get(`${queryApi}/${id}/estimate`)
           .then((response) => {
             if (response.data.code !== 200) {
-              return
+              return false
             }
             var data = response.data.data
             EventBus.$emit('updateModifyView', data.estimateList)

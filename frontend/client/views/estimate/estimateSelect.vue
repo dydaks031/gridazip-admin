@@ -15,45 +15,45 @@
     <tbody>
       <tr>
         <td>
-          <select2 :options="options.constructionPlace" v-model="selected.place_pk">
+          <select2 :options="options.constructionPlace" v-model="selected.ed_place_pk">
             <option disabled value="0">공사 위치 선택</option>
           </select2>
         </td>
         <td>
-          <input type="text" class="input" placeholder="상세위치" v-model="selected.detail_place"/>
+          <input type="text" class="input" placeholder="상세위치" v-model="selected.ed_detail_place"/>
         </td>
         <td>
-          <select2 :options="options.construction" v-model="selected.ct_pk" v-on:input="changedData('construction')">
+          <select2 :options="options.construction" v-model="selected.ed_ctpk" v-on:input="changedData('construction')">
             <option disabled value="0">공사 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcess" v-model="selected.cp_pk" v-on:input="changedData('constructionProcess')">
+          <select2 :options="options.constructionProcess" v-model="selected.ed_cppk" v-on:input="changedData('constructionProcess')">
             <option disabled value="0">공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.constructionProcessDetail" v-model="selected.cpd_pk" v-on:input="changedData('constructionProcessDetail')">
+          <select2 :options="options.constructionProcessDetail" v-model="selected.ed_cpdpk" v-on:input="changedData('constructionProcessDetail')">
             <option disabled value="0">상세공정 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceCategory" v-model="selected.rc_pk" v-on:input="changedData('resourceCategory')">
+          <select2 :options="options.resourceCategory" v-model="selected.ed_rcpk" v-on:input="changedData('resourceCategory')">
             <option disabled value="0">자재단위 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resourceType" v-model="selected.rt_pk" v-on:input="changedData('resourceType')">
+          <select2 :options="options.resourceType" v-model="selected.ed_rtpk" v-on:input="changedData('resourceType')">
             <option disabled value="0">자재군 선택</option>
           </select2>
         </td>
         <td>
-          <select2 :options="options.resource" v-model="selected.rs_pk" v-on:input="changedData('resource')">
+          <select2 :options="options.resource" v-model="selected.ed_rspk" v-on:input="changedData('resource')">
             <option disabled value="0">자재 선택</option>
           </select2>
         </td>
         <td>
-          <input type="text" placeholder="입력값 입력" class="input" v-model="selected.input_value"/>
+          <input type="text" placeholder="입력값 입력" class="input" v-model="selected.ed_input_value"/>
         </td>
         <td>
           <button class="button" @click="getSelectedData">등록</button>
@@ -82,15 +82,15 @@
         metaData: {},
         params: {},
         selected: {
-          ct_pk: 0,
-          place_pk: 0,
-          cp_pk: 0,
-          cpd_pk: 0,
-          rc_pk: 0,
-          rt_pk: 0,
-          rs_pk: 0,
-          detail_place: '',
-          input_value: ''
+          ed_ctpk: 0,
+          ed_place_pk: 0,
+          ed_cppk: 0,
+          ed_cpdpk: 0,
+          ed_rcpk: 0,
+          ed_rtpk: 0,
+          ed_rspk: 0,
+          ed_detail_place: '',
+          ed_input_value: ''
         },
         options: {
           construction: [],
@@ -219,7 +219,9 @@
             this.$emit('registerData', {
               selectedData: {
                 ...this.selected,
-                id: data.id
+                ed_pk: data.ed_pk,
+                ed_resource_amount: data.ed_resource_amount,
+                ed_calculated_amount: data.ed_calculated_amount
               },
               options: this.options
             })

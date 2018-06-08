@@ -2,48 +2,48 @@
   <tbody class="estimate-modify">
     <tr v-for="data in dataGroup">
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.place_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk)}}</span>
         <select2 :options="data.options.constructionPlace" v-model="data.selectedData.place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <input type="text" class="input" placeholder="상세위치" v-model="data.selectedData.detail_place" />
+        <input type="text" class="input" placeholder="상세위치" v-model="data.selectedData.ed_detail_place" />
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ct_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk)}}</span>
         <select2 :options="data.options.construction" v-model="data.selectedData.ct_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.cp_pk)}}</span>
-        <select2 :options="data.options.constructionProcess" v-model="data.selectedDaㅌta.cp_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk)}}</span>
+        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.cp_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.cpd_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk)}}</span>
         <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.cpd_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.rc_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.ed_rcpk)}}</span>
         <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.rt_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk)}}</span>
         <select2 :options="data.options.resourceType" v-model="data.selectedData.rt_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.rs_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk)}}</span>
         <select2 :options="data.options.resource" v-model="data.selectedData.rs_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.input_value"/>
+        <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.ed_input_value"/>
       </td>
       <td>
-        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.resource_amount"/>
+        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"/>
       </td>
       <td>
         100,000
@@ -79,12 +79,14 @@
     },
     data () {
       return {
-        dataGroup: []
+        dataGroup: [],
+        options: {
+
+        }
       }
     },
     created () {
       EventBus.$on('updateModifyView', (data) => {
-        const isEdRegExp = /^ed_/
         if (_.isArray(data)) {
           const target = data[0]
           if (!target) {
@@ -92,14 +94,19 @@
           }
 
           data.forEach((item) => {
-            const keyList = Object.keys(item)
-            if (isEdRegExp.test(keyList[0])) {
-              keyList.forEach((key) => {
-                this.changeObjectKey(item, key, key.replace(isEdRegExp, ''))
-              })
+            const specificationData = {}
+            specificationData.options = {
+              constructionPlace: [],
+              construction: [],
+              constructionProcess: [],
+              constructionProcessDetail: [],
+              resourceCategory: [],
+              resourceType: [],
+              resourceUnit: [],
+              resource: []
             }
-
-            item.isModify = false
+            specificationData.isModify = false
+            specificationData.selectedData = item
             this.dataGroup.push(item)
           })
         } else {
