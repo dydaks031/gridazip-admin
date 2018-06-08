@@ -239,7 +239,9 @@
                 ...this.selected,
                 ed_pk: data.ed_pk,
                 ed_resource_amount: data.ed_resource_amount,
-                ed_calculated_amount: data.ed_calculated_amount
+                ed_calculated_amount: data.ed_calculated_amount,
+                labor_costs: data.labor_costs,
+                resource_costs: data.resource_costs
               },
               options: this.options
             })

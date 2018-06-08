@@ -2,7 +2,7 @@
   <tbody class="estimate-modify">
     <tr v-for="data in dataGroup">
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
         <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
@@ -10,32 +10,32 @@
         <input type="text" class="input" placeholder="상세위치" v-model="data.selectedData.ed_detail_place" />
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
         <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk) || data.selectedData.cp_name}}</span>
         <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk) || data.selectedData.cpd_name}}</span>
         <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.ed_rcpk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.ed_rcpk) || data.selectedData.rc_name}}</span>
         <select2 :options="data.options.resourceCategory" v-model="data.selectedData.ed_rcpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk) || data.selectedData.rt_name}}</span>
         <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
       <td>
-        <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk)}}</span>
+        <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
         <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
         </select2>
       </td>
@@ -46,10 +46,10 @@
         <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"/>
       </td>
       <td>
-        100,000
+        {{data.selectedData.labor_costs}}
       </td>
       <td>
-        100,000
+        {{data.selectedData.resource_costs}}
       </td>
       <td>
         <button class="button" @click="data.isModify = !data.isModify">{{data.isModify ? '취소': '수정'}}</button>
@@ -131,11 +131,12 @@
         console.log(data)
         const id = this.$route.params.id
         const sendData = data.selectedData
-        this.$http.delete(`${queryApi}/${id}/estimate/${sendData.id}`)
+        this.$http.delete(`${queryApi}/${id}/estimate/${sendData.ed_pk}`)
         .then((response) => {
           if (response.data.code !== 200) {
             return false
           }
+          // TODO 삭제처리
         }).catch((error) => {
           console.log(error)
         })

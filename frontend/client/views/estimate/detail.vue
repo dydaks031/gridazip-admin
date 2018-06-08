@@ -50,7 +50,7 @@
           </div>
         </article>
         <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
-          <estimate-sheet />
+          <estimate-sheet :estimateData.sync="estimateData"/>
         </article>
       </div>
     </div>
@@ -77,7 +77,12 @@
         },
         currentTab: '',
         param: {},
-        detailData: {}
+        detailData: {},
+        estimateData: {
+          general: [],
+          labor: [],
+          resource: []
+        }
       }
     },
     mounted () {
@@ -94,6 +99,16 @@
     methods: {
       activeView (type) {
         this.currentTab = type
+        switch (type) {
+          case this.tabType.info:
+            this.loadDetail()
+            break
+          case this.tabType.estimateView:
+            this.loadEstimateView()
+            break
+          case this.tabType.managerAndShop:
+            break
+        }
       },
       loadDetail () {
         const id = this.param.id
@@ -108,6 +123,43 @@
             console.log(response)
             this.detailData = response.data.data.contract
           }).catch((error) => {
+            console.log(error)
+          })
+      },
+      loadEstimateView () {
+        const id = this.param.id
+        if (!id) {
+          return false
+        }
+        this.$http.get(`${queryApi}/${id}/estimate/general`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            console.log(response)
+            this.estimateData.general = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
+          })
+          .then((response) => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              return
+            }
+            this.estimateData.labor = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.estimateData.resource = response.data.data.estimateList
+          })
+          .catch((error) => {
+            this.estimateData = {
+              general: [],
+              labor: [],
+              resource: []
+            }
             console.log(error)
           })
       }

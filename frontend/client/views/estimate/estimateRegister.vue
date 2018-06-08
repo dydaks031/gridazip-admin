@@ -9,7 +9,7 @@
     <div class="tile is-ancestor" v-show="currentTab === tabType.register">
       <estimate-select v-on:registerData="updateModifyView"/>
     </div>
-    <div class="tile is-ancestor box">
+    <div class="tile is-ancestor box" v-show="currentTab === tabType.register">
       <div class="tile is-parent">
         <div class="tile is-child">
           <h1 class="title">입력된 견적 목록</h1>
@@ -39,7 +39,7 @@
               <th>자재분류</th>
               <th>자재군</th>
               <th>자재명</th>
-              <th>면적</th>
+              <th>입력값</th>
               <th>물량</th>
               <th>인건비</th>
               <th>자재비</th>
@@ -51,12 +51,20 @@
         </div>
       </div>
     </div>
+    <div class="tile is-ancestor" v-show="currentTab === tabType.preview">
+      <div class="tile is-parent">
+        <article class="tile is-child box">
+          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn="true"/>
+        </article>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
   import estimateSelect from './estimateSelect'
   import estimateModify from './estimateModify'
+  import estimateSheet from './estimateSheet'
   import EventBus from '../../services/eventBus'
 
   const queryApi = '/api/contract/'
@@ -65,7 +73,8 @@
     name: 'estimateRegister',
     components: {
       estimateSelect,
-      estimateModify
+      estimateModify,
+      estimateSheet
     },
     data () {
       return {
@@ -73,7 +82,12 @@
           register: 'register',
           preview: 'preview'
         },
-        currentTab: ''
+        currentTab: '',
+        estimateData: {
+          general: [],
+          labor: [],
+          resource: []
+        }
       }
     },
     mounted () {
@@ -83,6 +97,13 @@
     methods: {
       activeView (type) {
         this.currentTab = type
+        switch (this.currentTab) {
+          case this.tabType.register:
+            break
+          case this.tabType.preview:
+            this.loadEstimateView()
+            break
+        }
       },
       updateModifyView (data) {
         console.log(data)
@@ -98,6 +119,43 @@
             var data = response.data.data
             EventBus.$emit('updateModifyView', data.estimateList)
           }).catch((error) => {
+            console.log(error)
+          })
+      },
+      loadEstimateView () {
+        const id = this.$route.params.id
+        if (!id) {
+          return false
+        }
+        this.$http.get(`${queryApi}/${id}/estimate/general`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            console.log(response)
+            this.estimateData.general = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
+          })
+          .then((response) => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              return
+            }
+            this.estimateData.labor = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.estimateData.resource = response.data.data.estimateList
+          })
+          .catch((error) => {
+            this.estimateData = {
+              general: [],
+              labor: [],
+              resource: []
+            }
             console.log(error)
           })
       }

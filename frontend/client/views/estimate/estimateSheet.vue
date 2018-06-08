@@ -2,7 +2,7 @@
   <div>
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
-      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록/수정</a>
+      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn">등록/수정</a>
     </div>
     <table class="table position-base-table">
       <colgroup>
@@ -10,27 +10,25 @@
       <thead>
         <tr>
           <th>위치</th>
-          <th>상세위치</th>
           <th>공사</th>
           <th>공정</th>
           <th>상세공정</th>
           <th>자재군</th>
           <th>자재</th>
-          <th>자재단위</th>
           <th>물량</th>
+          <th>자재단위</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>현관</td>
-          <td>바닥</td>
-          <td>타일</td>
-          <td>벽, 본드</td>
-          <td>가로일자</td>
-          <td>사각타일</td>
-          <td>육각 모자이크 타일 화이트</td>
-          <td>Box (1.44m^2)</td>
-          <td>5</td>
+        <tr v-for="generalData in estimateData.general">
+          <td>{{generalData.place_name}}</td>
+          <td>{{generalData.ct_name}}</td>
+          <td>{{generalData.cp_name}}</td>
+          <td>{{generalData.cpd_name}}</td>
+          <td>{{generalData.rt_name}}</td>
+          <td>{{generalData.rs_name}}</td>
+          <td>{{generalData.resource_amount}}</td>
+          <td>{{generalData.ru_name}}</td>
         </tr>
       </tbody>
     </table>
@@ -45,20 +43,20 @@
               </colgroup>
               <thead>
               <tr>
-                <th>자재군</th>
                 <th>자재</th>
-                <th>자재단위</th>
                 <th>물량</th>
+                <th>자재단위</th>
+                <th>단가</th>
                 <th>금액</th>
               </tr>
               </thead>
               <tbody>
-              <tr>
-                <td>가로일자</td>
-                <td>사각타일</td>
-                <td>육각 모자이크 타일 화이트</td>
-                <td>Box (1.44m^2)</td>
-                <td>5</td>
+              <tr v-for="resource in estimateData.resource">
+                <td>{{resource.rs_name}}</td>
+                <td>{{resource.resource_amount}}</td>
+                <td>{{resource.ru_name}}</td>
+                <td>{{resource.rs_price}}</td>
+                <td>{{resource.resource_costs}}</td>
               </tr>
               </tbody>
             </table>
@@ -84,12 +82,12 @@
               </tr>
               </thead>
               <tbody>
-              <tr>
-                <td>타일</td>
-                <td>벽, 본드</td>
-                <td>가로일자</td>
-                <td>사각타일</td>
-                <td>000,000원</td>
+              <tr v-for="labor in estimateData.labor">
+                <td>{{labor.ct_name}}</td>
+                <td>{{labor.cp_name}}</td>
+                <td>{{labor.cpd_name}}</td>
+                <td>{{labor.rt_name}}</td>
+                <td>{{labor.labor_costs}}</td>
               </tr>
               </tbody>
             </table>
@@ -122,6 +120,20 @@
 
   export default {
     name: 'estimate-sheet',
+    props: {
+      estimateData: {
+        type: Object,
+        default: {
+          general: [],
+          labor: [],
+          resource: []
+        },
+        deleteRegisterBtn: {
+          type: Boolean,
+          default: false
+        }
+      }
+    },
     data () {
       return {
         param: {}
@@ -136,7 +148,15 @@
     },
     mounted () {
       this.param = this.$route.params
-      console.log(this.param)
+      console.log(this.estimateData)
+    },
+    watch: {
+      estimateData: {
+        handler (newValue, oldValue) {
+          console.log(newValue, oldValue)
+        },
+        deep: true
+      }
     }
   }
 </script>
