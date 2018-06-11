@@ -3,7 +3,7 @@
     <tr v-for="data in dataGroup">
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
-        <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" >
         </select2>
       </td>
       <td>
@@ -11,32 +11,32 @@
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
-        <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'construction', 'ed_ctpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk) || data.selectedData.cp_name}}</span>
-        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcess', 'ed_cppk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk) || data.selectedData.cpd_name}}</span>
-        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcessDetail', 'ed_cpdpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.rc_pk) || data.selectedData.rc_name}}</span>
-        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceCategory', 'rc_pk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk) || data.selectedData.rt_name}}</span>
-        <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
-        <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}">
+        <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
         </select2>
       </td>
       <td>
@@ -67,6 +67,7 @@
   import META_LODING_CONFIG from '../../config/meta-loading-config'
   import deepClone from '../../services/deepClone'
   import mixin from '../../services/mixin'
+  import utils from '../../services/utils'
 
   const queryApi = '/api/contract/'
 
@@ -171,7 +172,6 @@
         if (data.isFirstSelectDataLoaded) {
           return false
         }
-        data.isFirstSelectDataLoaded = true
         const sendData = data.selectedData
         const id = this.$route.params.id
         this.$http.get(`${queryApi}/${id}/estimate/${sendData.ed_pk}`)
@@ -193,7 +193,8 @@
                 id: ''
               })
             }
-            console.log(data.options)
+            this.$forceUpdate()
+            data.isFirstSelectDataLoaded = true
           }).catch((error) => {
             console.log(error)
           })
@@ -216,6 +217,103 @@
             return keyList[i]
           }
         }
+      },
+      changedData (data, id, key, inputValue, triggerKey) {
+        console.log(arguments)
+        console.log('call')
+        if (triggerKey === 'NOT_UPDATE') {
+          return false
+        }
+        const type = this.getType(id)
+        const metaData = _.find(this.metaData[type], (item) => {
+          return item.id === id
+        })
+        const curDepthTarget = _.filter(this.metaData[type], (item) => {
+          return item.parentId === metaData.id
+        })
+        if (metaData.id === 'constructionProcessDetail') {
+          const selectedData = _.find(this.cpdData, (item) => {
+            return item[metaData.keyList.id].toString() === this.selected[key].toString()
+          }) || {}
+          this.cpdUnit = selectedData.cpd_unit
+        }
+        this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
+      },
+      /**
+       * recursive function
+       * @param model model to removed
+       * @param target selected element's one depth child
+       * @param parent selected element
+       *
+       */
+      removeChildData (data, type, model, target, parent, key) {
+        let currentId = model.id
+        let child
+        child = _.filter(this.metaData[type], (item) => {
+          return item.parentId === currentId
+        })
+        // has child element in parent element
+        if (child.length > 0) {
+          for (let i = 0; i < child.length; i += 1) {
+            // haven't data property when initialize component
+            if (!child[i].hasOwnProperty('data') || !child[i].data) {
+              data.options[child[i].id] = [{
+                text: `${child[i].label} 선택`,
+                id: ''
+              }]
+            }
+            // remove child data
+            data.options[child[i].id].length = 1
+            const isReloadItem = target.find((item) => {
+              return item.id === child[i].id
+            })
+
+            // if child element need api request (selected element's one depth child)
+            if (typeof isReloadItem === 'object') {
+              // // call to child's method
+              const sendData = {}
+              sendData[parent.keyList.id] = data.selectedData[key]
+              this.loadData(data, {
+                metaData: child[i],
+                data: sendData
+              })
+            }
+            this.removeChildData(data, type, child[i], target, parent, key)
+          }
+        }
+      },
+      loadData (currentData, data = {}) {
+        const metaData = data.metaData
+        const api = metaData.api
+        const sendData = data.data || {}
+        if (!api) {
+          console.error('API IS NOT DEFINED')
+          return false
+        }
+        const keyList = Object.keys(sendData)
+        const params = utils.getQueryString(sendData)
+        if (keyList.length > 0) {
+          const key = keyList[0]
+          if (sendData[key] === '') {
+            return
+          }
+        }
+        this.$http.get(`${api}?${params}`, sendData).then((response) => {
+          if (response.data.code !== 200) {
+            return
+          }
+          currentData.options[metaData.id] = this.changedDataToSelect2Data(metaData.keyList, response.data.data[metaData.keyList.list])
+          currentData.options[metaData.id].unshift({
+            text: `${metaData.label} 선택`,
+            id: ''
+          })
+          // if (metaData.id === 'constructionProcessDetail') {
+          //   this.cpdData = response.data.data[metaData.keyList.list]
+          // }
+          console.log(this.options)
+        }).catch((error) => {
+          console.error(error)
+        })
       }
     }
   }

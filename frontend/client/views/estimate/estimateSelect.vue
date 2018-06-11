@@ -121,8 +121,14 @@
           console.error('API IS NOT DEFINED')
           return false
         }
+        const keyList = Object.keys(sendData)
         const params = utils.getQueryString(sendData)
-
+        if (keyList.length > 0) {
+          const key = keyList[0]
+          if (sendData[key] === '') {
+            return
+          }
+        }
         this.$http.get(`${api}?${params}`, sendData).then((response) => {
           if (response.data.code !== 200) {
             return
@@ -165,8 +171,6 @@
           }) || {}
           this.cpdUnit = selectedData.cpd_unit
         }
-
-        console.log(metaData)
         this.removeChildData(type, metaData, curDepthTarget, metaData, key)
       },
       /**

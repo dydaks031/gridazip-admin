@@ -133,13 +133,14 @@
 </template>
 
 <script>
-  import META_LODING_CONFIG from '../../config/meta-loading-config'
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
   import utils from '../../services/utils'
+  import mixin from '../../services/mixin'
 
   export default {
     name: 'resource-detail-view',
+    mixins: [mixin],
     props: {
       selectedData: {
         type: Object
@@ -154,6 +155,12 @@
         type: String
       }
     },
+    filters: {
+      addCommasFilter (data) {
+        console.log(data)
+        return data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      }
+    },
     data () {
       return {
         data: {
@@ -163,9 +170,7 @@
       }
     },
     mounted () {
-      console.log(META_LODING_CONFIG)
-      console.log(this.selectedData)
-      console.log(this.type)
+      console.log(this)
     },
     methods: {
       registerData () {
@@ -251,8 +256,6 @@
     },
     watch: {
       selectedData (val) {
-        console.log(val)
-        console.log(this.selectedModel)
         this.data = deepClone(val)
         if (this.selectedModel) {
           if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('rs_rupk')) {
