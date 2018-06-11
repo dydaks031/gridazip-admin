@@ -5,15 +5,17 @@
       <transition-group>
         <div class="list-item" v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
           <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
-          <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" />
-          <button class="button" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
-          <button class="button" v-show="data.is_modify === true" @click="modifyData(data)">수정</button>
+          <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" class="input" />
+          <div class="is-clearfix">
+            <button class="button is-pulled-left" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
+            <button class="button is-pulled-right" v-show="data.is_modify === true" @click="modifyData(data)">수정</button>
+          </div>
         </div>
       </transition-group>
     </draggable>
-    <p v-show="model.isEnableAddItem">
-      <span @click="addNewItems" v-show="!isShowEditView">+</span>
-      <input type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput"/>
+    <p v-show="model.isEnableAddItem" class="add-new-item-btn">
+      <span class="is-block" @click="addNewItems" v-show="!isShowEditView">+</span>
+      <input class="input" type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput" :placeholder="model.label + ' 입력'" />
       <button class="button" v-show="isShowEditView" @click="hideEditView">취소</button>
     </p>
   </div>
@@ -188,11 +190,32 @@
       border: 1px solid #7d7d7d;
       border-radius: 5px;
       padding: 1rem;
+      text-align: center;
 
       &.active {
         background-color: grey;
         color: white;
       }
+
+      input {
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+  .add-new-item-btn {
+    text-align: center;
+    margin: 0.5rem 0;
+    border: 1px solid #7d7d7d;
+    border-radius: 5px;
+    padding: 1rem;
+
+    span {
+      width: 100%;
+      height: 100%;
+    }
+
+    input {
+      margin-bottom: 0.5rem;
     }
   }
 </style>
