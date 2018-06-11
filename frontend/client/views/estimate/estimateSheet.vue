@@ -55,8 +55,8 @@
                 <td>{{resource.rs_name}}</td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
-                <td>{{resource.rs_price}}</td>
-                <td>{{resource.resource_costs}}</td>
+                <td>{{addCommas(resource.rs_price)}}</td>
+                <td>{{addCommas(resource.resource_costs)}}</td>
               </tr>
               </tbody>
             </table>
@@ -87,7 +87,7 @@
                 <td>{{labor.cp_name}}</td>
                 <td>{{labor.cpd_name}}</td>
                 <td>{{labor.rt_name}}</td>
-                <td>{{labor.labor_costs}}</td>
+                <td>{{addCommas(labor.labor_costs)}}</td>
               </tr>
               </tbody>
             </table>
@@ -117,9 +117,11 @@
 
 <script>
   import router from '../../router'
+  import mixin from '../../services/mixin'
 
   export default {
     name: 'estimate-sheet',
+    mixins: [mixin],
     props: {
       estimateData: {
         type: Object,

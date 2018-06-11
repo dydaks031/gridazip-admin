@@ -46,10 +46,10 @@
         <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"/>
       </td>
       <td>
-        {{data.selectedData.labor_costs}}
+        {{addCommas(data.selectedData.labor_costs)}}
       </td>
       <td>
-        {{data.selectedData.resource_costs}}
+        {{addCommas(data.selectedData.resource_costs)}}
       </td>
       <td>
         <button class="button" @click="changedModifyView(data)">{{data.isModify ? '취소': '수정'}}</button>
@@ -66,11 +66,13 @@
   import _ from 'underscore'
   import META_LODING_CONFIG from '../../config/meta-loading-config'
   import deepClone from '../../services/deepClone'
+  import mixin from '../../services/mixin'
 
   const queryApi = '/api/contract/'
 
   export default {
     name: 'estimateModify',
+    mixins: [mixin],
     components: {
       select2
     },
@@ -90,7 +92,7 @@
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)
-
+      console.log(mixin)
       EventBus.$on('updateModifyView', (data) => {
         if (_.isArray(data)) {
           const target = data[0]
