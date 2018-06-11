@@ -141,7 +141,7 @@
           if (response.data.code !== 200) {
             return false
           }
-          // TODO 삭제처리
+          this.dataGroup = _.without(this.dataGroup, data)
         }).catch((error) => {
           console.log(error)
         })
@@ -157,7 +157,9 @@
             }
             console.log(response.data.data)
             data.isModify = false
-            data.selectedData = response.data.data.data
+            data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
+            data.selectedData.labor_costs = response.data.data.data.labor_costs
+            data.selectedData.resource_costs = response.data.data.data.resource_costs
           }).catch((error) => {
             console.log(error)
           })
