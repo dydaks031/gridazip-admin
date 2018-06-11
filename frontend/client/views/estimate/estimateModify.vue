@@ -7,7 +7,8 @@
         </select2>
       </td>
       <td>
-        <input type="text" class="input" placeholder="상세위치" v-model="data.selectedData.ed_detail_place" />
+        <span v-show="data.isModify === false">{{data.selectedData.ed_detail_place}}</span>
+        <input type="text" class="input" placeholder="상세위치" v-model="data.selectedData.ed_detail_place" v-show="data.isModify === true"/>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
@@ -40,10 +41,12 @@
         </select2>
       </td>
       <td>
-        <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.ed_input_value"/>
+        <span v-show="data.isModify === false">{{data.selectedData.ed_input_value}}</span>
+        <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.ed_input_value" v-show="data.isModify === true" />
       </td>
       <td>
-        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"/>
+        <span v-show="data.isModify === false">{{data.selectedData.ed_resource_amount}}</span>
+        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"  v-show="data.isModify === true" />
       </td>
       <td>
         {{addCommas(data.selectedData.labor_costs)}}

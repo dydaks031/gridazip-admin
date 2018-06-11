@@ -335,9 +335,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
 
           const fn = calc.func(`f(x) = ${calcExpression}`);
           let resourceAmount = fn(reqInputValue);
-
-          insertObj.ed_resource_amount = parseFloat(resourceAmount.toFixed(2));
-          insertObj.ed_calculated_amount = parseFloat(resourceAmount.toFixed(2));
+          insertObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
+          insertObj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
           insertObj.ed_recency = cur.raw('UNIX_TIMESTAMP() * -1');
 
           return cur('estimate_detail_hst')
