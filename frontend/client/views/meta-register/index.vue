@@ -26,7 +26,7 @@
   import PaginationVue from '../components/pagination'
   // import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
-  import HierarchyResourceContainer from '../components/hierarchyResourceContainer'
+  import HierarchyResourceContainer from './hierarchyResourceContainer'
   //
   // const NotificationComponent = Vue.extend(Notification)
   // const openNotification = (propsData = {

@@ -47,7 +47,6 @@
   import PaginationVue from '../components/pagination'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
-  import HierarchyResourceContainer from '../components/hierarchyResourceContainer'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -70,7 +69,6 @@
   export default {
     name: 'estimateList',
     components: {
-      HierarchyResourceContainer,
       PaginationVue,
       Notification
     },
