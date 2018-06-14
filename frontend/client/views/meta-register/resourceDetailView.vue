@@ -9,19 +9,24 @@
           </h4>
           <div class="block">
             <label class="label">상세공정명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.cpd_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.cpd_name" :class="{'is-danger': $v.data.cpd_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.cpd_name.required">상세공정명을 입력해 주십시오</p>
+            </div>
             <label class="label">인건비</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.cpd_labor_costs" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.cpd_labor_costs" :class="{'is-danger': $v.data.cpd_labor_costs.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.cpd_labor_costs.required">인건비를 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.data.cpd_labor_costs.numeric">인건비는 숫자만 입력하실 수 있습니다.</p>
+            </div>
             <label class="label">최소물량</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.cpd_min_amount" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.cpd_min_amount" :class="{'is-danger': $v.data.cpd_min_amount.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.cpd_min_amount.required">최소 물량을 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.data.cpd_min_amount.numeric">최소 물량은 숫자만 입력하실 수 있습니다.</p>
+            </div>
             <label class="label">단위</label>
-            <p class="control">
+            <div class="control">
               <label class="radio">
                 <input type="radio" value="0" name="cpd_unit" v-model="data.cpd_unit" />
                 개
@@ -34,9 +39,10 @@
                 <input type="radio" value="2" name="cpd_unit" v-model="data.cpd_unit" />
                 M^2
               </label>
-            </p>
+              <p class="help is-danger" v-if="!$v.data.cpd_unit.required">단위를 선택 해 주십시오.</p>
+            </div>
           </div>
-          <button class="button" @click="registerData">
+          <button class="button" @click="registerData($v.constructionProcessDetail)">
             <span v-if="Object.keys(selectedData).length === 0">등록</span>
             <span v-else>수정</span>
           </button>
@@ -48,15 +54,18 @@
           </h4>
           <div class="block">
             <label class="label">자재군명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.rt_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.rt_name" :class="{'is-danger': $v.data.rt_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.rt_name.required">자재군명을 입력해 주십시오</p>
+            </div>
             <label class="label">추가인건비</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.rt_extra_labor_costs" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.rt_extra_labor_costs" :class="{'is-danger': $v.data.rt_extra_labor_costs.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.required">추가인건비를 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.numeric">추가인건비는 숫자만 입력하실 수 있습니다.</p>
+            </div>
           </div>
-          <button class="button" @click="registerData">
+          <button class="button" @click="registerData($v.resourceType)">
             <span v-if="Object.keys(selectedData).length === 0">등록</span>
             <span v-else>수정</span>
           </button>
@@ -68,15 +77,18 @@
           </h4>
           <div class="block">
             <label class="label">자재단위명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.ru_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.ru_name" :class="{'is-danger': $v.data.ru_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.ru_name.required">자재단위명을 입력해 주십시오.</p>
+            </div>
             <label class="label">계산식</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.ru_calc_expression" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.ru_calc_expression" :class="{'is-danger': $v.data.ru_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.ru_calc_expression.required">계산식을 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.data.ru_calc_expression.isValidExpression">입력한 계산식이 유효하지 않습니다.</p>
+            </div>
             <label class="label">올림여부</label>
-            <p class="control">
+            <div class="control">
               <label class="radio">
                 <input type="radio" value="1" name="ru_ceil_flag" v-model="data.ru_ceil_flag" />
                 Y
@@ -85,9 +97,10 @@
                 <input type="radio" value="0"  name="ru_ceil_flag" v-model="data.ru_ceil_flag" />
                 N
               </label>
-            </p>
+              <p class="help is-danger" v-if="!$v.data.ru_ceil_flag.required">올림 여부를 선택 해 주십시오.</p>
+            </div>
           </div>
-          <button class="button" @click="registerData">
+          <button class="button" @click="registerData($v.resourceUnit)">
             <span v-if="Object.keys(selectedData).length === 0">등록</span>
             <span v-else>수정</span>
           </button>
@@ -99,35 +112,41 @@
           </h4>
           <div class="block">
             <label class="label">자재명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.rs_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.rs_name" :class="{'is-danger': $v.data.rs_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.rs_name.required">자재명을 입력해 주십시오.</p>
+            </div>
             <label class="label">자재코드</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.rs_code" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.rs_code" :class="{'is-danger': $v.data.rs_code.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.rs_code.required">자재코드를 입력해 주십시오.</p>
+            </div>
             <label class="label">자재단위</label>
             <div class="control">
-              <div class="select">
+              <div class="select" :class="{'is-danger': $v.data.rs_rupk.$invalid }" >
                 <select v-model="data.rs_rupk">
                   <option value="" disabled>Please Select one</option>
                   <option v-for="data in unitData" :value="data.ru_pk">
                     {{data.ru_name}}
                   </option>
                 </select>
+                <p class="help is-danger" v-if="!$v.data.rs_rupk.required">자재단위를 선택해 주십시오.</p>
               </div>
             </div>
             <label class="label">금액</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.rs_price" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.rs_price" :class="{'is-danger': $v.data.rs_price.$invalid }" />
+              <p class="help is-danger" v-if="!$v.data.rs_price.required">자재 금액을 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.data.rs_price.numeric">자재 금액은 숫자만 입력하실 수 있습니다.</p>
+            </div>
           </div>
-          <button class="button" @click="registerData">
+          <button class="button" @click="registerData($v.resource)">
             <span v-if="Object.keys(selectedData).length === 0">등록</span>
             <span v-else>수정</span>
           </button>
         </div>
       </article>
+
     </div>
   </div>
 </template>
@@ -137,6 +156,8 @@
   import deepClone from '../../services/deepClone'
   import utils from '../../services/utils'
   import mixin from '../../services/mixin'
+  import { required, numeric } from 'vuelidate/lib/validators'
+  import calculator from 'calculator'
 
   export default {
     name: 'resource-detail-view',
@@ -172,8 +193,87 @@
     mounted () {
       console.log(this)
     },
+    validations: {
+      data: {
+        cpd_name: {
+          required
+        },
+        cpd_labor_costs: {
+          required,
+          numeric
+        },
+        cpd_min_amount: {
+          required,
+          numeric
+        },
+        cpd_unit: {
+          required
+        },
+        rt_name: {
+          required
+        },
+        rt_extra_labor_costs: {
+          required,
+          numeric
+        },
+        ru_name: {
+          required
+        },
+        ru_calc_expression: {
+          required,
+          isValidExpression (value) {
+            if (!value) {
+              return false
+            }
+            let _value = _.clone(value)
+            _value = _value
+              .replace(/[x0-9+-.*/=]/gi, '')
+              .replace(/(Math)[a-zA-Z]*\([x0-9+-.*/=]*\)/gi, '')
+              .replace(/(Math)[a-zA-Z]*\([x0-9+-.*/=]*\)/gi, '')
+            if (_value !== '') {
+              return false
+            }
+            let func
+            try {
+              func = calculator.func(`f(x) = ${value}`)
+              if (!func) {
+                throw Error('FUNC IS NULL')
+              }
+              func(1)
+            } catch (e) {
+              console.error(e)
+              return false
+            }
+            return true
+          }
+        },
+        ru_ceil_flag: {
+          required
+        },
+        rs_name: {
+          required
+        },
+        rs_code: {
+          required
+        },
+        rs_rupk: {
+          required
+        },
+        rs_price: {
+          required,
+          numeric
+        }
+      },
+      constructionProcessDetail: ['data.cpd_name', 'data.cpd_labor_costs', 'data.cpd_min_amount', 'data.cpd_unit'],
+      resourceType: ['data.rt_name', 'data.rt_extra_labor_costs'],
+      resourceUnit: ['data.ru_name', 'data.ru_calc_expression', 'data.ru_ceil_flag'],
+      resource: ['data.rs_name', 'data.rs_code', 'data.rs_rupk', 'data.rs_price']
+    },
     methods: {
-      registerData () {
+      registerData (validator) {
+        if (validator.$invalid) {
+          return false
+        }
         const parentId = this.selectedModel.parentId
         const parent = _.find(this.fullData, (item) => {
           return item.id === parentId

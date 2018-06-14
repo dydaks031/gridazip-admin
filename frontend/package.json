@@ -36,6 +36,7 @@
     "animejs": "^2.0.1",
     "axios": "^0.15.3",
     "bulma": "^0.3.2",
+    "calculator": "^0.1.12",
     "font-awesome": "4.7.0",
     "form-data": "^2.3.2",
     "jquery": "^3.3.1",
