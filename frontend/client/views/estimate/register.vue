@@ -27,7 +27,7 @@
           </p>
           <label class="label">이사일</label>
           <p class="control">
-            <datepicker placeholder="날짜 입력" :config="{ dateFormat: 'YYYYMMDD', static: true }" v-model="data.pc_move_date"></datepicker>
+             <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }"></datepicker>
           </p>
           <label class="label">예산</label>
           <p class="control">
@@ -38,7 +38,7 @@
             <textarea class="textarea" v-model="data.pc_memo"></textarea>
           </p>
           <p class="control">
-            <button class="button is-link">취소</button>
+            <button class="button is-link" @click="backPage">취소</button>
             <button class="button is-primary" @click="registerContract">등록</button>
           </p>
         </div>
@@ -79,7 +79,10 @@
     },
     data () {
       return {
-        data: {}
+        data: {
+          pc_name: '',
+          pc_phone: ''
+        }
       }
     },
     validations: {
@@ -106,6 +109,9 @@
           .catch((error) => {
             console.log(error)
           })
+      },
+      backPage () {
+        router.back()
       }
     }
   }
