@@ -3,7 +3,6 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <h4 class="title">진행계약 목록</h4>
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>

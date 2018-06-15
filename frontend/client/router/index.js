@@ -71,6 +71,14 @@ export default new Router({
       }
     },
     {
+      name: '진행계약 등록',
+      path: '/estimate/register',
+      component: require('../views/estimate/register'),
+      meta: {
+        auth: true
+      }
+    },
+    {
       name: '상세견적서 등록',
       path: '/estimate/:id([0-9]+)/register',
       component: require('../views/estimate/estimateRegister'),
