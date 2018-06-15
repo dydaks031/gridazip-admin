@@ -98,13 +98,10 @@ router.get('/:pk([0-9]+)', (req, res) => {
         pc_deleted: false
       })
       .then(response => {
-        const list = response;
-        list.map(item => {
-          item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
-          return item;
-        });
+        const item = response;
+        item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
         res.json(resHelper.getJson({
-          contract: lst
+          contract: item
         }));
       })
       .catch(err => {
