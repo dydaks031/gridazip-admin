@@ -10,6 +10,7 @@ router.get('/', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     cur({cr: 'constructor_tbl'})
       .select(
+        'cr_pk',
         'ct_name',
         'cr_name',
         'cr_contact',
@@ -36,6 +37,46 @@ router.get('/', (req, res) => {
   })
 });
 
+router.get('/:pk([0-9]+)', (req, res) => {
+  knexBuilder.getConnection().then(cur => {
+    let constructor;
+
+    cur('constructor_tbl')
+      .first(
+        'cr_name',
+        'cr_contact',
+        'cr_communication_score'
+      )
+      .then(row => {
+        constructor = row;
+        cur({cs: 'constructor_skill_tbl'})
+          .select(
+            'cs_pk',
+            'ct_pk',
+            'ct_name',
+            'cs_skill_score',
+            'cs_memo'
+          )
+          .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+          .orderBy('cs.cs_pk')
+          .then(response => {
+            res.json(
+              resHelper.getJson({
+                constructor: constructor,
+                constructorSkillList: response
+              })
+            );
+          })
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('기술자 상세를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
+});
+
 router.post('/', (req, res) => {
   const reqName = req.body.cr_name || '';
   const reqContact = req.body.cr_contact || '';
@@ -43,17 +84,22 @@ router.post('/', (req, res) => {
   const reqSkillList = req.body.skillList || [];
 
   if (reqName.trim() === '' || reqContact.trim() === '' || reqSkillList.length === 0) {
-    res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
+    console.error(reqName);
+    console.error(reqContact);
+    console.error(reqSkillList);
+    res.json(resHelper.getError('[0001] 파라메터가 올바르지 않습니다.'));
   }
   else {
     let crPk;
 
     reqSkillList.forEach(skill => {
       if (skill.cs_ctpk === undefined || skill.cs_ctpk.trim() === '') {
-        res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
+        console.error(skill);
+        res.json(resHelper.getError('[0002] 파라메터가 올바르지 않습니다.'));
       }
       else if (skill.cs_skill_score === undefined || skill.cs_skill_score.trim() === '') {
-        res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
+        console.error(skill);
+        res.json(resHelper.getError('[0003] 파라메터가 올바르지 않습니다.'));
       }
     });
 
@@ -69,7 +115,7 @@ router.post('/', (req, res) => {
           crPk = response[0];
           cur.transaction(function(trx) {
             const queries = [];
-            reqSkillList.forEach(obj => {
+            reqSkillList.forEach((obj, i) => {
               const query = cur.table('constructor_skill_tbl')
                 .insert({
                   cs_crpk: crPk,
@@ -81,23 +127,23 @@ router.post('/', (req, res) => {
               queries.push(query);
             });
             Promise.all(queries)
-              .then(() => {
-                res.json(resHelper.getJson({
-                  msg: '기술자가 정상적으로 추가되었습니다.'
-                }));
-                return trx.commit;
-              })
-              .catch(() => {
-                cur('constructor_tbl')
-                  .del()
-                  .where('cr_pk',crPk);
-                return trx.rollback;
-              });
-          });
+              .then(trx.commit)
+              .catch(trx.rollback);
+          })
+          .then(() => {
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
+          })
+          .catch(err => {
+            console.error(err);
+            res.json(resHelper.getError('[0004] 기술자를 추가하는 중 오류가 발생하였습니다.'));
+          })
+
         })
         .catch(err => {
           console.error(err);
-          res.json(resHelper.getError('[0001] 기술자를 추가하는 중 오류가 발생하였습니다.'));
+          res.json(resHelper.getError('[0005] 기술자를 추가하는 중 오류가 발생하였습니다.'));
         })
     })
   }
