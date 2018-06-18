@@ -225,9 +225,10 @@
             if (!value) {
               return false
             }
+
             let _value = _.clone(value)
             _value = _value
-              .replace(/[x0-9+-.*/=]/gi, '')
+              .replace(/[x0-9+-.*/=?><:)(]/gi, '')
               .replace(/(Math)[a-zA-Z]*\([x0-9+-.*/=]*\)/gi, '')
               .replace(/(Math)[a-zA-Z]*\([x0-9+-.*/=]*\)/gi, '')
             if (_value !== '') {
@@ -240,6 +241,7 @@
                 throw Error('FUNC IS NULL')
               }
               func(1)
+              console.log(func(1))
             } catch (e) {
               console.error(e)
               return false
