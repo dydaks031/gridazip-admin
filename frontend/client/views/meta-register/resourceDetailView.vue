@@ -123,14 +123,14 @@
             </div>
             <label class="label">자재단위</label>
             <div class="control">
-              <div class="select" :class="{'is-danger': $v.data.rs_rupk.$invalid }" >
-                <select v-model="data.rs_rupk">
+              <div class="select" :class="{'is-danger': $v.data.ru_pk.$invalid }" >
+                <select v-model="data.ru_pk">
                   <option value="" disabled>Please Select one</option>
                   <option v-for="data in unitData" :value="data.ru_pk">
                     {{data.ru_name}}
                   </option>
                 </select>
-                <p class="help is-danger" v-if="!$v.data.rs_rupk.required">자재단위를 선택해 주십시오.</p>
+                <p class="help is-danger" v-if="!$v.data.ru_pk.required">자재단위를 선택해 주십시오.</p>
               </div>
             </div>
             <label class="label">금액</label>
@@ -258,7 +258,7 @@
         rs_code: {
           required
         },
-        rs_rupk: {
+        ru_pk: {
           required
         },
         rs_price: {
@@ -269,7 +269,7 @@
       constructionProcessDetail: ['data.cpd_name', 'data.cpd_labor_costs', 'data.cpd_min_amount', 'data.cpd_unit'],
       resourceType: ['data.rt_name', 'data.rt_extra_labor_costs'],
       resourceUnit: ['data.ru_name', 'data.ru_calc_expression', 'data.ru_ceil_flag'],
-      resource: ['data.rs_name', 'data.rs_code', 'data.rs_rupk', 'data.rs_price']
+      resource: ['data.rs_name', 'data.rs_code', 'data.ru_pk', 'data.rs_price']
     },
     methods: {
       registerData (validator) {
@@ -306,7 +306,7 @@
         this.$nextTick(() => {
           this.$emit('createItem', _data, () => {
             this.data = {
-              rs_rupk: ''
+              ru_pk: ''
             }
           })
         })
@@ -315,7 +315,7 @@
         this.$nextTick(() => {
           this.$emit('modifyItem', _data, () => {
             this.data = {
-              rs_rupk: ''
+              ru_pk: ''
             }
           })
         })
@@ -360,8 +360,8 @@
       selectedData (val) {
         this.data = deepClone(val)
         if (this.selectedModel) {
-          if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('rs_rupk')) {
-            this.data.rs_rupk = ''
+          if (this.selectedModel.id === 'resource' && !this.data.hasOwnProperty('ru_pk')) {
+            this.data.ru_pk = ''
           }
         }
         if (this.selectedModel.id === 'resource') {
