@@ -45,6 +45,7 @@ const apiAuthentication = require('./routes/api/authentication');
 const apiPartner = require('./routes/api/partner');
 const apiContract = require('./routes/api/contract');
 const apiTest = require('./routes/api/test');
+const apiConstructor = require('./routes/api/constructor');
 
 const authMiddleware = require('./middlewares/auth');
 
@@ -102,6 +103,7 @@ app.use('/api/authentication/', apiAuthentication);
 app.use('/api/partner', apiPartner);
 app.use('/api/contract', apiContract);
 app.use('/api/test', apiTest);
+app.use('/api/constructor', apiConstructor);
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {

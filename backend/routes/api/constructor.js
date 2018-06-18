@@ -177,7 +177,7 @@ router.get('/skill', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            constructorList: response
+            constructorSkillList: response
           })
         );
       })
