@@ -20,6 +20,7 @@ router.get('/', (req, res) => {
         )
       .leftJoin({cs: 'constructor_skill_tbl'}, 'cr.cr_pk', 'cs.cs_crpk')
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+      .where('cr_deleted', false)
       .orderBy('ct.ct_pk', 'cr.cr_name')
       .then(response => {
         res.json(
@@ -38,6 +39,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:pk([0-9]+)', (req, res) => {
+  const reqPk = req.params.pk || '';
+
   knexBuilder.getConnection().then(cur => {
     let constructor;
 
@@ -47,26 +50,36 @@ router.get('/:pk([0-9]+)', (req, res) => {
         'cr_contact',
         'cr_communication_score'
       )
+      .where('cr_pk', reqPk)
+      .andWhere('cr_deleted', false)
       .then(row => {
-        constructor = row;
-        cur({cs: 'constructor_skill_tbl'})
-          .select(
-            'cs_pk',
-            'ct_pk',
-            'ct_name',
-            'cs_skill_score',
-            'cs_memo'
-          )
-          .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
-          .orderBy('cs.cs_pk')
-          .then(response => {
-            res.json(
-              resHelper.getJson({
-                constructor: constructor,
-                constructorSkillList: response
-              })
-            );
-          })
+        if (!row) {
+          res.json(
+            resHelper.getError('해당하는 기술자가 없습니다.')
+          );
+        }
+        else {
+          constructor = row;
+          cur({cs: 'constructor_skill_tbl'})
+            .select(
+              'cs_pk',
+              'ct_pk',
+              'ct_name',
+              'cs_skill_score',
+              'cs_memo'
+            )
+            .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+            .where('cs.cs_crpk', reqPk)
+            .orderBy('cs.cs_pk')
+            .then(response => {
+              res.json(
+                resHelper.getJson({
+                  constructor: constructor,
+                  constructorSkillList: response
+                })
+              );
+            })
+        }
       })
       .catch(err => {
         console.log(err);
@@ -81,12 +94,9 @@ router.post('/', (req, res) => {
   const reqName = req.body.cr_name || '';
   const reqContact = req.body.cr_contact || '';
   const reqCommunicationScore = req.body.cr_communication_score || '';
-  const reqSkillList = req.body.skillList || [];
+  const reqSkillList = req.body.constructorSkillList || [];
 
   if (reqName.trim() === '' || reqContact.trim() === '' || reqSkillList.length === 0) {
-    console.error(reqName);
-    console.error(reqContact);
-    console.error(reqSkillList);
     res.json(resHelper.getError('[0001] 파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -115,7 +125,7 @@ router.post('/', (req, res) => {
           crPk = response[0];
           cur.transaction(function(trx) {
             const queries = [];
-            reqSkillList.forEach((obj, i) => {
+            reqSkillList.forEach(obj => {
               const query = cur.table('constructor_skill_tbl')
                 .insert({
                   cs_crpk: crPk,
@@ -168,7 +178,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
         .where('cr_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '자재 분류가 정상적으로 변경되었습니다.',
+            msg: '기술자가 정상적으로 변경되었습니다.',
           }));
         })
         .catch(err => {
@@ -208,7 +218,9 @@ router.delete('/:pk([0-9]+)', (req, res) => {
 
 /* 기술자 보유 기술 */
 
-router.get('/skill', (req, res) => {
+router.get('/:crpk([0-9]+)/skill', (req, res) => {
+  const reqCrPk = req.params.crpk || '';
+
   knexBuilder.getConnection().then(cur => {
     cur({cs: 'constructor_skill_tbl'})
       .select(
@@ -219,6 +231,7 @@ router.get('/skill', (req, res) => {
         'cs_memo'
       )
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+      .where('cs_crpk', reqCrPk)
       .orderBy('ct.ct_pk', 'cr.cr_name')
       .then(response => {
         res.json(
@@ -236,8 +249,8 @@ router.get('/skill', (req, res) => {
   })
 });
 
-router.post('/skill', (req, res) => {
-  const reqCrPk = req.body.cr_pk || '';
+router.post('/:crpk([0-9]+)/skill', (req, res) => {
+  const reqCrPk = req.params.crpk || '';
   const reqCtPk = req.body.ct_pk || '';
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
@@ -269,13 +282,13 @@ router.post('/skill', (req, res) => {
   }
 });
 
-router.put('/skill/:pk([0-9]+)', (req, res) => {
+router.put('/:crpk([0-9]+)/skill/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqCtPk = req.body.ct_pk || '';
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
 
-  if (reqCrPk.trim() === '' || reqCtPk.trim() === '') {
+  if (reqCtPk.trim() === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -301,7 +314,7 @@ router.put('/skill/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.delete('/skill/:pk([0-9]+)', (req, res) => {
+router.delete('/:crpk([0-9]+)/skill/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   if (reqPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
