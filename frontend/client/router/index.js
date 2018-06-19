@@ -102,6 +102,30 @@ export default new Router({
         auth: true
       }
     },
+    {
+      name: '거래처 상세',
+      path: '/manage-constructor/correspondent/:id([0-9]+)',
+      component: require('../views/manageConstructor/detail'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '기술자 등록',
+      path: '/manage-constructor/constructor/register',
+      component: require('../views/manageConstructor/register'),
+      meta: {
+        auth: true
+      }
+    },
+    {
+      name: '거래처 등록',
+      path: '/manage-constructor/correspondent/register',
+      component: require('../views/manageConstructor/register'),
+      meta: {
+        auth: true
+      }
+    },
     ...generateRoutesFromMenu(menuModule.state.items),
     {
       path: '*',

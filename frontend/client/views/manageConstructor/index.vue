@@ -10,7 +10,7 @@
       <div class="tile is-ancestor">
         <div class="tile is-parent">
           <article class="tile is-child box">
-            <a class="button is-primary is-pulled-right is-medium" id="addBtn">등록</a>
+            <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
             <table class="table">
               <colgroup>
                 <col width="auto" />
@@ -31,7 +31,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="item in data.constructor">
+              <tr v-for="item in data.constructor" @click="moveToDetail(item)">
                 <td>{{item.ct_name}}</td>
                 <td>{{item.cr_name}}</td>
                 <td>{{item.cr_contact}}</td>
@@ -52,7 +52,7 @@
       <div class="tile is-ancestor">
         <div class="tile is-parent">
           <article class="tile is-child box">
-            <a class="button is-primary is-pulled-right is-medium">등록</a>
+            <a class="button is-primary is-pulled-right is-medium" @click="moveToRegister">등록</a>
             <table class="table">
               <colgroup>
                 <col width="auto" />
@@ -66,24 +66,22 @@
               <tr>
                 <th>공사</th>
                 <th>이름</th>
-                <th>유선번호</th>
                 <th>담당자</th>
-                <th>담당자 휴대폰</th>
+                <th>연락처</th>
                 <th>취급브랜드</th>
                 <th>위치</th>
                 <th>비고</th>
               </tr>
               </thead>
               <tbody>
-              <tr v-for="item in data.correspondent" @click="">
-                <td>타일, 도기, 수전</td>
-                <td>대원세라믹스</td>
-                <td>010-xxxx-xxxx</td>
-                <td>김효년 부장님</td>
-                <td>010-xxxx-xxxx</td>
-                <td>대림, 로얄, 보보, iCM, 수입타일</td>
-                <td>서울 강서구</td>
-                <td>여신가능 / 발주 포맷에 맞춰서 카톡 띄우면 하루전에 시켜도 다 배송됨</td>
+              <tr v-for="item in data.correspondent" @click="moveToDetail(item)">
+                <td>{{item.ct_name}}</td>
+                <td>{{item.co_name}}</td>
+                <td>{{item.co_contact}}</td>
+                <td>{{item.co_manager_name}}</td>
+                <td>{{item.ci_brand}}</td>
+                <td>{{item.co_location}}</td>
+                <td>{{item.co_memo}}</td>
               </tr>
               </tbody>
             </table>
@@ -102,6 +100,25 @@
   import Filter from '../../services/filter'
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
+  import router from '../../router'
+  // import Vue from 'vue'
+  // import Notification from 'vue-bulma-notification'
+
+  // const NotificationComponent = Vue.extend(Notification)
+
+  // const openNotification = (propsData = {
+  //   title: '',
+  //   message: '',
+  //   type: '',
+  //   direction: '',
+  //   duration: 4500,
+  //   container: '.notifications'
+  // }) => {
+  //   return new NotificationComponent({
+  //     el: document.createElement('div'),
+  //     propsData
+  //   })
+  // }
 
   const queryApi = '/api'
 
@@ -155,6 +172,28 @@
       moveToPagination (index) {
         this.pages[this.openTab].setIndex(index)
         this.loadData()
+      },
+      moveToDetail (item) {
+        let path = `/manage-constructor/${this.openTab}`
+
+        switch (this.openTab) {
+          case this.correspondent:
+            path = `${path}/${item.co_pk}`
+            break
+          case this.constructor:
+            path = `${path}/${item.cr_pk}`
+            break
+        }
+        console.log(path)
+        router.push({
+          path: path,
+          params: item
+        })
+      },
+      moveToRegister () {
+        router.push({
+          path: `/manage-constructor/${this.openTab}/register`
+        })
       }
     },
     mounted () {

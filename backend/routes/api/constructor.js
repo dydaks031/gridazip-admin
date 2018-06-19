@@ -97,19 +97,19 @@ router.post('/', (req, res) => {
   const reqSkillList = req.body.constructorSkillList || [];
 
   if (reqName.trim() === '' || reqContact.trim() === '' || reqSkillList.length === 0) {
-    res.json(resHelper.getError('[0001] 파라메터가 올바르지 않습니다.'));
+    return res.json(resHelper.getError('[0001] 파라메터가 올바르지 않습니다.'));
   }
   else {
     let crPk;
 
     reqSkillList.forEach(skill => {
-      if (skill.cs_ctpk === undefined || skill.cs_ctpk.trim() === '') {
+      if (skill.cs_ctpk === undefined || skill.cs_ctpk === '') {
         console.error(skill);
-        res.json(resHelper.getError('[0002] 파라메터가 올바르지 않습니다.'));
+        return res.json(resHelper.getError('[0002] 파라메터가 올바르지 않습니다.'));
       }
       else if (skill.cs_skill_score === undefined || skill.cs_skill_score.trim() === '') {
         console.error(skill);
-        res.json(resHelper.getError('[0003] 파라메터가 올바르지 않습니다.'));
+        return res.json(resHelper.getError('[0003] 파라메터가 올바르지 않습니다.'));
       }
     });
 
@@ -255,7 +255,7 @@ router.post('/:crpk([0-9]+)/skill', (req, res) => {
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
 
-  if (reqCrPk.trim() === '' || reqCtPk.trim() === '') {
+  if (reqCrPk === '' || reqCtPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -268,10 +268,14 @@ router.post('/:crpk([0-9]+)/skill', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('constructor_skill_tbl')
         .insert(obj)
-        .then(() => {
+        .then((response) => {
+          console.log(response)
           res.json(resHelper.getJson({
             msg: '기술자 보유 기술이 정상적으로 추가되었습니다.',
-            data: obj
+            data: {
+              ...obj,
+              cs_pk: response[0]
+            }
           }));
         })
         .catch(err => {
@@ -288,7 +292,7 @@ router.put('/:crpk([0-9]+)/skill/:pk([0-9]+)', (req, res) => {
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
 
-  if (reqCtPk.trim() === '') {
+  if (reqCtPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {

@@ -107,7 +107,7 @@ router.post('/', (req, res) => {
     let coPk;
 
     reqItemList.forEach(item => {
-      if (item.ci_ctpk === undefined || item.ci_ctpk.trim() === '') {
+      if (item.ci_ctpk === undefined || item.ci_ctpk === '') {
         res.json(resHelper.getError('[0002] 필수 파라메터가 누락되었습니다.'));
       }
     });
@@ -258,7 +258,7 @@ router.post('/:copk([0-9]+)/item', (req, res) => {
   const reqCtPk = req.body.ct_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
-  if (reqCoPk.trim() === '' || reqCtPk.trim() === '') {
+  if (reqCoPk === '' || reqCtPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -270,10 +270,13 @@ router.post('/:copk([0-9]+)/item', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('correspondent_item_tbl')
         .insert(obj)
-        .then(() => {
+        .then((response) => {
           res.json(resHelper.getJson({
             msg: '거래처 취급 항목이 정상적으로 추가되었습니다.',
-            data: obj
+            data: {
+              ...obj,
+              ci_pk: response[0]
+            }
           }));
         })
         .catch(err => {
@@ -289,7 +292,7 @@ router.put('/:copk([0-9]+)/item/:pk([0-9]+)', (req, res) => {
   const reqCtPk = req.body.ct_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
-  if (reqCtPk.trim() === '') {
+  if (reqCtPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
