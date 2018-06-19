@@ -686,7 +686,7 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
              cpd.cpd_min_amount,
              case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
                then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-               else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ( sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount )
+               else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
              end as labor_costs
         from estimate_detail_hst ed
         left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
@@ -743,6 +743,55 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
         console.log(err);
         res.json(
           resHelper.getError('상세견적서(자재)를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
+});
+
+router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+
+  knexBuilder.getConnection().then(cur => {
+
+    cur.raw(`
+      SELECT resource_costs, labor_costs, (resource_costs+labor_costs) * 0.2 as etc_costs
+        FROM (
+          SELECT sum(resource_costs) resource_costs
+            FROM (
+              SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+              FROM estimate_detail_hst ed
+                LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
+              WHERE ed.ed_pcpk = ?
+              GROUP BY ed.ed_rspk
+              ORDER BY rs.rs_name
+            ) resource
+        ) r,
+      (
+      SELECT sum(labor_costs) labor_costs
+        FROM (
+          SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+                      THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+                      ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+                 END AS labor_costs
+          FROM estimate_detail_hst ed
+          LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+          LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+         WHERE ed.ed_pcpk = ?
+         GROUP BY ed.ed_pcpk, ed.ed_cpdpk, ed.ed_rtpk
+        ) labor
+      ) l
+    `, [reqPcPk, reqPcPk])
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            totalCosts: response[0][0]
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('총합금액을 조회하는 중 오류가 발생하였습니다.')
         );
       })
   })
