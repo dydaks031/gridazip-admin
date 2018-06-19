@@ -720,6 +720,7 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
 
     cur.raw(`
       select rs.rs_name,
+             rs.rs_code,
              rs.rs_price,
              ceil(sum(ed.ed_resource_amount)) as resource_amount,
              ru.ru_name,
