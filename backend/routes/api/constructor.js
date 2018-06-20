@@ -114,7 +114,7 @@ router.post('/', (req, res) => {
         console.error(skill);
         return res.json(resHelper.getError('[0002] 파라메터가 올바르지 않습니다.'));
       }
-      else if (skill.cs_skill_score === undefined || skill.cs_skill_score.trim() === '') {
+      else if (skill.cs_skill_score === undefined || skill.cs_skill_score === '') {
         console.error(skill);
         return res.json(resHelper.getError('[0003] 파라메터가 올바르지 않습니다.'));
       }

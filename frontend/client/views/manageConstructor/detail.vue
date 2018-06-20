@@ -14,9 +14,9 @@
               <input class="input" type="text" v-model="data.constructor.cr_contact"/>
             </p>
             <label class="label">평점</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.constructor.cr_communication_score"/>
-            </p>
+            <div class="control">
+              <star-rating v-model="data.constructor.cr_communication_score" :show-rating="false" :star-size="35"></star-rating>
+            </div>
             <p class="control">
               <button class="button is-primary" @click="updateConstructor">수정</button>
               <button class="button is-link" @click="router.back()">취소</button>
@@ -50,8 +50,7 @@
                   </div>
                 </td>
                 <td>
-                  <span v-if="!item.isModify">{{item.cs_skill_score}}/5</span>
-                  <input v-model="item.cs_skill_score" class="input" v-if="item.isModify" />
+                  <star-rating v-model="item.cs_skill_score" :show-rating="false" :star-size="25" :read-only="!item.isModify" />
                 </td>
                 <td>
                   <span v-if="!item.isModify">{{item.cs_memo}}</span>
@@ -74,7 +73,7 @@
                   </div>
                 </td>
                 <td>
-                  <input class="input is-small" v-model="newData.cs_skill_score"/>/5
+                  <star-rating v-model="newData.cs_skill_score" :show-rating="false" :star-size="25" />
                 <td>
                   <textarea class="textarea" v-model="newData.cs_memo"></textarea>
                 </td>
@@ -184,6 +183,7 @@
   import deepClone from '../../services/deepClone'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import StarRating from 'vue-star-rating'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -206,9 +206,11 @@
 
   export default {
     name: 'manageConstructorIdDetail',
+    components: {
+      StarRating
+    },
     data () {
       return {
-        router,
         isConstructorPage: false,
         id: '',
         type: '',
@@ -219,20 +221,22 @@
         constructionList: [],
         newData: {
           ct_pk: '',
-          cs_skill_score: '',
+          cs_skill_score: 0,
           cs_memo: ''
         }
       }
     },
     methods: {
       loadData () {
-        console.log(this.id)
         this.$http.get(`${queryApi}/${this.type}/${this.id}`)
         .then((response) => {
           if (response.data.code !== 200) {
             router.back()
           }
-          this.data = response.data.data
+          this.$nextTick(() => {
+            this.data = response.data.data
+          })
+          this.$forceUpdate()
         }).catch((error) => {
           console.log(error)
         })
@@ -275,6 +279,8 @@
             insertData.ct_name = constructionName.ct_name
             console.log(insertData)
             this.data.constructorSkillList.push(insertData)
+            this.newData = {}
+
             openNotification({
               message: '기술 정보가 추가되었습니다.',
               type: 'success',
@@ -402,6 +408,13 @@
           .catch((error) => {
             console.error(error)
           })
+      },
+      updateSkillScore (item, value) {
+        console.log(item, value)
+        item.cs_skill_score = value
+      },
+      updateCommunicationScore (value) {
+        this.data.constructor.cr_communication_score = value
       }
     },
     mounted () {

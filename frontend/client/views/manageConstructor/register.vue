@@ -15,7 +15,7 @@
             </p>
             <label class="label">평점</label>
             <p class="control">
-              <input class="input" type="text" v-model="newData.cr_communication_score"/>
+              <star-rating v-model="newData.cr_communication_score" :show-rating="false" :star-size="35" />
             </p>
           </div>
           <h1 class="title">보유기술 정보</h1>
@@ -35,7 +35,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="skill in newData.constructorSkillList">
+            <tr v-for="(skill, index) in newData.constructorSkillList">
               <td>
                 <div class="select">
                   <select v-model="skill.cs_ctpk">
@@ -45,7 +45,7 @@
                 </div>
               </td>
               <td>
-                <input class="input is-small" v-model="skill.cs_skill_score"/>/5
+                <star-rating v-model="skill.cs_skill_score" :show-rating="false" :star-size="25" />
               <td>
                 <textarea class="textarea" v-model="skill.cs_memo"></textarea>
               </td>
@@ -136,6 +136,7 @@
   import router from '../../router'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import StarRating from 'vue-star-rating'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -158,6 +159,9 @@
 
   export default {
     name: 'manageConstructorRegister',
+    components: {
+      StarRating
+    },
     mounted () {
       this.getConstructionList()
     },
@@ -168,10 +172,11 @@
         type: '',
         constructionList: [],
         newData: {
+          cr_communication_score: 0,
           constructorSkillList: [{
             cs_ctpk: '',
             cs_memo: '',
-            cs_skill_score: ''
+            cs_skill_score: 0
           }],
           correspondentItemList: [{
             ci_ctpk: '',

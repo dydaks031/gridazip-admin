@@ -35,8 +35,12 @@
                 <td>{{item.ct_name}}</td>
                 <td>{{item.cr_name}}</td>
                 <td>{{item.cr_contact}}</td>
-                <td>{{item.cs_skill_score}}</td>
-                <td>{{item.cr_communication_score}}</td>
+                <td>
+                  <star-rating v-model="item.cs_skill_score" :show-rating="false" :star-size="25" :read-only="true" />
+                </td>
+                <td>
+                  <star-rating v-model="item.cr_communication_score" :show-rating="false" :star-size="25" :read-only="true" />
+                </td>
                 <td>{{item.cs_memo}}</td>
               </tr>
               </tbody>
@@ -101,6 +105,7 @@
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
   import router from '../../router'
+  import StarRating from 'vue-star-rating'
   // import Vue from 'vue'
   // import Notification from 'vue-bulma-notification'
 
@@ -125,7 +130,8 @@
   export default {
     name: 'manageConstructorIndex',
     components: {
-      PaginationVue
+      PaginationVue,
+      StarRating
     },
     data () {
       return {

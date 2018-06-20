@@ -73,6 +73,7 @@
     "vue-nprogress": "0.1.5",
     "vue-peity": "0.5.0",
     "vue-router": "^2.3.0",
+    "vue-star-rating": "^1.6.0",
     "vuedraggable": "^2.16.0",
     "vuelidate": "^0.7.4",
     "vuex": "^2.2.1",
