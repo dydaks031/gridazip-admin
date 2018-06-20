@@ -26,7 +26,7 @@
           <td>{{generalData.cp_name}}</td>
           <td>{{generalData.cpd_name}}</td>
           <td>{{generalData.rt_name}}</td>
-          <td>{{generalData.rs_name}}</td>
+          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">{{generalData.rs_code}}</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
         </tr>
@@ -36,6 +36,7 @@
       <div class="tile is-parent is-6">
         <article class="tile is-child box">
           <h4 class="title">자재비</h4>
+          <h4 class="title">금액: {{addCommas(estimateData.total.resource_costs)}}</h4>
           <div class="content">
             <table class="table">
               <colgroup>
@@ -51,8 +52,8 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="resource in estimateData.resource">
-                <td>{{resource.rs_name}}</td>
+              <tr v-for="resource in estimateData.resource" v-show="resource.rs_price !== 0">
+                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
                 <td>{{addCommas(resource.rs_price)}}</td>
@@ -67,6 +68,7 @@
       <div class="tile is-parent is-6">
         <article class="tile is-child box">
           <h4 class="title">인건비</h4>
+          <h4 class="title">금액: {{addCommas(estimateData.total.labor_costs)}}</h4>
           <div class="content">
             <table class="table">
               <colgroup>
@@ -82,7 +84,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="labor in estimateData.labor">
+              <tr v-for="labor in estimateData.labor" v-show="labor.labor_costs !== 0">
                 <td>{{labor.ct_name}}</td>
                 <td>{{labor.cp_name}}</td>
                 <td>{{labor.cpd_name}}</td>
@@ -100,13 +102,16 @@
         <article class="tile is-child box">
           <div class="is-pulled-right">
             <p>
-              <span>자재비: 1,000,000원</span>
+              <span>자재비: {{addCommas(estimateData.total.resource_costs)}}원</span>
             </p>
             <p>
-              <span>인건비: 1,000,000원</span>
+              <span>인건비: {{addCommas(estimateData.total.labor_costs)}}원</span>
             </p>
             <p>
-              <span>합: 1,000,000원</span>
+              <span>공과잡비: {{addCommas(estimateData.total.etc_costs)}}원</span>
+            </p>
+            <p>
+              <span>합: {{addCommas(estimateData.total.resource_costs + estimateData.total.labor_costs + estimateData.total.etc_costs)}}원</span>
             </p>
           </div>
         </article>
@@ -128,7 +133,8 @@
         default: {
           general: [],
           labor: [],
-          resource: []
+          resource: [],
+          total: {}
         }
       },
       deleteRegisterBtn: {

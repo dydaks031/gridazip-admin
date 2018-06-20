@@ -81,7 +81,8 @@
         estimateData: {
           general: [],
           labor: [],
-          resource: []
+          resource: [],
+          total: {}
         }
       }
     },
@@ -153,12 +154,20 @@
               return
             }
             this.estimateData.resource = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/total`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.estimateData.total = response.data.data.totalCosts
           })
           .catch((error) => {
             this.estimateData = {
               general: [],
               labor: [],
-              resource: []
+              resource: [],
+              total: {}
             }
             console.log(error)
           })

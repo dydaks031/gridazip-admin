@@ -123,7 +123,7 @@
           </div>
           <p class="control">
             <button class="button is-primary" @click="createData">등록</button>
-            <button class="button is-link">취소</button>
+            <button class="button is-link" @click="router.back()">취소</button>
           </p>
         </article>
       </div>
