@@ -3,6 +3,7 @@ const router = express.Router();
 const knexBuilder = require('../../services/connection/knex');
 const cryptoHelper = require('../../services/crypto/helper');
 const resHelper = require('../../services/response/helper');
+const FormatService = require('../../services/format/helper');
 
 /* 기술자 */
 
@@ -23,6 +24,11 @@ router.get('/', (req, res) => {
       .where('cr_deleted', false)
       .orderBy('ct.ct_pk', 'cr.cr_name')
       .then(response => {
+        response.map((item) => {
+          item.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.cr_contact));
+          return item
+        })
+
         res.json(
           resHelper.getJson({
             constructorList: response
@@ -59,6 +65,7 @@ router.get('/:pk([0-9]+)', (req, res) => {
           );
         }
         else {
+          row.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(row.cr_contact));
           constructor = row;
           cur({cs: 'constructor_skill_tbl'})
             .select(

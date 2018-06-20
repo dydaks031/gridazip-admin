@@ -222,8 +222,6 @@
         }
       },
       changedData (data, id, key, inputValue, triggerKey) {
-        console.log(arguments)
-        console.log('call')
         if (triggerKey === 'NOT_UPDATE') {
           return false
         }

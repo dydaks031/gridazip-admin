@@ -286,6 +286,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   const reqCtPk = req.body.ed_ctpk || '';
   const reqCpPk = req.body.ed_cppk || '';
   const reqCpdPk = req.body.ed_cpdpk || '';
+  const reqRcPk = req.body.rc_pk || '';
   const reqRtPk = req.body.ed_rtpk || '';
   const reqRsPk = req.body.ed_rspk || '';
   const reqInputValue = req.body.ed_input_value || '';
@@ -365,6 +366,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
         })
         .then(row => {
           labor_costs += row.rt_extra_labor_costs;
+          insertObj.rc_pk = reqRcPk
           insertObj.labor_costs = labor_costs * reqInputValue;
           insertObj.resource_costs = resource_price * insertObj.ed_resource_amount;
 

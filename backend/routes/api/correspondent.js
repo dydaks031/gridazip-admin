@@ -3,7 +3,7 @@ const router = express.Router();
 const knexBuilder = require('../../services/connection/knex');
 const cryptoHelper = require('../../services/crypto/helper');
 const resHelper = require('../../services/response/helper');
-
+const FormatService = require('../../services/format/helper');
 /* 거래처 */
 
 router.get('/', (req, res) => {
@@ -24,6 +24,9 @@ router.get('/', (req, res) => {
       .where('co_deleted', false)
       .orderBy('ct.ct_pk', 'co.co_name')
       .then(response => {
+        response.map((item) => {
+          item.co_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.co_contact));
+        })
         res.json(
           resHelper.getJson({
             correspondentList: response
@@ -62,6 +65,7 @@ router.get('/:pk([0-9]+)', (req, res) => {
           );
         }
         else {
+          row.co_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(row.co_contact));
           correspondent = row;
           cur({ci: 'correspondent_item_tbl'})
             .select(

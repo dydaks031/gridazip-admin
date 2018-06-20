@@ -40,7 +40,7 @@
         </td>
         <td>
           <select2 :options="options.resourceCategory" v-model="selected.rc_pk" v-on:input="changedData('resourceCategory', 'rc_pk')">
-            <option disabled value="0">자재단위 선택</option>
+            <option disabled value="0">자재분류 선택</option>
           </select2>
         </td>
         <td>
@@ -226,7 +226,6 @@
         }
       },
       getSelectedData () {
-        console.log(this.selected)
         const id = this.params.id
         if (!id) {
           return false
@@ -240,14 +239,7 @@
             var data = response.data.data.data
 
             this.$emit('registerData', {
-              selectedData: {
-                ...this.selected,
-                ed_pk: data.ed_pk,
-                ed_resource_amount: data.ed_resource_amount,
-                ed_calculated_amount: data.ed_calculated_amount,
-                labor_costs: data.labor_costs,
-                resource_costs: data.resource_costs
-              },
+              selectedData: data,
               options: this.options
             })
           }).catch((error) => {
