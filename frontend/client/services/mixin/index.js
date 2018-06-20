@@ -7,9 +7,7 @@ const mixin = {
       return data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     }
   },
-  mounted () {
-    console.log('a')
-  }
+  mounted () {}
 }
 
 export default mixin
