@@ -23,7 +23,7 @@
             <div class="control">
               <input class="input" type="text" v-model="data.cpd_min_amount" :class="{'is-danger': $v.data.cpd_min_amount.$invalid }" />
               <p class="help is-danger" v-if="!$v.data.cpd_min_amount.required">최소 물량을 입력해 주십시오.</p>
-              <p class="help is-danger" v-if="!$v.data.cpd_min_amount.numeric">최소 물량은 숫자만 입력하실 수 있습니다.</p>
+              <p class="help is-danger" v-if="!$v.data.cpd_min_amount.decimal">최소 물량은 숫자만 입력하실 수 있습니다.</p>
             </div>
             <label class="label">단위</label>
             <div class="control">
@@ -156,7 +156,7 @@
   import deepClone from '../../services/deepClone'
   import utils from '../../services/utils'
   import mixin from '../../services/mixin'
-  import { required, numeric } from 'vuelidate/lib/validators'
+  import { required, numeric, decimal } from 'vuelidate/lib/validators'
   import calculator from 'calculator'
 
   export default {
@@ -204,7 +204,7 @@
         },
         cpd_min_amount: {
           required,
-          numeric
+          decimal
         },
         cpd_unit: {
           required
