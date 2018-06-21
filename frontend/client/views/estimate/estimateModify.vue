@@ -119,11 +119,11 @@
             }
             specificationData.isModify = false
             specificationData.selectedData = item
-            this.dataGroup.push(specificationData)
+            this.dataGroup.unshift(deepClone(specificationData))
           })
         } else {
           data.isModify = false
-          this.dataGroup.push(deepClone(data))
+          this.dataGroup.unshift(deepClone(data))
         }
       })
     },

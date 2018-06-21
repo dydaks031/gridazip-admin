@@ -262,8 +262,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
       .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
       .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
       .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
-
-      .orderBy('ed_pk')
+      .orderBy('ed.ed_place_pk', 'ed_pk')
       .then(response => {
         res.json(
           resHelper.getJson({

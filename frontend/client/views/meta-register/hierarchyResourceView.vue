@@ -15,7 +15,7 @@
     </draggable>
     <p v-show="model.isEnableAddItem" class="add-new-item-btn">
       <span class="is-block" @click="addNewItems" v-show="!isShowEditView">+</span>
-      <input class="input" type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput" :placeholder="model.label + ' 입력'" />
+      <input class="input" type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput" :placeholder="model.label + ' 입력'" autofocus="true" />
       <button class="button" v-show="isShowEditView" @click="hideEditView">취소</button>
     </p>
   </div>
