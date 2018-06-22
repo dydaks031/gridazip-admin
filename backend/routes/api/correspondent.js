@@ -46,8 +46,6 @@ router.get('/', (req, res) => {
       );
     }
 
-    console.log(query.toString());
-
     query
       .map(item => {
         item.co_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.co_contact));

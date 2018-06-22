@@ -810,6 +810,7 @@ router.get('/:pk([0-9]+)/constructor', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     cur({cr: 'constructor_tbl'})
       .select(
+        'cr_pk',
         'ct_pk',
         'ct_name',
         'cr_name',
@@ -905,6 +906,7 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     cur({co: 'correspondent_tbl'})
       .select(
+        'co_pk',
         'ct_pk',
         'ct_name',
         'co_name',
