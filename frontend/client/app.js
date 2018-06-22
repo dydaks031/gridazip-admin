@@ -11,10 +11,12 @@ import * as filters from './filters'
 import { TOGGLE_SIDEBAR } from './store/mutation-types'
 import 'expose-loader?$!expose-loader?jQuery!jquery'
 import Vuelidate from 'vuelidate'
+import vmodal from 'vue-js-modal'
 
 Vue.router = router
 Vue.use(VueAxios, axios)
 Vue.use(Vuelidate)
+Vue.use(vmodal)
 Vue.use(VueAuth, {
   auth: {
     request: function (req, token) {

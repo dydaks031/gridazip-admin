@@ -57,7 +57,7 @@
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
-          <a class="button is-primary is-pulled-right is-medium" id="addConstructorBtn" >등록</a>
+          <a class="button is-primary is-pulled-right is-medium" id="addConstructorBtn" @click="openAddPartnerModal('constructor')">등록</a>
           <table class="table is-bordered">
             <colgroup>
               <col width="10%"/>
@@ -91,7 +91,7 @@
             </tbody>
           </table>
           <p class="subtitle is-3 is-pulled-left">거래처</p>
-          <a class="button is-primary is-pulled-right is-medium" id="addCorrespondentBtn">등록</a>
+          <a class="button is-primary is-pulled-right is-medium" id="addCorrespondentBtn" @click="openAddPartnerModal('correspondent')">등록</a>
           <table class="table is-bordered">
             <colgroup>
               <col width="10%"/>
@@ -127,6 +127,7 @@
         </article>
       </div>
     </div>
+    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" />
   </div>
 </template>
 
@@ -136,8 +137,10 @@
   import { required } from 'vuelidate/lib/validators'
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
+  import addPartnersModal from './addPartnersModal'
 
   const NotificationComponent = Vue.extend(Notification)
+
   const openNotification = (propsData = {
     title: '',
     message: '',
@@ -157,7 +160,8 @@
   export default {
     name: 'estimateDetail',
     components: {
-      estimateSheet
+      estimateSheet,
+      addPartnersModal
     },
     data () {
       return {
@@ -175,6 +179,10 @@
           labor: [],
           resource: [],
           total: {}
+        },
+        addPartnersModalData: {
+          type: '',
+          title: ''
         }
       }
     },
@@ -312,6 +320,23 @@
               console.error(error)
             })
         }
+      },
+      openAddPartnerModal (type) {
+        let message = ''
+        switch (type) {
+          case 'constructor':
+            message = '기술자'
+            break
+          case 'correspondent':
+            message = '거래처'
+            break
+        }
+        this.addPartnersModalData.title = `${message} 할당`
+        this.addPartnersModalData.type = type
+
+        this.$modal.show('addPartnersModal')
+      },
+      closePartnerModal (data) {
       }
     }
   }
