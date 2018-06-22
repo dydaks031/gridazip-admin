@@ -845,8 +845,8 @@ router.get('/:pk([0-9]+)/constructor', (req, res) => {
 
 router.post('/:pk([0-9]+)/constructor', (req, res) => {
   const reqPcPk = req.params.pk || '';
-  const reqCtPk = req.body.ct_pk | '';
-  const reqCrPk = req.body.cr_pk | '';
+  const reqCtPk = req.body.ct_pk || '';
+  const reqCrPk = req.body.cr_pk || '';
 
   if (reqCrPk === '' ||reqCtPk === '' ||reqCrPk === '') {
     res.json(
@@ -872,7 +872,7 @@ router.post('/:pk([0-9]+)/constructor', (req, res) => {
 });
 
 router.delete('/:pcpk([0-9]+)/constructor/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk | '';
+  const reqPk = req.params.pk || '';
 
   if (reqPk === '') {
     res.json(
@@ -941,8 +941,8 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
 
 router.post('/:pk([0-9]+)/correspondent', (req, res) => {
   const reqPcPk = req.params.pk || '';
-  const reqCtPk = req.body.ct_pk | '';
-  const reqCoPk = req.body.co_pk | '';
+  const reqCtPk = req.body.ct_pk || '';
+  const reqCoPk = req.body.co_pk || '';
 
   if (reqPcPk === '' ||reqCtPk === '' ||reqCoPk === '') {
     res.json(
@@ -972,7 +972,7 @@ router.post('/:pk([0-9]+)/correspondent', (req, res) => {
 });
 
 router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk | '';
+  const reqPk = req.params.pk || '';
 
   if (reqPk === '') {
     res.json(
