@@ -999,5 +999,29 @@ router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
   }
 });
 
+router.get('/:pk([0-9]+)/construction', (req, res) => {
+  const reqPk = req.params.pk;
+  knexBuilder.getConnection().then(cur => {
+    const subQuery = cur('estimate_detail_hst').select({'ct_pk': 'ed_ctpk'}).where('ed_pcpk', reqPk).groupBy('ct_pk');
+    cur({ct:'construction_tbl'})
+      .select('ed.ct_pk', 'ct.ct_name')
+      .innerJoin({ed: subQuery}, 'ct.ct_pk', 'ed.ct_pk')
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            constructionList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('해당 진행계약의 공사 목록을 조회하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+
 
 module.exports = router;

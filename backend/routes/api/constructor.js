@@ -32,12 +32,11 @@ router.get('/', (req, res) => {
     if (reqName.trim()) query = query.where('cr_name', 'like', `%${reqName}%`);
 
     query
+      .map(item => {
+        item.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.cr_contact));
+        return item
+      })
       .then(response => {
-        response.map((item) => {
-          item.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.cr_contact));
-          return item
-        })
-
         res.json(
           resHelper.getJson({
             constructorList: response
