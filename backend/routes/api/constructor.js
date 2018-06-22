@@ -10,6 +10,7 @@ const FormatService = require('../../services/format/helper');
 router.get('/', (req, res) => {
   const reqCtPk = req.query.ct_pk || '';
   const reqName = req.query.cr_name || '';
+  const reqPcPk = req.query.pc_pk || '';
 
   knexBuilder.getConnection().then(cur => {
     let query = cur({cr: 'constructor_tbl'})
@@ -30,6 +31,19 @@ router.get('/', (req, res) => {
 
     if (reqCtPk.trim()) query = query.whereIn('ct_pk', reqCtPk.split(','));
     if (reqName.trim()) query = query.where('cr_name', 'like', `%${reqName}%`);
+    if (reqPcPk) {
+      query = query.whereNotIn('cs_pk',
+        cur({cc:'contract_constructor_tbl'})
+          .select('cs_pk')
+          .innerJoin({cs:'constructor_skill_tbl'}, function(){
+            this.on('cc.cc_crpk', '=', 'cs.cs_crpk')
+              .andOn('cc.cc_ctpk', '=', 'cs.cs_ctpk')
+          })
+          .where('cc_pcpk', reqPcPk)
+      );
+    }
+
+    console.log(query.toString());
 
     query
       .map(item => {

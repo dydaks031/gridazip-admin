@@ -10,8 +10,10 @@ router.get('/', (req, res) => {
   const reqCtPk = req.query.ct_pk || '';
   const reqName = req.query.co_name || '';
   const reqManagerName = req.query.co_maneger_name || '';
+  const reqPcPk = req.query.pc_pk || '';
 
   knexBuilder.getConnection().then(cur => {
+
     let query = cur({co: 'correspondent_tbl'})
       .select(
         'co_pk',
@@ -32,6 +34,17 @@ router.get('/', (req, res) => {
     if (reqCtPk.trim()) query = query.whereIn('ct_pk', reqCtPk.split(','));
     if (reqName.trim()) query = query.where('co_name', 'like', `%${reqName}%`);
     if (reqManagerName.trim()) query = query.where('co_manager_name', 'like', `%${reqManagerName}%`);
+    if (reqPcPk) {
+      query = query.whereNotIn('ci_pk',
+        cur({cco:'contract_correspondent_tbl'})
+          .select('ci_pk')
+          .innerJoin({ci:'correspondent_item_tbl'}, function(){
+            this.on('cco.cco_copk', '=', 'ci.ci_copk')
+              .andOn('cco.cco_ctpk', '=', 'ci.ci_ctpk')
+          })
+          .where('cco_pcpk', reqPcPk)
+      );
+    }
 
     console.log(query.toString());
 
