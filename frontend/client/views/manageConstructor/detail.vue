@@ -20,6 +20,7 @@
             <p class="control">
               <button class="button is-primary" @click="updateConstructor">수정</button>
               <button class="button is-link" @click="router.back()">취소</button>
+              <button class="button is-danger is-pulled-right" @click="deleteItem">삭제</button>
             </p>
           </div>
           <h1 class="title">보유기술 정보</h1>
@@ -110,7 +111,8 @@
             </p>
             <p class="control">
               <button class="button is-primary" @click="updateCorrespondent">수정</button>
-              <button class="button is-link">Cancel</button>
+              <button class="button is-link">취소</button>
+              <button class="button is-danger is-pulled-right" @click="deleteItem">삭제</button>
             </p>
             <h1 class="title">취급 브랜드</h1>
             <div class="control">
@@ -409,12 +411,35 @@
             console.error(error)
           })
       },
-      updateSkillScore (item, value) {
-        console.log(item, value)
-        item.cs_skill_score = value
-      },
-      updateCommunicationScore (value) {
-        this.data.constructor.cr_communication_score = value
+      deleteItem () {
+        if (window.confirm('정말 삭제하시겠습니까?')) {
+          let message = ''
+          switch (this.type) {
+            case 'constructor':
+              message = '기술자'
+              break
+            case 'correspondent':
+              message = '거래처'
+              break
+          }
+
+          this.$http.delete(`${queryApi}/${this.type}/${this.id}`)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return false
+              }
+              openNotification({
+                message: `${message} 정보가 삭제되었습니다.`,
+                type: 'success',
+                duration: 1500
+              })
+
+              router.back()
+            })
+            .catch((error) => {
+              console.error(error)
+            })
+        }
       }
     },
     mounted () {

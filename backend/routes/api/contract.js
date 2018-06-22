@@ -176,9 +176,11 @@ router.put('/:pk([0-9]+)', (req, res) => {
     updateObj.pc_memo = req.body.pc_memo || '';
 
     knexBuilder.getConnection().then(cur => {
-      updateObj.pc_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('proceeding_contract_tbl')
-        .update(updateObj)
+        .update({
+          ...updateObj,
+          pc_recency: cur.raw('UNIX_TIMESTAMP() * -1')
+        })
         .where('pc_pk', reqPk)
         .then(() => {
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
@@ -189,7 +191,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
         })
         .catch(err => {
           console.error(err);
-          res.json(resHelper.getError('[0001] 진행 계약건을 추가하는 중 오류가 발생하였습니다.'));
+          res.json(resHelper.getError('[0001] 진행 계약건을 변경하는 중 오류가 발생하였습니다.'));
         })
     })
   }
