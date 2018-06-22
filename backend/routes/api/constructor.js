@@ -12,6 +12,7 @@ router.get('/', (req, res) => {
     cur({cr: 'constructor_tbl'})
       .select(
         'cr_pk',
+        'ct_pk',
         'ct_name',
         'cr_name',
         'cr_contact',
@@ -124,7 +125,7 @@ router.post('/', (req, res) => {
       cur('constructor_tbl')
         .insert({
           cr_name: reqName,
-          cr_contact: cryptoHelper.encrypt(reqContact),
+          cr_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
           cr_communication_score: reqCommunicationScore
         })
         .returning('cr_pk')

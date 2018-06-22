@@ -11,6 +11,7 @@ router.get('/', (req, res) => {
     cur({co: 'correspondent_tbl'})
       .select(
         'co_pk',
+        'ct_pk',
         'ct_name',
         'co_name',
         'co_manager_name',

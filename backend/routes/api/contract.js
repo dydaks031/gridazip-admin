@@ -799,4 +799,203 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
   })
 });
 
+
+
+
+/* 기술자 및 거래처 탭 */
+router.get('/:pk([0-9]+)/constructor', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  knexBuilder.getConnection().then(cur => {
+    cur({cr: 'constructor_tbl'})
+      .select(
+        'ct_pk',
+        'ct_name',
+        'cr_name',
+        'cr_contact',
+        'cr_communication_score',
+        'cs_skill_score',
+        'cs_memo')
+      .innerJoin({cs: 'constructor_skill_tbl'}, 'cr.cr_pk', 'cs.cs_crpk')
+      .innerJoin({cc: 'contract_constructor_tbl'}, function() {
+        this.on('cc.cc_crpk','=','cs.cs_crpk').andOn('cc.cc_ctpk','=','cs.cs_ctpk')
+      })
+      .innerJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+      .where('cc.cc_pcpk', reqPcPk)
+      .then(response => {
+        response.forEach(obj => {
+          obj.cr_contact = cryptoHelper.decrypt(obj.cr_contact).split('-').join('');
+
+        });
+        res.json(
+          resHelper.getJson({
+            constructorList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('해당 진행계약의 기술자 목록을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  });
+});
+
+router.post('/:pk([0-9]+)/constructor', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  const reqCtPk = req.body.ct_pk | '';
+  const reqCrPk = req.body.cr_pk | '';
+
+  if (reqCrPk === '' ||reqCtPk === '' ||reqCrPk === '') {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    knexBuilder.getConnection().then(cur => {
+      cur('contract_constructor_tbl')
+        .insert({
+          cc_pcpk: reqPcPk,
+          cc_ctpk: reqCtPk,
+          cc_crpk: reqCrPk
+        })
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        })
+    });
+  }
+});
+
+router.delete('/:pcpk([0-9]+)/constructor/:pk([0-9]+)', (req, res) => {
+  const reqPk = req.params.pk | '';
+
+  if (reqPk === '') {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    knexBuilder.getConnection().then(cur => {
+      cur('contract_constructor_tbl')
+        .del()
+        .where('cc_pk', reqPk)
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        })
+        .catch(() => {
+          res.json(
+            resHelper.getError('매치한 기술자를 삭제하는 중 오류가 발생했습니다.')
+          );
+        })
+    });
+  }
+});
+
+
+router.get('/:pk([0-9]+)/correspondent', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  knexBuilder.getConnection().then(cur => {
+    cur({co: 'correspondent_tbl'})
+      .select(
+        'ct_pk',
+        'ct_name',
+        'co_name',
+        'co_contact',
+        'co_manager_name',
+        'co_location',
+        'co_memo',
+        'ci_brand')
+      .innerJoin({ci: 'correspondent_item_tbl'}, 'co.co_pk', 'ci.ci_copk')
+      .innerJoin({cco: 'contract_correspondent_tbl'}, function() {
+        this.on('cco.cco_copk','=','ci.ci_copk').andOn('cco.cco_ctpk','=','ci.ci_ctpk')
+      })
+      .innerJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
+      .where('cco.cco_pcpk', reqPcPk)
+      .then(response => {
+        response.forEach(obj => {
+          obj.co_contact = cryptoHelper.decrypt(obj.co_contact).split('-').join('');
+
+        });
+        res.json(
+          resHelper.getJson({
+            correspondentList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('해당 진행계약의 거래처 목록을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  });
+});
+
+router.post('/:pk([0-9]+)/correspondent', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  const reqCtPk = req.body.ct_pk | '';
+  const reqCoPk = req.body.co_pk | '';
+
+  if (reqPcPk === '' ||reqCtPk === '' ||reqCoPk === '') {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    knexBuilder.getConnection().then(cur => {
+      cur('contract_correspondent_tbl')
+        .insert({
+          cco_pcpk: reqPcPk,
+          cco_ctpk: reqCtPk,
+          cco_copk: reqCoPk
+        })
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        }).catch(() => {
+          res.json(
+            resHelper.getError('거래처를 매치하는 중 오류가 발생했습니다.')
+          );
+      })
+    });
+  }
+});
+
+router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
+  const reqPk = req.params.pk | '';
+
+  if (reqPk === '') {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    knexBuilder.getConnection().then(cur => {
+      cur('contract_correspondent_tbl')
+        .del()
+        .where('cco_pk', reqPk)
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        })
+        .catch(() => {
+          res.json(
+            resHelper.getError('매치한 거래처를 삭제하는 중 오류가 발생했습니다.')
+          );
+        })
+    });
+  }
+});
+
+
 module.exports = router;
