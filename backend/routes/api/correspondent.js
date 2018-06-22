@@ -7,8 +7,12 @@ const FormatService = require('../../services/format/helper');
 /* 거래처 */
 
 router.get('/', (req, res) => {
+  const reqCtPk = req.query.ct_pk || '';
+  const reqName = req.query.co_name || '';
+  const reqManagerName = req.query.co_maneger_name || '';
+
   knexBuilder.getConnection().then(cur => {
-    cur({co: 'correspondent_tbl'})
+    let query = cur({co: 'correspondent_tbl'})
       .select(
         'co_pk',
         'ct_pk',
@@ -23,11 +27,20 @@ router.get('/', (req, res) => {
       .leftJoin({ci: 'correspondent_item_tbl'}, 'co.co_pk', 'ci.ci_copk')
       .leftJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
       .where('co_deleted', false)
-      .orderBy('ct.ct_pk', 'co.co_name')
+      .orderBy('ct.ct_pk', 'co.co_name');
+
+    if (reqCtPk.trim()) query = query.whereIn('ct_pk', reqCtPk.split(','));
+    if (reqName.trim()) query = query.where('co_name', 'like', `%${reqName}%`);
+    if (reqManagerName.trim()) query = query.where('co_manager_name', 'like', `%${reqManagerName}%`);
+
+    console.log(query.toString());
+
+    query
+      .map(item => {
+        item.co_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.co_contact));
+        return item;
+      })
       .then(response => {
-        response.map((item) => {
-          item.co_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.co_contact));
-        })
         res.json(
           resHelper.getJson({
             correspondentList: response

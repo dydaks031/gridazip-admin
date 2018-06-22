@@ -823,11 +823,11 @@ router.get('/:pk([0-9]+)/constructor', (req, res) => {
       })
       .innerJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
       .where('cc.cc_pcpk', reqPcPk)
+      .map(obj => {
+        obj.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(obj.cr_contact));
+        return obj;
+      })
       .then(response => {
-        response.forEach(obj => {
-          obj.cr_contact = cryptoHelper.decrypt(obj.cr_contact).split('-').join('');
-
-        });
         res.json(
           resHelper.getJson({
             constructorList: response
@@ -919,11 +919,11 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
       })
       .innerJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
       .where('cco.cco_pcpk', reqPcPk)
+      .map(obj => {
+        obj.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(obj.co_contact));
+        return obj;
+      })
       .then(response => {
-        response.forEach(obj => {
-          obj.co_contact = cryptoHelper.decrypt(obj.co_contact).split('-').join('');
-
-        });
         res.json(
           resHelper.getJson({
             correspondentList: response

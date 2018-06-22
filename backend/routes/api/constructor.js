@@ -8,8 +8,11 @@ const FormatService = require('../../services/format/helper');
 /* 기술자 */
 
 router.get('/', (req, res) => {
+  const reqCtPk = req.query.ct_pk || '';
+  const reqName = req.query.cr_name || '';
+
   knexBuilder.getConnection().then(cur => {
-    cur({cr: 'constructor_tbl'})
+    let query = cur({cr: 'constructor_tbl'})
       .select(
         'cr_pk',
         'ct_pk',
@@ -23,7 +26,12 @@ router.get('/', (req, res) => {
       .leftJoin({cs: 'constructor_skill_tbl'}, 'cr.cr_pk', 'cs.cs_crpk')
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
       .where('cr_deleted', false)
-      .orderBy('ct.ct_pk', 'cr.cr_name')
+      .orderBy('ct.ct_pk', 'cr.cr_name');
+
+    if (reqCtPk.trim()) query = query.whereIn('ct_pk', reqCtPk.split(','));
+    if (reqName.trim()) query = query.where('cr_name', 'like', `%${reqName}%`);
+
+    query
       .then(response => {
         response.map((item) => {
           item.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(item.cr_contact));
