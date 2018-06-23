@@ -40,7 +40,7 @@
             </td>
             <td>{{item.cs_memo}}</td>
             <td>
-              <button class="button is-primary">선택</button>
+              <button class="button is-primary" @click="addPartner(item)">선택</button>
             </td>
           </tr>
           </tbody>
@@ -72,7 +72,7 @@
             <td>{{item.co_manager_name}}</td>
             <td>{{item.ci_brand}}</td>
             <td>
-              <button class="button is-primary">선택</button>
+              <button class="button is-primary" @click="addPartner(item)">선택</button>
             </td>
           </tr>
           </tbody>
@@ -86,16 +86,16 @@
   import StarRating from 'vue-star-rating'
 
   const queryApi = '/api'
+  const contractQueryApi = '/api/contract'
   export default {
     name: 'add-partners-modal',
     components: {
       StarRating
     },
     props: {
-      visible: Boolean,
       title: String,
       type: String,
-      message: String
+      id: String
     },
     data () {
       return {
@@ -120,6 +120,16 @@
               this.listData[this.type] = response.data.data[`${this.type}List`]
             })
         })
+      },
+      addPartner (constructor) {
+        console.log(`${contractQueryApi}/${this.id}/${this.type}`)
+        this.$http.post(`${contractQueryApi}/${this.id}/${this.type}`, constructor)
+          .then((response) => {
+            console.log(response.data.data)
+            if (response.data.code !== 200) {
+              return false
+            }
+          })
       }
     },
     mounted () {

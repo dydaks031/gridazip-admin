@@ -60,10 +60,11 @@
           <a class="button is-primary is-pulled-right is-medium" id="addConstructorBtn" @click="openAddPartnerModal('constructor')">등록</a>
           <table class="table is-bordered">
             <colgroup>
+              <col width="7%"/>
+              <col width="8%"/>
+              <col width="15%"/>
               <col width="10%"/>
-              <col width="20%"/>
-              <col width="15%"/>
-              <col width="15%"/>
+              <col width="10%"/>
               <col width="30%"/>
               <col width="10%"/>
             </colgroup>
@@ -72,22 +73,28 @@
                 <th>공사</th>
                 <th>이름</th>
                 <th>전화번호</th>
-                <th>별점</th>
+                <th>소통</th>
+                <th>실력</th>
                 <th>비고</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>타일</td>
-                <td>매맴맴</td>
-                <td>010-4123-1234</td>
-                <td>5</td>
-                <td>개잘핵</td>
-                <td>
-                  <button class="button">삭제</button>
-                </td>
-              </tr>
+            <tr v-for="item in partners.constructor">
+              <td>{{item.ct_name}}</td>
+              <td>{{item.cr_name}}</td>
+              <td>{{item.cr_contact}}</td>
+              <td>
+                <star-rating v-model="item.cr_communication_score" :show-rating="false" :star-size="15" :read-only="true" />
+              </td>
+              <td>
+                <star-rating v-model="item.cs_skill_score" :show-rating="false" :star-size="15" :read-only="true" />
+              </td>
+              <td>{{item.cs_memo}}</td>
+              <td>
+                <button class="button is-danger" @click="deletePartners(item, 'constructor')">삭제</button>
+              </td>
+            </tr>
             </tbody>
           </table>
           <p class="subtitle is-3 is-pulled-left">거래처</p>
@@ -112,14 +119,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-              <td>타일</td>
-              <td>매맴맴타일</td>
-              <td>010-4123-1234</td>
-              <td>오현오</td>
-              <td>다팔아</td>
+            <tr v-for="item in partners.correspondent">
+              <td>{{item.ct_name}}</td>
+              <td>{{item.co_name}}</td>
+              <td>{{item.co_contact}}</td>
+              <td>{{item.co_manager_name}}</td>
+              <td>{{item.ci_brand}}</td>
               <td>
-                <button class="button">삭제</button>
+                <button class="button is-danger" @click="deletePartners(item, 'correspondent')">삭제</button>
               </td>
             </tr>
             </tbody>
@@ -127,7 +134,7 @@
         </article>
       </div>
     </div>
-    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" />
+    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" :id="param.id"/>
   </div>
 </template>
 
@@ -138,6 +145,7 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import addPartnersModal from './addPartnersModal'
+  import StarRating from 'vue-star-rating'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -161,7 +169,8 @@
     name: 'estimateDetail',
     components: {
       estimateSheet,
-      addPartnersModal
+      addPartnersModal,
+      StarRating
     },
     data () {
       return {
@@ -183,6 +192,10 @@
         addPartnersModalData: {
           type: '',
           title: ''
+        },
+        partners: {
+          constructor: [],
+          correspondent: []
         }
       }
     },
@@ -218,6 +231,7 @@
             this.loadEstimateView()
             break
           case this.tabType.managerAndShop:
+            this.loadPartner()
             break
         }
       },
@@ -320,6 +334,35 @@
               console.error(error)
             })
         }
+      },
+      loadPartner () {
+        const id = this.param.id
+
+        this.$http.get(`${queryApi}/${id}/constructor`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.partners.constructor = response.data.data.constructorList
+            return this.$http.get(`${queryApi}/${id}/correspondent`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.partners.correspondent = response.data.data.correspondentList
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      },
+      deletePartners (item, type) {
+        const id = this.param.id
+        const itemPk = item.hasOwnProperty('cr_pk') ? item.cr_pk : item.co_pk
+        this.$http.delete(`${queryApi}/${id}/${type}/${itemPk}`)
+          .then((response) => {
+
+          })
       },
       openAddPartnerModal (type) {
         let message = ''
