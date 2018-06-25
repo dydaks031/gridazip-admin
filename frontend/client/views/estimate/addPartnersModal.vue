@@ -1,9 +1,9 @@
 <template>
-  <modal name="addPartnersModal" @before-open="beforeOpen" height="auto" width="60%">
+  <modal name="addPartnersModal" @before-open="beforeOpen" @before-close="beforeClose" height="auto" width="60%">
     <div class="add-partners-modal">
       <div class="modal-card-head">
         <h1 class="modal-card-title">{{this.title}}</h1>
-        <button class="delete is-pulled-right"></button>
+        <button class="delete is-pulled-right" @click="$modal.hide('addPartnersModal')"></button>
       </div>
       <div class="modal-card-body">
         <table class="table is-bordered" v-if="type === 'constructor'">
@@ -84,6 +84,24 @@
 
 <script>
   import StarRating from 'vue-star-rating'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   const queryApi = '/api'
   const contractQueryApi = '/api/contract'
@@ -95,7 +113,8 @@
     props: {
       title: String,
       type: String,
-      id: String
+      id: String,
+      beforeClose: Function
     },
     data () {
       return {
@@ -107,11 +126,8 @@
     },
     methods: {
       beforeOpen (event) {
-        // switch (type) {
-        //
-        // }
         this.$nextTick(() => {
-          this.$http.get(`${queryApi}/${this.type}`)
+          this.$http.get(`${queryApi}/${this.type}?pc_pk=${this.id}`)
             .then((response) => {
               console.log(response.data.data)
               if (response.data.code !== 200) {
@@ -129,11 +145,17 @@
             if (response.data.code !== 200) {
               return false
             }
+            openNotification({
+              message: '등록 되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.$modal.hide('addPartnersModal')
           })
       }
     },
     mounted () {
-      console.log(this)
+      console.log(this.beforeClose)
     }
   }
 </script>

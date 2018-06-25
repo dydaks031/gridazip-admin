@@ -134,7 +134,7 @@
         </article>
       </div>
     </div>
-    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" :id="param.id"/>
+    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" :id="param.id" :beforeClose="loadPartner"/>
   </div>
 </template>
 
@@ -195,7 +195,8 @@
         },
         partners: {
           constructor: [],
-          correspondent: []
+          correspondent: [],
+          construction: []
         }
       }
     },
@@ -212,7 +213,6 @@
     mounted () {
       this.currentTab = this.tabType.info
       this.param = this.$route.params
-      console.log(router)
       this.loadDetail()
     },
     computed: {
@@ -245,7 +245,6 @@
             if (response.data.code !== 200) {
               return false
             }
-            console.log(response)
             this.detailData = response.data.data.contract
           }).catch((error) => {
             console.log(error)
@@ -261,12 +260,10 @@
             if (response.data.code !== 200) {
               return false
             }
-            console.log(response)
             this.estimateData.general = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/estimate/labor`)
           })
           .then((response) => {
-            console.log(response)
             if (response.data.code !== 200) {
               return
             }
@@ -351,6 +348,11 @@
               return false
             }
             this.partners.correspondent = response.data.data.correspondentList
+            return this.$http.get(`${queryApi}/${id}/construction`)
+          })
+          .then((response) => {
+            this.partners.construction = response.data.data.constructionList
+            console.log(this.partners.construction)
           })
           .catch((error) => {
             console.error(error)
