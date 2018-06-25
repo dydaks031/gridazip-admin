@@ -1,5 +1,5 @@
 <template>
-  <section class="app-main" :style="[hiddenSidebarStyle]">
+  <section class="app-main" :style="[hiddenSidebarStyle]" :class="{'full-width': isHideView}">
     <div class="container is-fluid is-marginless app-content">
       <levelbar></levelbar>
       <transition
@@ -16,6 +16,7 @@
 <script>
 import Levelbar from './Levelbar'
 import { mapGetters } from 'vuex'
+import EventBus from '../../services/eventBus'
 
 export default {
   computed: {
@@ -26,7 +27,16 @@ export default {
       return this.sidebar.hidden ? { 'margin-left': 0 } : null
     }
   },
-
+  data () {
+    return {
+      isHideView: false
+    }
+  },
+  mounted () {
+    EventBus.$on('togglePrintMode', () => {
+      this.isHideView = !this.isHideView
+    })
+  },
   components: {
     Levelbar
   }
@@ -41,7 +51,9 @@ export default {
   padding-top: 50px;
   margin-left: 180px;
   transform: translate3d(0, 0, 0);
-
+  &.full-width {
+    margin-left: 0
+  }
   @include mobile() {
     margin-left: 0;
   }

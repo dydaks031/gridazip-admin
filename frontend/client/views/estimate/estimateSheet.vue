@@ -3,6 +3,7 @@
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
       <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">등록/수정</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
     <table class="table position-base-table">
       <colgroup>
@@ -100,19 +101,21 @@
     <div class="tile is-ancestor summary">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <div class="is-pulled-right">
-            <p>
-              <span>자재비: {{addCommas(estimateData.total.resource_costs)}}원</span>
-            </p>
-            <p>
-              <span>인건비: {{addCommas(estimateData.total.labor_costs)}}원</span>
-            </p>
-            <p>
-              <span>공과잡비: {{addCommas(estimateData.total.etc_costs)}}원</span>
-            </p>
-            <p>
-              <span>합: {{addCommas(estimateData.total.resource_costs + estimateData.total.labor_costs + estimateData.total.etc_costs)}}원</span>
-            </p>
+          <div class="is-clearfix">
+            <div class="is-pulled-right">
+              <p>
+                <span>자재비: {{addCommas(estimateData.total.resource_costs)}}원</span>
+              </p>
+              <p>
+                <span>인건비: {{addCommas(estimateData.total.labor_costs)}}원</span>
+              </p>
+              <p>
+                <span>공과잡비: {{addCommas(estimateData.total.etc_costs)}}원</span>
+              </p>
+              <p>
+                <span>합: {{addCommas(estimateData.total.resource_costs + estimateData.total.labor_costs + estimateData.total.etc_costs)}}원</span>
+              </p>
+            </div>
           </div>
         </article>
       </div>
@@ -121,8 +124,10 @@
 </template>
 
 <script>
+  /* eslint-disable no-unused-vars */
   import router from '../../router'
   import mixin from '../../services/mixin'
+  import EventBus from '../../services/eventBus'
 
   export default {
     name: 'estimate-sheet',
@@ -152,6 +157,13 @@
         router.push({
           path: `/estimate/${this.param.id}/register`
         })
+      },
+      printPage () {
+        EventBus.$emit('togglePrintMode')
+        window.setTimeout(() => {
+          window.print()
+          EventBus.$emit('togglePrintMode')
+        }, 300)
       }
     },
     mounted () {
@@ -176,6 +188,9 @@
   }
   .position-base-table {
     margin: 1rem 0 3rem 0
+  }
 
+  .print-btn {
+    margin-right: 1rem
   }
 </style>

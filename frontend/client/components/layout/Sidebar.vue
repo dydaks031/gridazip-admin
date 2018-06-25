@@ -1,5 +1,5 @@
 <template>
-  <aside class="menu app-sidebar animated" :class="{ slideInLeft: show, slideOutLeft: !show }">
+  <aside class="menu app-sidebar animated" :class="{ slideInLeft: show, slideOutLeft: !show, none: forceHide }">
     <p class="menu-label">
       Menu
     </p>
@@ -37,6 +37,7 @@
 <script>
 import Expanding from 'vue-bulma-expanding'
 import { mapGetters, mapActions } from 'vuex'
+import EventBus from '../../services/eventBus'
 
 export default {
   components: {
@@ -49,7 +50,8 @@ export default {
 
   data () {
     return {
-      isReady: false
+      isReady: false,
+      forceHide: false
     }
   },
 
@@ -59,6 +61,11 @@ export default {
       this.isReady = true
       this.shouldExpandMatchItem(route)
     }
+
+    EventBus.$on('togglePrintMode', () => {
+      console.log(this.show)
+      this.forceHide = !this.forceHide
+    })
   },
 
   computed: mapGetters({
@@ -186,5 +193,8 @@ export default {
     }
   }
 
+  &.none {
+    display:none
+  }
 }
 </style>
