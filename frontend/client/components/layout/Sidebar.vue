@@ -126,7 +126,6 @@ export default {
     $route (route) {
       this.isReady = true
       this.shouldExpandMatchItem(route)
-      console.log(route)
     }
   }
 

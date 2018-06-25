@@ -141,7 +141,6 @@
           if (metaData.id === 'constructionProcessDetail') {
             this.cpdData = response.data.data[metaData.keyList.list]
           }
-          console.log(this.options)
         }).catch((error) => {
           console.error(error)
         })

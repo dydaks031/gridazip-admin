@@ -162,7 +162,6 @@
     watch: {
       estimateData: {
         handler (newValue, oldValue) {
-          console.log(newValue, oldValue)
         },
         deep: true
       }

@@ -134,7 +134,12 @@
         </article>
       </div>
     </div>
-    <add-partners-modal :title="addPartnersModalData.title" :type="addPartnersModalData.type" :id="param.id" :beforeClose="loadPartner"/>
+    <add-partners-modal
+      :title="addPartnersModalData.title"
+      :type="addPartnersModalData.type"
+      :id="param.id"
+      :constructionList="partners.construction"
+      :beforeClose="loadPartner"/>
   </div>
 </template>
 
@@ -146,6 +151,7 @@
   import Vue from 'vue'
   import addPartnersModal from './addPartnersModal'
   import StarRating from 'vue-star-rating'
+  import _ from 'underscore'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -352,7 +358,6 @@
           })
           .then((response) => {
             this.partners.construction = response.data.data.constructionList
-            console.log(this.partners.construction)
           })
           .catch((error) => {
             console.error(error)
@@ -360,10 +365,19 @@
       },
       deletePartners (item, type) {
         const id = this.param.id
-        const itemPk = item.hasOwnProperty('cr_pk') ? item.cr_pk : item.co_pk
+        const itemPk = item.hasOwnProperty('cc_pk') ? item.cc_pk : item.cco_pk
         this.$http.delete(`${queryApi}/${id}/${type}/${itemPk}`)
           .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
 
+            openNotification({
+              message: '정상적으로 삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.partners[type] = _.without(this.partners[type], item)
           })
       },
       openAddPartnerModal (type) {
@@ -380,8 +394,6 @@
         this.addPartnersModalData.type = type
 
         this.$modal.show('addPartnersModal')
-      },
-      closePartnerModal (data) {
       }
     }
   }

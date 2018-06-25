@@ -6,6 +6,18 @@
         <button class="delete is-pulled-right" @click="$modal.hide('addPartnersModal')"></button>
       </div>
       <div class="modal-card-body">
+        <div class="block">
+          <div class="control has-addons">
+            <div class="select">
+              <select v-model="searchOptions.searchConstruction">
+                <option value="">전체</option>
+                <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+              </select>
+            </div>
+            <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name">
+            <a class="button is-info" @click="loadPartners">검색</a>
+          </div>
+        </div>
         <table class="table is-bordered" v-if="type === 'constructor'">
           <colgroup>
             <col width="7%"/>
@@ -28,7 +40,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="item in listData.constructor">
+          <tr v-for="item in listData.constructor" v-if="listData.constructor.length !== 0">
             <td>{{item.ct_name}}</td>
             <td>{{item.cr_name}}</td>
             <td>{{item.cr_contact}}</td>
@@ -42,6 +54,9 @@
             <td>
               <button class="button is-primary" @click="addPartner(item)">선택</button>
             </td>
+          </tr>
+          <tr>
+            <td colspan="7" v-if="listData.constructor.length === 0">검색 결과가 없습니다.</td>
           </tr>
           </tbody>
         </table>
@@ -65,7 +80,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="item in listData.correspondent">
+          <tr v-for="item in listData.correspondent" v-if="listData.correspondent.length !== 0">
             <td>{{item.ct_name}}</td>
             <td>{{item.co_name}}</td>
             <td>{{item.co_contact}}</td>
@@ -74,6 +89,9 @@
             <td>
               <button class="button is-primary" @click="addPartner(item)">선택</button>
             </td>
+          </tr>
+          <tr>
+            <td colspan="6" v-if="listData.correspondent.length === 0">검색 결과가 없습니다.</td>
           </tr>
           </tbody>
         </table>
@@ -114,6 +132,7 @@
       title: String,
       type: String,
       id: String,
+      constructionList: Array,
       beforeClose: Function
     },
     data () {
@@ -121,21 +140,37 @@
         listData: {
           constructor: [],
           correspondent: []
+        },
+        searchOptions: {
+          searchConstruction: '',
+          name: ''
         }
       }
     },
     methods: {
       beforeOpen (event) {
         this.$nextTick(() => {
-          this.$http.get(`${queryApi}/${this.type}?pc_pk=${this.id}`)
-            .then((response) => {
-              console.log(response.data.data)
-              if (response.data.code !== 200) {
-                return false
-              }
-              this.listData[this.type] = response.data.data[`${this.type}List`]
-            })
+          this.loadPartners()
         })
+      },
+      loadPartners () {
+        let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}`
+        switch (this.type) {
+          case 'constructor':
+            url = `${url}&cr_name=${this.searchOptions.name}`
+            break
+          case 'correspondent':
+            url = `${url}&co_name=${this.searchOptions.name}`
+            break
+        }
+        this.$http.get(url)
+          .then((response) => {
+            console.log(response.data.data)
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.listData[this.type] = response.data.data[`${this.type}List`]
+          })
       },
       addPartner (constructor) {
         console.log(`${contractQueryApi}/${this.id}/${this.type}`)
@@ -155,7 +190,7 @@
       }
     },
     mounted () {
-      console.log(this.beforeClose)
+
     }
   }
 </script>
