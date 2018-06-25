@@ -42,10 +42,13 @@
               <p class="help is-danger" v-if="!$v.data.cpd_unit.required">단위를 선택 해 주십시오.</p>
             </div>
           </div>
-          <button class="button" @click="registerData($v.constructionProcessDetail)">
-            <span v-if="Object.keys(selectedData).length === 0">등록</span>
-            <span v-else>수정</span>
-          </button>
+          <div class="is-clearfix">
+            <button class="button" @click="registerData($v.constructionProcessDetail)">
+              <span v-if="Object.keys(selectedData).length === 0">등록</span>
+              <span v-else>수정</span>
+            </button>
+            <button class="button is-danger is-pulled-right" v-if="Object.keys(selectedData).length !== 0" @click="deleteData(selectedData)">삭제</button>
+          </div>
         </div>
         <div v-show="selectedModel.id === 'resourceType'">
           <h4 class="title">자재군
@@ -65,10 +68,13 @@
               <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.numeric">추가인건비는 숫자만 입력하실 수 있습니다.</p>
             </div>
           </div>
-          <button class="button" @click="registerData($v.resourceType)">
-            <span v-if="Object.keys(selectedData).length === 0">등록</span>
-            <span v-else>수정</span>
-          </button>
+          <div class="is-clearfix">
+            <button class="button" @click="registerData($v.resourceType)">
+              <span v-if="Object.keys(selectedData).length === 0">등록</span>
+              <span v-else>수정</span>
+            </button>
+            <button class="button is-danger is-pulled-right" v-if="Object.keys(selectedData).length !== 0" @click="deleteData(selectedData)">삭제</button>
+          </div>
         </div>
         <div v-show="selectedModel.id === 'resourceUnit'">
           <h4 class="title">자재단위
@@ -100,10 +106,13 @@
               <p class="help is-danger" v-if="!$v.data.ru_ceil_flag.required">올림 여부를 선택 해 주십시오.</p>
             </div>
           </div>
-          <button class="button" @click="registerData($v.resourceUnit)">
-            <span v-if="Object.keys(selectedData).length === 0">등록</span>
-            <span v-else>수정</span>
-          </button>
+          <div class="is-clearfix">
+            <button class="button" @click="registerData($v.resourceUnit)">
+              <span v-if="Object.keys(selectedData).length === 0">등록</span>
+              <span v-else>수정</span>
+            </button>
+            <button class="button is-danger is-pulled-right" v-if="Object.keys(selectedData).length !== 0" @click="deleteData(selectedData)">삭제</button>
+          </div>
         </div>
         <div v-show="selectedModel.id === 'resource'">
           <h4 class="title">자재
@@ -140,10 +149,13 @@
               <p class="help is-danger" v-if="!$v.data.rs_price.numeric">자재 금액은 숫자만 입력하실 수 있습니다.</p>
             </div>
           </div>
-          <button class="button" @click="registerData($v.resource)">
-            <span v-if="Object.keys(selectedData).length === 0">등록</span>
-            <span v-else>수정</span>
-          </button>
+          <div class="is-clearfix">
+            <button class="button" @click="registerData($v.resource)">
+              <span v-if="Object.keys(selectedData).length === 0">등록</span>
+              <span v-else>수정</span>
+            </button>
+            <button class="button is-danger is-pulled-right" v-if="Object.keys(selectedData).length !== 0" @click="deleteData(selectedData)">삭제</button>
+          </div>
         </div>
       </article>
 
@@ -319,6 +331,28 @@
             }
           })
         })
+      },
+      deleteData (data) {
+        if (window.confirm('정말 삭제하시겠습니까?')) {
+          const _data = {}
+          const keyList = this.selectedModel.keyList
+          const parentId = this.selectedModel.parentId
+          const parent = _.find(this.fullData, (item) => {
+            return item.id === parentId
+          })
+          const parentData = _.find(parent.data, (item) => {
+            return item.isSelected
+          })
+          _data[keyList.id] = data[keyList.id]
+
+          this.$nextTick(() => {
+            this.$emit('deleteItem', {
+              model: this.selectedModel,
+              data: _data,
+              parentId: parentData
+            })
+          })
+        }
       },
       loadUnitData (data = {}) {
         const unitModel = _.find(this.fullData, (item) => {

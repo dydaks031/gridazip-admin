@@ -16,7 +16,8 @@
                             :full-data="curData"
                             :type="type"
                             v-on:createItem="createItem"
-                            v-on:modifyItem="modifyItem" />
+                            v-on:modifyItem="modifyItem"
+                            v-on:deleteItem="deleteItem" />
     </div>
   </div>
 </template>
@@ -115,6 +116,7 @@
         }, callback)
       },
       deleteItem (options) {
+        console.log(options)
         this.callApi({
           action: 'delete',
           api: `${options.model.api}/${options.data[options.model.keyList.id]}`,
