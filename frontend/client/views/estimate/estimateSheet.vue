@@ -13,8 +13,6 @@
           <th>위치</th>
           <th>공사</th>
           <th>공정</th>
-          <th>상세공정</th>
-          <th>자재군</th>
           <th>자재</th>
           <th>물량</th>
           <th>자재단위</th>
@@ -25,8 +23,6 @@
           <td>{{generalData.place_name}}</td>
           <td>{{generalData.ct_name}}</td>
           <td>{{generalData.cp_name}}</td>
-          <td>{{generalData.cpd_name}}</td>
-          <td>{{generalData.rt_name}}</td>
           <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">{{generalData.rs_code}}</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
