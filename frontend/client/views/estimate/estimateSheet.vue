@@ -19,11 +19,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="generalData in estimateData.general">
-          <td>{{generalData.place_name}}</td>
-          <td>{{generalData.ct_name}}</td>
-          <td>{{generalData.cp_name}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">{{generalData.rs_code}}</span></td>
+        <tr v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
+          <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
+          <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+          <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.rs_code}})</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
         </tr>
@@ -33,7 +33,7 @@
       <div class="tile is-parent is-6">
         <article class="tile is-child box">
           <h4 class="title">자재비</h4>
-          <h4 class="title">금액: {{addCommas(estimateData.total.resource_costs)}}</h4>
+          <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
           <div class="content">
             <table class="table">
               <colgroup>
@@ -49,7 +49,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="resource in estimateData.resource" v-show="resource.rs_price !== 0">
+              <tr v-for="resource in viewerData.resource" v-show="resource.rs_price !== 0">
                 <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
@@ -65,7 +65,7 @@
       <div class="tile is-parent is-6">
         <article class="tile is-child box">
           <h4 class="title">인건비</h4>
-          <h4 class="title">금액: {{addCommas(estimateData.total.labor_costs)}}</h4>
+          <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
           <div class="content">
             <table class="table">
               <colgroup>
@@ -81,7 +81,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="labor in estimateData.labor" v-show="labor.labor_costs !== 0">
+              <tr v-for="labor in viewerData.labor" v-show="labor.labor_costs !== 0">
                 <td>{{labor.ct_name}}</td>
                 <td>{{labor.cp_name}}</td>
                 <td>{{labor.cpd_name}}</td>
@@ -100,16 +100,16 @@
           <div class="is-clearfix">
             <div class="is-pulled-right">
               <p>
-                <span>자재비: {{addCommas(estimateData.total.resource_costs)}}원</span>
+                <span>자재비: {{addCommas(viewerData.total.resource_costs)}}원</span>
               </p>
               <p>
-                <span>인건비: {{addCommas(estimateData.total.labor_costs)}}원</span>
+                <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
               </p>
               <p>
-                <span>공과잡비: {{addCommas(estimateData.total.etc_costs)}}원</span>
+                <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
               </p>
               <p>
-                <span>합: {{addCommas(estimateData.total.resource_costs + estimateData.total.labor_costs + estimateData.total.etc_costs)}}원</span>
+                <span>합: {{addCommas(viewerData.total.resource_costs + viewerData.total.labor_costs + viewerData.total.etc_costs)}}원</span>
               </p>
             </div>
           </div>
@@ -124,6 +124,8 @@
   import router from '../../router'
   import mixin from '../../services/mixin'
   import EventBus from '../../services/eventBus'
+  import deepClone from '../../services/deepClone'
+  import _ from 'underscore'
 
   export default {
     name: 'estimate-sheet',
@@ -145,7 +147,17 @@
     },
     data () {
       return {
-        param: {}
+        param: {},
+        mergeRestTime: false,
+        viewerData: {
+          general: [],
+          labor: [],
+          resource: [],
+          total: {}
+        },
+        isOpenSubResource: {
+
+        }
       }
     },
     methods: {
@@ -160,6 +172,135 @@
           window.print()
           EventBus.$emit('togglePrintMode')
         }, 300)
+      },
+      mergeSubResource (placeData) {
+        const cloneData = deepClone(placeData)
+        const constructionKeyData = _.uniq(_.pluck(cloneData, 'ct_pk'))
+        const generalData = {}
+        let subResourceData = []
+        for (let i = 0; i < constructionKeyData.length; i++) {
+          generalData[constructionKeyData[i]] = _.filter(cloneData, (item) => {
+            return item.ct_pk === constructionKeyData[i]
+          })
+          const subResource = _.filter(generalData[constructionKeyData[i]], (item) => {
+            return item.rt_sub === 1
+          })
+          console.log(subResource)
+          _.map(subResource, (item) => {
+            item.place_pk = `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
+            item.sub_key = `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
+          })
+          if (subResource.length !== 0) {
+            subResourceData.push({
+              cp_name: '부자재',
+              cpd_min_amount: '',
+              cpd_name: '',
+              ct_name: generalData[constructionKeyData[i]][0].ct_name,
+              ed_alias: '',
+              ed_input_value: '',
+              labor_costs: '',
+              place_name: '-',
+              place_pk: `sub_${generalData[constructionKeyData[i]][0].ct_pk}`,
+              ct_pk: subResource[0].ct_pk,
+              cp_pk: subResource[0].cp_pk,
+              resource_amount: '-',
+              resource_costs: '',
+              rs_code: '',
+              rs_name: `${generalData[constructionKeyData[i]][0].ct_name} 부자재`,
+              rs_price: '',
+              rt_name: '',
+              rt_sub: 0,
+              ru_name: '-',
+              is_expand_row: true,
+              sub_key: `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
+            })
+            this.isOpenSubResource[`sub_${generalData[constructionKeyData[i]][0].ct_pk}`] = false
+            subResourceData = subResourceData.concat(subResource)
+            subResource.forEach((item) => {
+              generalData[constructionKeyData[i]] = _.without(generalData[constructionKeyData[i]], item)
+            })
+          }
+        }
+        console.log(subResourceData)
+        let resultData = [].concat.apply([], Object.values(generalData))
+        // Categorize & Rowspan
+        resultData = _(resultData).chain()
+          .sortBy((data) => {
+            return data.cp_pk
+          })
+          .sortBy((data) => {
+            return data.ct_pk
+          })
+          .sortBy((data) => {
+            return data.place_pk
+          })
+          .value()
+          .concat(subResourceData)
+        const placeByData = _.groupBy(resultData, 'place_pk')
+        const mergeCount = {}
+        for (let i in placeByData) {
+          const placeItem = placeByData[i]
+          const placePk = placeItem[0].place_pk
+          mergeCount[placePk] = {
+            count: placeItem.length,
+            construction: {
+            }
+          }
+          const constructionByData = _.groupBy(placeByData[i], 'ct_pk')
+          for (let j in constructionByData) {
+            const constructionItem = constructionByData[j]
+            const constructionPk = constructionItem[0].ct_pk
+            mergeCount[placePk].construction[constructionPk] = {
+              count: constructionItem.length,
+              constructionProcess: {
+              }
+            }
+            const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
+            for (let k in constructionProcessByData) {
+              const constructionProcessItem = constructionProcessByData[k]
+              const constructionProcessPk = constructionProcessItem[0].cp_pk
+              mergeCount[placePk].construction[constructionPk].constructionProcess[constructionProcessPk] = {
+                count: constructionProcessItem.length
+              }
+            }
+          }
+        }
+
+        console.log(mergeCount)
+        const firstMeetPk = {
+          place: {
+
+          }
+        }
+
+        let item
+        for (let i = 0; i < resultData.length; i++) {
+          item = resultData[i]
+          if (!firstMeetPk.place.hasOwnProperty(item.place_pk)) {
+            item.place_count = mergeCount[item.place_pk].count
+            firstMeetPk.place[item.place_pk] = {
+              construction: {}
+            }
+          }
+          if (!firstMeetPk.place[item.place_pk].construction.hasOwnProperty(item.ct_pk)) {
+            item.construction_count = mergeCount[item.place_pk].construction[item.ct_pk].count
+            firstMeetPk.place[item.place_pk].construction[item.ct_pk] = {
+              constructionProcess: {}
+            }
+          }
+          if (!firstMeetPk.place[item.place_pk].construction[item.ct_pk].constructionProcess.hasOwnProperty(item.cp_pk)) {
+            item.construction_process_count = mergeCount[item.place_pk].construction[item.ct_pk].constructionProcess[item.cp_pk].count
+            firstMeetPk.place[item.place_pk].construction[item.ct_pk].constructionProcess[item.cp_pk] = true
+          }
+        }
+        this.viewerData.general = resultData
+      },
+      openSubResource (item) {
+        if (!item.hasOwnProperty('sub_key')) {
+          return false
+        }
+        this.isOpenSubResource[item.sub_key] = !this.isOpenSubResource[item.sub_key]
+        this.$forceUpdate()
       }
     },
     mounted () {
@@ -170,6 +311,11 @@
     watch: {
       estimateData: {
         handler (newValue, oldValue) {
+          this.viewerData.general = newValue.general
+          this.viewerData.labor = newValue.labor
+          this.viewerData.resource = newValue.resource
+          this.viewerData.total = newValue.total
+          this.mergeSubResource(newValue.general)
         },
         deep: true
       }

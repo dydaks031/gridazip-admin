@@ -125,6 +125,10 @@
       },
       loadEstimateView () {
         const id = this.$route.params.id
+        let general
+        let labor
+        let resource
+        let total
         if (!id) {
           return false
         }
@@ -134,7 +138,7 @@
               return
             }
             console.log(response)
-            this.estimateData.general = response.data.data.estimateList
+            general = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/estimate/labor`)
           })
           .then((response) => {
@@ -142,21 +146,27 @@
             if (response.data.code !== 200) {
               return
             }
-            this.estimateData.labor = response.data.data.estimateList
+            labor = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/estimate/resource`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
-            this.estimateData.resource = response.data.data.estimateList
+            resource = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/estimate/total`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
-            this.estimateData.total = response.data.data.totalCosts
+            total = response.data.data.totalCosts
+            this.estimateData = {
+              general,
+              labor,
+              resource,
+              total
+            }
           })
           .catch((error) => {
             this.estimateData = {
