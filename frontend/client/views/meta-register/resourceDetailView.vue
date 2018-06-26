@@ -67,6 +67,18 @@
               <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.required">추가인건비를 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.numeric">추가인건비는 숫자만 입력하실 수 있습니다.</p>
             </div>
+            <label class="label">부자재 여부</label>
+            <div class="control">
+              <label class="radio">
+                <input type="radio" value="1" name="rt_sub" v-model="data.rt_sub" />
+                Y
+              </label>
+              <label class="radio">
+                <input type="radio" value="0"  name="rt_sub" v-model="data.rt_sub" />
+                N
+              </label>
+              <p class="help is-danger" v-if="!$v.data.rt_sub.required">부자재를 선택 해 주십시오.</p>
+            </div>
           </div>
           <div class="is-clearfix">
             <button class="button" @click="registerData($v.resourceType)">
@@ -227,6 +239,9 @@
         rt_extra_labor_costs: {
           required,
           numeric
+        },
+        rt_sub: {
+          required
         },
         ru_name: {
           required

@@ -691,8 +691,11 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
 
         return cur.raw(`
           select pl.cp_name as place_name,
+                 pl.cp_pk as place_pk,
+                 ct.ct_pk,
                  ct.ct_name,
                  cp.cp_name,
+                 cp.cp_pk,
                  cpd.cpd_name,
                  rt.rt_name,
                  rt.rt_sub,
