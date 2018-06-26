@@ -662,43 +662,79 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
 
 router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
   const reqPcPk = req.params.pk || '';
+  let resourceList;
+  const cf = 1000;
 
   knexBuilder.getConnection().then(cur => {
 
     cur.raw(`
-    select pl.cp_name as place_name,
-           ct.ct_name,
-           cp.cp_name,
-           cpd.cpd_name,
-           rt.rt_name,
-           rt.rt_sub,
-           rs.rs_name,
-           rs.rs_code,
-           ed.ed_alias,
-           ed.ed_resource_amount resource_amount,
-           ru.ru_name,
-           rs.rs_price,
-           ed.ed_resource_amount * rs.rs_price resource_costs,
-           ed.ed_input_value,
-           cpd.cpd_min_amount,
-           ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
-    
-      from estimate_detail_hst ed
-      left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
-      left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
-      left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
-      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-      left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-      left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
-     where ed.ed_pcpk = ?
-     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
-     order by 1,2,3,4,5,6
+      select rs.rs_pk,
+             count(rs.rs_pk) as count,
+             rs.rs_price,
+             ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
+             sum(ed.ed_resource_amount) as resource_amount
+        from estimate_detail_hst ed
+        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+       where ed.ed_pcpk = ?
+       group by ed.ed_rspk, ed.ed_alias
+       order by rs.rs_name
     `, reqPcPk)
+      .then(response => {
+        resourceList = response[0].filter(resource => {
+          if (resource.ceil_resource_amount !== resource.resource_amount) return true;
+        });
+
+        resourceList.map(resource => {
+          resource.plus_value = (resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf;
+          return resource;
+        });
+
+        return cur.raw(`
+          select pl.cp_name as place_name,
+                 ct.ct_name,
+                 cp.cp_name,
+                 cpd.cpd_name,
+                 rt.rt_name,
+                 rt.rt_sub,
+                 rs.rs_name,
+                 rs.rs_pk,
+                 rs.rs_code,
+                 ed.ed_alias,
+                 ed.ed_resource_amount resource_amount,
+                 ru.ru_name,
+                 rs.rs_price,
+                 ed.ed_resource_amount * rs.rs_price resource_costs,
+                 ed.ed_input_value,
+                 cpd.cpd_min_amount,
+                 ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
+          
+            from estimate_detail_hst ed
+            left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
+            left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+            left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+            left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+            left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+            left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+            left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+           where ed.ed_pcpk = ?
+           group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
+           order by 1,2,3,4,5,6
+          `, reqPcPk)
+
+      })
+      .then(response => {
+        return response[0];
+      })
+      .map(row => {
+        resourceList.forEach(resource => {
+          if (resource.rs_pk === row.rs_pk) row.resource_costs += resource.plus_value;
+        });
+        return row;
+      })
       .then(response => {
         res.json(
           resHelper.getJson({
-            estimateList: response[0]
+            estimateList: response
           })
         );
       })
