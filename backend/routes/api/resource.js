@@ -197,11 +197,11 @@ router.get('/type', (req, res) => {
 router.post('/type', (req, res) => {
   const reqName = req.body.rt_name || '';
   const reqRcPk = req.body.rc_pk || '';
-  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '0';
   const reqSub = req.body.rt_sub || '0';
 
   let obj = {};
-  if (reqName.trim() === '' || reqRcPk === '' || reqExtraLaborCosts === '') {
+  if (reqName.trim() === '' || reqRcPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -238,9 +238,9 @@ router.post('/type', (req, res) => {
 router.put('/type/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.rt_name || '';
-  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '0';
   let obj = {};
-  if (reqPk === '' || reqName === '' || reqExtraLaborCosts === '') {
+  if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -363,9 +363,9 @@ router.post('/', (req, res) => {
   const reqName = req.body.rs_name || '';
   const reqRuPk = req.body.ru_pk || '';
   const reqCode = req.body.rs_code || '';
-  const reqPrice = req.body.rs_price || '';
+  const reqPrice = req.body.rs_price || 0;
   let obj = {};
-  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
+  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === 0) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
@@ -396,10 +396,10 @@ router.put('/:pk([0-9]+)', (req, res) => {
   const reqName = req.body.rs_name || '';
   const reqRuPk = req.body.rs_rupk || '';
   const reqCode = req.body.rs_code || '';
-  const reqPrice = req.body.rs_price || '';
+  const reqPrice = req.body.rs_price || 0;
   let obj = {};
 
-  if(reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
+  if(reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === 0 ) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
