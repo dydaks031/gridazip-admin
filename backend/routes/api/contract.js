@@ -323,6 +323,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   const reqRsPk = req.body.ed_rspk || '';
   const reqInputValue = req.body.ed_input_value || '';
   const reqDetailPlace = req.body.ed_detail_place || '';
+  const reqAlias = req.body.ed_alias | '';
 
   if (reqPcPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
@@ -347,6 +348,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
     insertObj.ed_rspk = reqRsPk;
     insertObj.ed_input_value = reqInputValue;
     insertObj.ed_detail_place = reqDetailPlace;
+    insertObj.ed_alias = reqAlias;
 
     // 계약번호 공사위치 공사 공정 공정상세 자재군 자재 자재단위 인풋값
     // select cpd_labor_costs from construction_process_detail_tbl
@@ -398,7 +400,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
         })
         .then(row => {
           labor_costs += row.rt_extra_labor_costs;
-          insertObj.rc_pk = reqRcPk
+          insertObj.rc_pk = reqRcPk;
           insertObj.labor_costs = labor_costs * reqInputValue;
           insertObj.resource_costs = resource_price * insertObj.ed_resource_amount;
 
@@ -685,7 +687,8 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
         });
 
         resourceList.map(resource => {
-          resource.plus_value = (resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf;
+          resource.plus_value = Math.ceil((resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf);
+          console.log(resource.plus_value);
           return resource;
         });
 
