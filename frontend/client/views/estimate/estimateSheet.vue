@@ -16,6 +16,7 @@
           <th>자재</th>
           <th>물량</th>
           <th>자재단위</th>
+          <th>금액</th>
         </tr>
       </thead>
       <tbody>
@@ -26,6 +27,7 @@
           <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.rs_code}})</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
+          <td>{{addCommas(generalData.resource_costs)}}</td>
         </tr>
       </tbody>
     </table>
@@ -204,7 +206,9 @@
               ct_pk: subResource[0].ct_pk,
               cp_pk: subResource[0].cp_pk,
               resource_amount: '-',
-              resource_costs: '',
+              resource_costs: _.reduce(subResource, (memo, obj) => {
+                return memo + obj.resource_costs
+              }, 0),
               rs_code: '',
               rs_name: `${generalData[constructionKeyData[i]][0].ct_name} 부자재`,
               rs_price: '',
