@@ -8,7 +8,35 @@ const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const calc = require('calculator');
 
+router.get('/pk', (req, res) => {
+  const reqPhone = req.query.phone || '';
+  const reqPassword = req.query.password || '';
+
+  knexBuilder.getConnection().then(cur => {
+    cur('proceeding_contract_tbl')
+      .first('pc_pk')
+      .where('pc_phone', cryptoHelper.encrypt(reqPhone))
+      .andWhere('pc_password', reqPassword)
+      .then(row => {
+        if (!row) {
+          res.json(resHelper.getError('일치하는 진행 계약이 없습니다.'));
+        } else {
+          res.json(
+            resHelper.getJson({
+              pc_pk: row.pc_pk
+            })
+          );
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        res.json(resHelper.getError('오류가 발생하였습니다.'));
+      })
+  });
+});
+
 router.get('/', (req, res) => {
+  const completed = req.query.completed || '0';
   let point = req.query.point;
   let pageIndex = req.query.page;
   let pageInst = new paginationService();
@@ -32,7 +60,8 @@ router.get('/', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     let query = cur('proceeding_contract_tbl')
       .select('*')
-      .where('pc_deleted', false);
+      .where('pc_deleted', false)
+      .andWhere('pc_completed', completed);
 
     query = query
       .limit(pageData.limit)
@@ -655,7 +684,7 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
       left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
       left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
      where ed.ed_pcpk = ?
-     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk
+     group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
      order by 1,2,3,4,5,6
     `, reqPcPk)
       .then(response => {
