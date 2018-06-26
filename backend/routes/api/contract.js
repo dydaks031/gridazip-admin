@@ -263,23 +263,25 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
       .select([
         'ed_pk',
         {place_name: 'pl.cp_name'},
-        'ed_place_pk',
-        'ed_detail_place',
-        'ed_ctpk',
+        'ed.ed_place_pk',
+        'ed.ed_detail_place',
+        'ed.ed_ctpk',
         'ct.ct_name',
-        'ed_cppk',
+        'ed.ed_cppk',
         'cp.cp_name',
-        'ed_cpdpk',
+        'ed.ed_cpdpk',
         'cpd.cpd_name',
         'rc.rc_pk',
         'rc.rc_name',
-        'ed_rtpk',
+        'ed.ed_rtpk',
         'rt.rt_name',
-        'ed_rspk',
+        'rt.rt_sub',
+        'ed.ed_rspk',
         'rs.rs_name',
+        'ed.ed_alias',
         'ru.ru_name',
-        'ed_input_value',
-        'ed_resource_amount',
+        'ed.ed_input_value',
+        'ed.ed_resource_amount',
         'cpd.cpd_unit',
         cur.raw(`ed.ed_input_value * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs`),
         cur.raw(`ed.ed_resource_amount * rs.rs_price as resource_costs`)
@@ -475,8 +477,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
           const fn = calc.func(`f(x) = ${calcExpression}`);
           let resourceAmount = fn(reqInputValue);
 
-          updateObj.ed_resource_amount = parseFloat(resourceAmount.toFixed(2));
-          updateObj.ed_calculated_amount = parseFloat(resourceAmount.toFixed(2));
+          updateObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
+          updateObj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
 
           return cur('estimate_detail_hst')
             .update(updateObj)
@@ -553,6 +555,7 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   let resourceCategoryPk;
   let resourceTypePk;
   let resourcePk;
+  let resourceAlias;
 
   let constructionPlaceList;
   let constructionList;
@@ -564,7 +567,7 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     cur('estimate_detail_hst')
-      .first('ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk')
+      .first('ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_alias')
       .where('ed_pk', reqEdPk)
       .then(row => {
         constructionPk = row.ed_ctpk;
@@ -572,6 +575,7 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
         constructionProcessDetailPk = row.ed_cpdpk;
         resourceTypePk = row.ed_rtpk;
         resourcePk = row.ed_rspk;
+        resourceAlias = row.ed_alias;
 
         return cur('construction_place_tbl')
           .select('cp_pk', 'cp_name', 'cp_order')
@@ -648,7 +652,8 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
             constructionProcessDetailList,
             resourceCategoryList,
             resourceTypeList,
-            resourceList
+            resourceList,
+            resourceAlias
           })
         );
       })
@@ -666,7 +671,10 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
            cp.cp_name,
            cpd.cpd_name,
            rt.rt_name,
+           rt.rt_sub,
            rs.rs_name,
+           rs.rs_code,
+           ed.ed_alias,
            ed.ed_resource_amount resource_amount,
            ru.ru_name,
            rs.rs_price,
@@ -713,6 +721,7 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
              cp.cp_name,
              cpd.cpd_name,
              rt.rt_name,
+             rt.rt_sub,
              rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
              sum(ed.ed_input_value) input_value,
              cpd.cpd_min_amount,
@@ -756,13 +765,14 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
              rs.rs_price,
              ceil(sum(ed.ed_resource_amount)) as resource_amount,
              ru.ru_name,
+             ed.ed_alias,
              rs.rs_price * ceil(sum(ed.ed_resource_amount)) as resource_costs
         from estimate_detail_hst ed
         left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
         left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
         left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
        where ed.ed_pcpk = ?
-       group by ed.ed_rspk
+       group by ed.ed_rspk, ed.ed_alias
        order by rs.rs_name
     `, reqPcPk)
       .then(response => {

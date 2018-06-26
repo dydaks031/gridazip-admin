@@ -173,7 +173,7 @@ router.get('/type', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
-        .select('rt_pk', 'rt_name', 'rt_extra_labor_costs')
+        .select('rt_pk', 'rt_name', 'rt_extra_labor_costs', 'rt_sub')
         .where('rt_rcpk',reqPk)
         .andWhere('rt_deleted', false)
         .orderBy('rt_order')
@@ -198,6 +198,8 @@ router.post('/type', (req, res) => {
   const reqName = req.body.rt_name || '';
   const reqRcPk = req.body.rc_pk || '';
   const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  const reqSub = req.body.rt_sub || '0';
+
   let obj = {};
   if (reqName.trim() === '' || reqRcPk === '' || reqExtraLaborCosts === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
@@ -206,6 +208,7 @@ router.post('/type', (req, res) => {
     obj.rt_rcpk = reqRcPk;
     obj.rt_name = reqName.trim();
     obj.rt_extra_labor_costs = reqExtraLaborCosts;
+    obj.rt_sub = reqSub;
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .max('rt_order as order')
