@@ -241,7 +241,7 @@
           numeric
         },
         rt_sub: {
-          required,
+          required
         },
         ru_name: {
           required
