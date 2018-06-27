@@ -212,7 +212,7 @@ router.post('/type', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .max('rt_order as order')
-        .where('rc_pk', reqRcPk)
+        .where('rt_rcpk', reqRcPk)
         .then(response => {
           obj.rt_order = response[0].order + 1;
           cur('resource_type_tbl')
