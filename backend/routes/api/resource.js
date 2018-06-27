@@ -367,7 +367,7 @@ router.post('/', (req, res) => {
   const reqCode = req.body.rs_code || '';
   const reqPrice = req.body.rs_price || 0;
   let obj = {};
-  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === 0) {
+  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqPrice === 0) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
