@@ -185,7 +185,7 @@
         this.loadData()
       },
       loadData () {
-        let url = `${queryApi}//${this.openTab}?point=${this.pages[this.openTab].getPoint()}&page=${this.pages[this.openTab].getPage()}&ct_pk=${this.searchOptions.ct_pk}`
+        let url = `${queryApi}/${this.openTab}?point=${this.pages[this.openTab].getPoint()}&page=${this.pages[this.openTab].getPage()}&ct_pk=${this.searchOptions.ct_pk}`
         switch (this.openTab) {
           case 'constructor':
             url = `${url}&cr_name=${this.searchOptions.name}`
