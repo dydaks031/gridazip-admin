@@ -401,7 +401,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
   const reqPrice = req.body.rs_price || 0;
   let obj = {};
 
-  if(reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === 0 ) {
+  if(reqName === '' || reqRuPk === '' || reqPrice === 0 ) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
