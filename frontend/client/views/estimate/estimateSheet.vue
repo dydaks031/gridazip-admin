@@ -24,7 +24,7 @@
           <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.rs_code}})</span></td>
+          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
           <td>{{addCommas(generalData.resource_costs)}}</td>
@@ -43,6 +43,7 @@
               </colgroup>
               <thead>
               <tr>
+                <th>자재분류</th>
                 <th>자재</th>
                 <th>물량</th>
                 <th>자재단위</th>
@@ -52,7 +53,9 @@
               </thead>
               <tbody>
               <tr v-for="resource in viewerData.resource" v-show="resource.rs_price !== 0">
-                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.rs_code}})</span></td>
+
+                <td>{{resource.rc_name}}</td>
+                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
                 <td>{{addCommas(resource.rs_price)}}</td>

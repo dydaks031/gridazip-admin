@@ -10,7 +10,7 @@
           <div class="control has-addons">
             <div class="select">
               <select v-model="searchOptions.searchConstruction">
-                <option value="">전체</option>
+                <option :value="getConstructionAllSearchOption()">전체</option>
                 <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
               </select>
             </div>
@@ -104,6 +104,7 @@
   import StarRating from 'vue-star-rating'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import _ from 'underscore'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -154,6 +155,9 @@
         })
       },
       loadPartners () {
+        if (!this.searchOptions.searchConstruction) {
+          this.searchOptions.searchConstruction = this.getConstructionAllSearchOption()
+        }
         let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}`
         switch (this.type) {
           case 'constructor':
@@ -187,10 +191,11 @@
             })
             this.$modal.hide('addPartnersModal')
           })
+      },
+      getConstructionAllSearchOption () {
+        const values = _.pluck(this.constructionList, 'ct_pk')
+        return values.join(',')
       }
-    },
-    mounted () {
-
     }
   }
 </script>

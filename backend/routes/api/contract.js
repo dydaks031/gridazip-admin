@@ -805,6 +805,7 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
       select rs.rs_name,
              rs.rs_code,
              rs.rs_price,
+             rc.rc_name,
              ceil(sum(ed.ed_resource_amount)) as resource_amount,
              ru.ru_name,
              ed.ed_alias,
@@ -813,9 +814,10 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
         left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
         left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
         left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+        left join resource_category_tbl rc on rt.rt_rcpk = rc.rc_pk 
        where ed.ed_pcpk = ?
        group by ed.ed_rspk, ed.ed_alias
-       order by rs.rs_name
+       order by rc.rc_pk, rs.rs_name
     `, reqPcPk)
       .then(response => {
         res.json(

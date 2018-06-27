@@ -10,8 +10,8 @@
       <col width="7%" />
       <col width="12%" />
       <col width="10%" />
-      <col width="10%" />
-      <col width="5%" />
+      <col width="7%" />
+      <col width="7%" />
       <col width="5%" />
     </colgroup>
     <tbody>
