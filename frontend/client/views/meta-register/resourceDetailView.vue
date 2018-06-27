@@ -10,33 +10,33 @@
           <div class="block">
             <label class="label">상세공정명</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.cpd_name" :class="{'is-danger': $v.data.cpd_name.$invalid }" />
+              <input class="input" type="text" v-model="data.cpd_name" :class="{'is-danger': $v.data.cpd_name.$invalid }" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
               <p class="help is-danger" v-if="!$v.data.cpd_name.required">상세공정명을 입력해 주십시오</p>
             </div>
             <label class="label">인건비</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.cpd_labor_costs" :class="{'is-danger': $v.data.cpd_labor_costs.$invalid }" />
+              <input class="input" type="text" v-model="data.cpd_labor_costs" :class="{'is-danger': $v.data.cpd_labor_costs.$invalid }" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
               <p class="help is-danger" v-if="!$v.data.cpd_labor_costs.required">인건비를 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.cpd_labor_costs.numeric">인건비는 숫자만 입력하실 수 있습니다.</p>
             </div>
             <label class="label">최소물량</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.cpd_min_amount" :class="{'is-danger': $v.data.cpd_min_amount.$invalid }" />
+              <input class="input" type="text" v-model="data.cpd_min_amount" :class="{'is-danger': $v.data.cpd_min_amount.$invalid }" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
               <p class="help is-danger" v-if="!$v.data.cpd_min_amount.required">최소 물량을 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.cpd_min_amount.decimal">최소 물량은 숫자만 입력하실 수 있습니다.</p>
             </div>
             <label class="label">단위</label>
             <div class="control">
               <label class="radio">
-                <input type="radio" value="0" name="cpd_unit" v-model="data.cpd_unit" />
+                <input type="radio" value="0" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
                 개
               </label>
               <label class="radio">
-                <input type="radio" value="1"  name="cpd_unit" v-model="data.cpd_unit" />
+                <input type="radio" value="1"  name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
                 M
               </label>
               <label class="radio">
-                <input type="radio" value="2" name="cpd_unit" v-model="data.cpd_unit" />
+                <input type="radio" value="2" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
                 M^2
               </label>
               <p class="help is-danger" v-if="!$v.data.cpd_unit.required">단위를 선택 해 주십시오.</p>
@@ -58,23 +58,23 @@
           <div class="block">
             <label class="label">자재군명</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rt_name" :class="{'is-danger': $v.data.rt_name.$invalid }" />
+              <input class="input" type="text" v-model="data.rt_name" :class="{'is-danger': $v.data.rt_name.$invalid }" @keypress.enter.stop="registerData($v.resourceType)"/>
               <p class="help is-danger" v-if="!$v.data.rt_name.required">자재군명을 입력해 주십시오</p>
             </div>
             <label class="label">추가인건비</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rt_extra_labor_costs" :class="{'is-danger': $v.data.rt_extra_labor_costs.$invalid }" />
+              <input class="input" type="text" v-model="data.rt_extra_labor_costs" :class="{'is-danger': $v.data.rt_extra_labor_costs.$invalid }" @keypress.enter.stop="registerData($v.resourceType)"/>
               <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.required">추가인건비를 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.rt_extra_labor_costs.numeric">추가인건비는 숫자만 입력하실 수 있습니다.</p>
             </div>
             <label class="label">부자재 여부</label>
             <div class="control">
               <label class="radio">
-                <input type="radio" value="1" name="rt_sub" v-model="data.rt_sub" />
+                <input type="radio" value="1" name="rt_sub" v-model="data.rt_sub" @keypress.enter.stop="registerData($v.resourceType)"/>
                 Y
               </label>
               <label class="radio">
-                <input type="radio" value="0"  name="rt_sub" v-model="data.rt_sub" />
+                <input type="radio" value="0"  name="rt_sub" v-model="data.rt_sub" @keypress.enter.stop="registerData($v.resourceType)"/>
                 N
               </label>
               <p class="help is-danger" v-if="!$v.data.rt_sub.required">부자재를 선택 해 주십시오.</p>
@@ -96,23 +96,23 @@
           <div class="block">
             <label class="label">자재단위명</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.ru_name" :class="{'is-danger': $v.data.ru_name.$invalid }" />
+              <input class="input" type="text" v-model="data.ru_name" :class="{'is-danger': $v.data.ru_name.$invalid }" @keypress.enter.stop="registerData($v.resourceUnit)"/>
               <p class="help is-danger" v-if="!$v.data.ru_name.required">자재단위명을 입력해 주십시오.</p>
             </div>
             <label class="label">계산식</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.ru_calc_expression" :class="{'is-danger': $v.data.ru_name.$invalid }" />
+              <input class="input" type="text" v-model="data.ru_calc_expression" :class="{'is-danger': $v.data.ru_name.$invalid }" @keypress.enter.stop="registerData($v.resourceUnit)"/>
               <p class="help is-danger" v-if="!$v.data.ru_calc_expression.required">계산식을 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.ru_calc_expression.isValidExpression">입력한 계산식이 유효하지 않습니다.</p>
             </div>
             <label class="label">올림여부</label>
             <div class="control">
               <label class="radio">
-                <input type="radio" value="1" name="ru_ceil_flag" v-model="data.ru_ceil_flag" />
+                <input type="radio" value="1" name="ru_ceil_flag" v-model="data.ru_ceil_flag" @keypress.enter.stop="registerData($v.resourceUnit)"/>
                 Y
               </label>
               <label class="radio">
-                <input type="radio" value="0"  name="ru_ceil_flag" v-model="data.ru_ceil_flag" />
+                <input type="radio" value="0"  name="ru_ceil_flag" v-model="data.ru_ceil_flag" @keypress.enter.stop="registerData($v.resourceUnit)"/>
                 N
               </label>
               <p class="help is-danger" v-if="!$v.data.ru_ceil_flag.required">올림 여부를 선택 해 주십시오.</p>
@@ -134,12 +134,12 @@
           <div class="block">
             <label class="label">자재명</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rs_name" :class="{'is-danger': $v.data.rs_name.$invalid }" />
+              <input class="input" type="text" v-model="data.rs_name" :class="{'is-danger': $v.data.rs_name.$invalid }" @keypress.enter.stop="registerData($v.resource)"/>
               <p class="help is-danger" v-if="!$v.data.rs_name.required">자재명을 입력해 주십시오.</p>
             </div>
             <label class="label">자재코드</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rs_code" :class="{'is-danger': $v.data.rs_code.$invalid }" />
+              <input class="input" type="text" v-model="data.rs_code" :class="{'is-danger': $v.data.rs_code.$invalid }" @keypress.enter.stop="registerData($v.resource)"/>
               <p class="help is-danger" v-if="!$v.data.rs_code.required">자재코드를 입력해 주십시오.</p>
             </div>
             <label class="label">자재단위</label>
@@ -156,7 +156,7 @@
             </div>
             <label class="label">금액</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rs_price" :class="{'is-danger': $v.data.rs_price.$invalid }" />
+              <input class="input" type="text" v-model="data.rs_price" :class="{'is-danger': $v.data.rs_price.$invalid }" @keypress.enter.stop="registerData($v.resource)"/>
               <p class="help is-danger" v-if="!$v.data.rs_price.required">자재 금액을 입력해 주십시오.</p>
               <p class="help is-danger" v-if="!$v.data.rs_price.numeric">자재 금액은 숫자만 입력하실 수 있습니다.</p>
             </div>

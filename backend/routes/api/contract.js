@@ -323,7 +323,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   const reqRsPk = req.body.ed_rspk || '';
   const reqInputValue = req.body.ed_input_value || '';
   const reqDetailPlace = req.body.ed_detail_place || '';
-  const reqAlias = req.body.ed_alias | '';
+  const reqAlias = req.body.ed_alias || '';
 
   if (reqPcPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));

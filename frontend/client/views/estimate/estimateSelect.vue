@@ -1,17 +1,18 @@
 <template>
   <table class="table box">
     <colgroup>
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
-      <col width="10%" />
       <col width="7%" />
+      <col width="7%" />
+      <col width="7%" />
+      <col width="7%" />
+      <col width="7%" />
+      <col width="7%" />
+      <col width="7%" />
+      <col width="12%" />
       <col width="10%" />
       <col width="10%" />
+      <col width="5%" />
+      <col width="5%" />
     </colgroup>
     <tbody>
       <tr>
@@ -54,12 +55,15 @@
           </select2>
         </td>
         <td>
-          <span v-show="cpdUnit === 0">(단위: 개)</span>
-          <span v-show="cpdUnit === 1">(단위: M)</span>
-          <span v-show="cpdUnit === 2">(단위: M^2)</span>
+          <input type="text" class="input" placeholder="자재 별칭" v-model="selected.ed_alias"/>
         </td>
         <td>
           <input type="text" placeholder="입력값 입력" class="input" v-model="selected.ed_input_value"/>
+        </td>
+        <td>
+          <span v-show="cpdUnit === 0">(단위: 개)</span>
+          <span v-show="cpdUnit === 1">(단위: M)</span>
+          <span v-show="cpdUnit === 2">(단위: M^2)</span>
         </td>
         <td>
           <button class="button" @click="getSelectedData">등록</button>

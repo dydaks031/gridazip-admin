@@ -6,6 +6,20 @@
         <li @click="activeView(correspondent)" :class="{'is-active': openTab === correspondent}"><a class="subtitle">거래처</a></li>
       </ul>
     </div>
+    <div class="search">
+      <div class="block">
+        <div class="control has-addons">
+          <div class="select">
+            <select v-model="searchOptions.ct_pk">
+              <option value="">전체</option>
+              <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+            </select>
+          </div>
+          <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name" @keypress.enter.stop="loadData">
+          <a class="button is-info" @click="loadData">검색</a>
+        </div>
+      </div>
+    </div>
     <div v-show="openTab === constructor">
       <div class="tile is-ancestor">
         <div class="tile is-parent">
@@ -42,6 +56,9 @@
                   <star-rating v-model="item.cr_communication_score" :show-rating="false" :star-size="25" :read-only="true" />
                 </td>
                 <td>{{item.cs_memo}}</td>
+              </tr>
+              <tr v-if="data.constructor.length === 0">
+                <td colspan="6" class="none-data">검색 결과가 없습니다.</td>
               </tr>
               </tbody>
             </table>
@@ -87,6 +104,9 @@
                 <td>{{item.co_location}}</td>
                 <td>{{item.co_memo}}</td>
               </tr>
+              <tr v-if="data.constructor.length === 0">
+                <td colspan="7" class="none-data">검색 결과가 없습니다.</td>
+              </tr>
               </tbody>
             </table>
           </article>
@@ -126,6 +146,7 @@
   // }
 
   const queryApi = '/api'
+  const constructionQueryApi = '/api/construction'
 
   export default {
     name: 'manageConstructorIndex',
@@ -150,6 +171,11 @@
           constructor: [],
           correspondent: []
         },
+        searchOptions: {
+          name: '',
+          ct_pk: ''
+        },
+        constructionList: [],
         moment
       }
     },
@@ -159,15 +185,24 @@
         this.loadData()
       },
       loadData () {
+        let url = `${queryApi}//${this.openTab}?point=${this.pages[this.openTab].getPoint()}&page=${this.pages[this.openTab].getPage()}&ct_pk=${this.searchOptions.ct_pk}`
+        switch (this.openTab) {
+          case 'constructor':
+            url = `${url}&cr_name=${this.searchOptions.name}`
+            break
+          case 'correspondent':
+            url = `${url}&co_name=${this.searchOptions.name}`
+            break
+        }
         this.isLoading = true
-        this.data[this.openTab] = []
-        this.$http.get(`${queryApi}/${this.openTab}?point=${this.pages[this.openTab].getPoint()}&page=${this.pages[this.openTab].getPage()}`, {
+        this.$http.get(url, {
           page: this.pages[this.openTab].get(),
           filter: this.filters[this.openTab].get()
         }).then((response) => {
           if (response.data.code !== 200) {
             return
           }
+          this.data[this.openTab] = []
           const dataList = response.data.data[`${this.openTab}List`]
           this.pages[this.openTab].set(dataList.page)
           this.data[this.openTab] = dataList
@@ -200,15 +235,30 @@
         router.push({
           path: `/manage-constructor/${this.openTab}/register`
         })
+      },
+      getConstructionList () {
+        this.$http.get(`${constructionQueryApi}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.constructionList = response.data.data.constructionList
+          })
+          .catch((error) => {
+            console.error(error)
+          })
       }
     },
     mounted () {
       this.openTab = this.constructor
+      this.getConstructionList()
       this.loadData()
     }
   }
 </script>
 
 <style scoped>
-
+  .none-data {
+    text-align: center;
+  }
 </style>

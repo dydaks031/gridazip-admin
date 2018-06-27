@@ -29,6 +29,24 @@
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
   import EventBus from '../../services/eventBus'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   export default {
     name: 'hierarchy-resource-container',
@@ -80,6 +98,23 @@
             keyList = parents.keyList
             _data[keyList.id] = options.parentId[keyList.id]
           }
+          let message = ''
+          switch (action.toLowerCase()) {
+            case 'delete':
+              message = '정상적으로 삭제되었습니다.'
+              break
+            case 'post':
+              message = '정상적으로 등록되었습니다.'
+              break
+            case 'put':
+              message = '정상적으로 수정되었습니다.'
+              break
+          }
+          openNotification({
+            message: message,
+            type: 'success',
+            duration: 1500
+          })
           EventBus.$emit('reloadView', {
             id: options.model.id,
             data: _data,
