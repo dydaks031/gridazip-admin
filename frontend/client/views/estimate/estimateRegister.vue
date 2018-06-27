@@ -16,16 +16,16 @@
           <table class="table">
             <colgroup>
               <col />
-              <col width="12%" />
+              <col width="9%"/>
               <col />
               <col />
               <col />
               <col />
               <col />
               <col />
-              <col width="10%" />
-              <col width="10%" />
               <col />
+              <col width="7%" />
+              <col width="7%" />
               <col />
               <col />
             </colgroup>
@@ -39,6 +39,7 @@
               <th>자재분류</th>
               <th>자재군</th>
               <th>자재명</th>
+              <th>자재별칭</th>
               <th>입력값</th>
               <th>물량</th>
               <th>인건비</th>

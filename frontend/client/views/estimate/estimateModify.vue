@@ -41,8 +41,12 @@
         </select2>
       </td>
       <td>
+        <span v-show="data.isModify === false">{{data.selectedData.ed_alias || '-'}}</span>
+        <input type="text" placeholder="별칭 입력" class="input" v-model="data.selectedData.ed_alias" v-show="data.isModify === true" />
+      </td>
+      <td>
         <span v-show="data.isModify === false">{{data.selectedData.ed_input_value}}</span>
-        <input type="text" placeholder="면적 입력" class="input" v-model="data.selectedData.ed_input_value" v-show="data.isModify === true" />
+        <input type="text" placeholder="입력값 입력" class="input" v-model="data.selectedData.ed_input_value" v-show="data.isModify === true" />
       </td>
       <td>
         <span v-show="data.isModify === false">{{data.selectedData.ed_resource_amount}}</span>

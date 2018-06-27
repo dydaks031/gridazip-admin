@@ -14,7 +14,7 @@
                 <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
               </select>
             </div>
-            <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name">
+            <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name" @keypress.enter.stop="loadPartners">
             <a class="button is-info" @click="loadPartners">검색</a>
           </div>
         </div>
