@@ -212,6 +212,7 @@ router.post('/type', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .max('rt_order as order')
+        .where('rc_pk', reqRcPk)
         .then(response => {
           obj.rt_order = response[0].order + 1;
           cur('resource_type_tbl')
@@ -272,7 +273,8 @@ router.delete('/type/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .update({
-          rt_deleted: true
+          rt_deleted: true,
+          rt_order: 0
         })
         .where('rt_pk', reqPk)
         .then(() => {
