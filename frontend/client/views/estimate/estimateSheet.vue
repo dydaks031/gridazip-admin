@@ -89,8 +89,8 @@
               <tr v-for="labor in viewerData.labor" v-show="labor.labor_costs !== 0">
                 <td>{{labor.ct_name}}</td>
                 <td>{{labor.cp_name}}</td>
-                <td>{{labor.cpd_name}}</td>
                 <td>{{labor.rt_name}}</td>
+                <td>{{labor.cpd_name}}</td>
                 <td>{{addCommas(labor.labor_costs)}}</td>
               </tr>
               </tbody>
@@ -273,7 +273,6 @@
           }
         }
 
-        console.log(mergeCount)
         const firstMeetPk = {
           place: {
 
