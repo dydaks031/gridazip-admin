@@ -6,17 +6,20 @@
           <h1 class="title">기본 정보</h1>
           <div class="block">
             <label class="label">이름</label>
-            <p class="control">
-              <input class="input" type="text" v-model="newData.cr_name"/>
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_name" :class="{'is-danger': $v.newData.cr_name.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.newData.cr_name.required">이름을 입력해 주십시오.</p>
+            </div>
             <label class="label">전화번호</label>
-            <p class="control">
-              <input class="input" type="text" v-model="newData.cr_contact"/>
-            </p>
-            <label class="label">평점</label>
-            <p class="control">
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_contact" :class="{'is-danger': $v.newData.cr_contact.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.newData.cr_contact.required">전화번호를 입력해 주십시오.</p>
+            </div>
+            <label class="label">평점(소통)</label>
+            <div class="control">
               <star-rating v-model="newData.cr_communication_score" :show-rating="false" :star-size="35" />
-            </p>
+              <p class="help is-danger" v-if="!$v.newData.cr_communication_score.required">평점을 입력해 주십시오.</p>
+            </div>
           </div>
           <h1 class="title">보유기술 정보</h1>
           <table class="table">
@@ -57,7 +60,7 @@
             </tbody>
           </table>
           <p class="control">
-            <button class="button is-primary" @click="createData">등록</button>
+            <button class="button is-primary" @click="createData($v.constructor)">등록</button>
             <button class="button is-link" @click="router.back()">취소</button>
           </p>
         </article>
@@ -122,7 +125,7 @@
             </div>
           </div>
           <p class="control">
-            <button class="button is-primary" @click="createData">등록</button>
+            <button class="button is-primary" @click="createData($v.correspondent)">등록</button>
             <button class="button is-link" @click="router.back()">취소</button>
           </p>
         </article>
@@ -137,6 +140,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import StarRating from 'vue-star-rating'
+  import { required } from 'vuelidate/lib/validators'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -172,6 +176,12 @@
         type: '',
         constructionList: [],
         newData: {
+          cr_name: '',
+          cr_contact: '',
+          co_name: '',
+          co_manager_name: '',
+          co_location: '',
+          co_memo: '',
           cr_communication_score: 0,
           constructorSkillList: [{
             cs_ctpk: '',
@@ -184,6 +194,36 @@
           }]
         }
       }
+    },
+    validations: {
+      newData: {
+        cr_name: {
+          required
+        },
+        cr_contact: {
+          required
+        },
+        cr_communication_score: {
+          required
+        },
+        co_name: {
+          required
+        },
+        co_contact: {
+          required
+        },
+        co_manager_name: {
+          required
+        },
+        co_location: {
+          required
+        },
+        co_memo: {
+          required
+        }
+      },
+      constructor: ['newData.cr_name', 'newData.cr_contact', 'newData.cr_communication_score'],
+      correspondent: ['newData.co_name', 'newData.co_contact', 'newData.co_manager_name', 'newData.co_location', 'newData.co_memo']
     },
     created () {
       const url = this.$route.path
@@ -208,7 +248,32 @@
             console.error(error)
           })
       },
-      createData () {
+      createData (validator) {
+        if (validator.$invalid) {
+          return false
+        }
+        switch (this.type) {
+          case 'constructor':
+            if (this.newData.constructorSkillList.length === 0) {
+              openNotification({
+                message: `최소 1개 이상의 보유기술을 등록해 주십시오.`,
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
+            break
+          case 'correspondent':
+            if (this.newData.correspondentItemList.length === 0) {
+              openNotification({
+                message: `최소 1개 이상의 취급품목을 등록해 주십시오.`,
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
+            break
+        }
         this.$http.post(`${queryApi}/${this.type}`, this.newData)
           .then((response) => {
             if (response.data.code !== 200) {
