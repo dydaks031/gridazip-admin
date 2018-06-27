@@ -139,8 +139,7 @@
             </div>
             <label class="label">자재코드</label>
             <div class="control">
-              <input class="input" type="text" v-model="data.rs_code" :class="{'is-danger': $v.data.rs_code.$invalid }" @keypress.enter.stop="registerData($v.resource)"/>
-              <p class="help is-danger" v-if="!$v.data.rs_code.required">자재코드를 입력해 주십시오.</p>
+              <input class="input" type="text" v-model="data.rs_code" @keypress.enter.stop="registerData($v.resource)"/>
             </div>
             <label class="label">자재단위</label>
             <div class="control">
@@ -282,9 +281,6 @@
         rs_name: {
           required
         },
-        rs_code: {
-          required
-        },
         rs_rupk: {
           required
         },
@@ -296,7 +292,7 @@
       constructionProcessDetail: ['data.cpd_name', 'data.cpd_labor_costs', 'data.cpd_min_amount', 'data.cpd_unit'],
       resourceType: ['data.rt_name', 'data.rt_extra_labor_costs'],
       resourceUnit: ['data.ru_name', 'data.ru_calc_expression', 'data.ru_ceil_flag'],
-      resource: ['data.rs_name', 'data.rs_code', 'data.rs_rupk', 'data.rs_price']
+      resource: ['data.rs_name', 'data.rs_rupk', 'data.rs_price']
     },
     methods: {
       registerData (validator) {
