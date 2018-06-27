@@ -521,8 +521,9 @@ router.put('/unit/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.ru_name || '';
   const reqCalcExpression = req.body.ru_calc_expression || '';
-  const reqCeilFlag = req.body.ru_ceil_flag || '';
+  const reqCeilFlag = req.body.ru_ceil_flag || '0';
   let obj = {};
+  console.log(reqPk, reqName, reqCalcExpression, reqCeilFlag)
   if (reqPk === '' || reqName === '' || reqCalcExpression === '' || reqCeilFlag === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
