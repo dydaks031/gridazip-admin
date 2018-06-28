@@ -187,15 +187,17 @@
           generalData[constructionKeyData[i]] = _.filter(cloneData, (item) => {
             return item.ct_pk === constructionKeyData[i]
           })
+          // 공사에 해당하는 자재 중 부자재만 추출함
           const subResource = _.filter(generalData[constructionKeyData[i]], (item) => {
             return item.rt_sub === 1
           })
-          console.log(subResource)
+          // 부자재들을 묶기위해 특정 key를 임의의 key로 변경
           _.map(subResource, (item) => {
             item.place_pk = `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
             item.sub_key = `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
           })
           if (subResource.length !== 0) {
+            // 부자재를 묶어주는 row 한줄을 추가한다
             subResourceData.push({
               cp_name: '부자재',
               cpd_min_amount: '',
@@ -222,15 +224,16 @@
               sub_key: `sub_${generalData[constructionKeyData[i]][0].ct_pk}`
             })
             this.isOpenSubResource[`sub_${generalData[constructionKeyData[i]][0].ct_pk}`] = false
+            // 부자재를 따로 저장하고 전체데이터에서 부자재를 지워 위치를 변경한다.
             subResourceData = subResourceData.concat(subResource)
             subResource.forEach((item) => {
               generalData[constructionKeyData[i]] = _.without(generalData[constructionKeyData[i]], item)
             })
           }
         }
-        console.log(subResourceData)
         let resultData = [].concat.apply([], Object.values(generalData))
         // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
         resultData = _(resultData).chain()
           .sortBy((data) => {
             return data.cp_pk
@@ -245,6 +248,7 @@
           .concat(subResourceData)
         const placeByData = _.groupBy(resultData, 'place_pk')
         const mergeCount = {}
+        // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in placeByData) {
           const placeItem = placeByData[i]
           const placePk = placeItem[0].place_pk
@@ -253,6 +257,7 @@
             construction: {
             }
           }
+          // 위의 위치의 해당하는 데이터 중 동일한 공사의 데이터가 몇건인지 확인한다.
           const constructionByData = _.groupBy(placeByData[i], 'ct_pk')
           for (let j in constructionByData) {
             const constructionItem = constructionByData[j]
@@ -262,6 +267,7 @@
               constructionProcess: {
               }
             }
+            // 위의 공사에 해당하는 데이터 중 동일한 공정의 데이터가 몇건인지 확인한다.
             const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
             for (let k in constructionProcessByData) {
               const constructionProcessItem = constructionProcessByData[k]
@@ -280,8 +286,10 @@
         }
 
         let item
-        for (let i = 0; i < resultData.length; i++) {
+        const resultCount = resultData.length
+        for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
+          // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
           if (!firstMeetPk.place.hasOwnProperty(item.place_pk)) {
             item.place_count = mergeCount[item.place_pk].count
             firstMeetPk.place[item.place_pk] = {

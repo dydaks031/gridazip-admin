@@ -7,7 +7,8 @@
           <div class="block">
             <label class="label">이름</label>
             <p class="control">
-              <input class="input" type="text" v-model="data.constructor.cr_name"/>
+              <input class="input" type="text" v-model="data.constructor.cr_name" :class="{'is-danger': $v.data.constructor.cr_name.$invalid }"/>
+            <p class="help is-danger" v-if="!$v.data.constructor.cr_name.required">이름을 입력해 주십시오.</p>
             </p>
             <label class="label">전화번호</label>
             <p class="control">
@@ -186,6 +187,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import StarRating from 'vue-star-rating'
+  import { required } from 'vuelidate/lib/validators'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -225,6 +227,16 @@
           ct_pk: '',
           cs_skill_score: 0,
           cs_memo: ''
+        },
+        router
+      }
+    },
+    validations: {
+      data: {
+        constructor: {
+          cr_name: {
+            required
+          }
         }
       }
     },
@@ -299,7 +311,12 @@
             if (response.data.code !== 200) {
               return false
             }
+            const construction = _.find(this.constructionList, (_construction) => {
+              return _construction.ct_pk === item.ct_pk
+            })
+
             item.isModify = false
+            item.ct_name = construction.ct_name
             this.$forceUpdate()
           })
           .catch((error) => {
