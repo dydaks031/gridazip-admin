@@ -163,7 +163,10 @@ router.post('/', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       insertObj.pc_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('proceeding_contract_tbl')
-        .insert(insertObj)
+        .insert({
+          ...insertObj,
+          pc_recency: cur.raw('UNIX_TIMESTAMP() * -1')
+        })
         .then(() => {
           insertObj.pc_phone = cryptoHelper.decrypt(insertObj.pc_phone);
           delete insertObj.pc_recency;
@@ -203,13 +206,13 @@ router.put('/:pk([0-9]+)', (req, res) => {
     updateObj.pc_move_date = req.body.pc_move_date || '';
     updateObj.pc_budget = req.body.pc_budget || '';
     updateObj.pc_memo = req.body.pc_memo || '';
+    updateObj.pc_etc_costs_ratio = req.pc_etc_costs_ratio / 100 || 0.05;
+    updateObj.pc_design_costs_ratio = req.pc_design_costs_ratio / 100 || 0.10;
+    updateObj.pc_supervision_costs_ratio = req.pc_supervision_costs_ratio / 100 || 0.10;
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
-        .update({
-          ...updateObj,
-          pc_recency: cur.raw('UNIX_TIMESTAMP() * -1')
-        })
+        .update(updateObj)
         .where('pc_pk', reqPk)
         .then(() => {
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
@@ -839,46 +842,60 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
   const reqPcPk = req.params.pk || '';
 
   knexBuilder.getConnection().then(cur => {
-
-    cur.raw(`
-      SELECT resource_costs, labor_costs, (resource_costs+labor_costs) * 0.2 as etc_costs
-        FROM (
-          SELECT sum(resource_costs) resource_costs
+    cur('proceeding_contract_tbl')
+      .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio')
+      .where('pc_pk', reqPcPk)
+      .then(row => {
+        cur.raw(`
+          SELECT resource_costs,
+                 labor_costs,
+                 (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
+                 (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
+                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs
             FROM (
-              SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+              SELECT sum(resource_costs) resource_costs
+                FROM (
+                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+                  FROM estimate_detail_hst ed
+                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
+                  WHERE ed.ed_pcpk = ?
+                  GROUP BY ed.ed_rspk
+                  ORDER BY rs.rs_name
+                ) resource
+            ) r,
+          (
+          SELECT sum(labor_costs) labor_costs
+            FROM (
+              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+                     END AS labor_costs
               FROM estimate_detail_hst ed
-                LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
-              WHERE ed.ed_pcpk = ?
-              GROUP BY ed.ed_rspk
-              ORDER BY rs.rs_name
-            ) resource
-        ) r,
-      (
-      SELECT sum(labor_costs) labor_costs
-        FROM (
-          SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
-                      THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-                      ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
-                 END AS labor_costs
-          FROM estimate_detail_hst ed
-          LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-          LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-         WHERE ed.ed_pcpk = ?
-         GROUP BY ed.ed_pcpk, ed.ed_cpdpk, ed.ed_rtpk
-        ) labor
-      ) l
-    `, [reqPcPk, reqPcPk])
-      .then(response => {
-        res.json(
-          resHelper.getJson({
-            totalCosts: response[0][0]
+              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+             WHERE ed.ed_pcpk = ?
+             GROUP BY ed.ed_pcpk, ed.ed_cpdpk, ed.ed_rtpk
+            ) labor
+          ) l
+        `, [reqPcPk, reqPcPk])
+          .then(response => {
+            res.json(
+              resHelper.getJson({
+                totalCosts: response[0][0]
+              })
+            );
           })
-        );
+          .catch(err => {
+            console.log(err);
+            res.json(
+              resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
+            );
+          })
       })
       .catch(err => {
         console.log(err);
         res.json(
-          resHelper.getError('총합금액을 조회하는 중 오류가 발생하였습니다.')
+          resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
         );
       })
   })
