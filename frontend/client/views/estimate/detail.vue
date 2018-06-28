@@ -35,7 +35,7 @@
             </p>
             <label class="label">이사일</label>
             <p class="control">
-              <input class="input" type="text" v-model="detailData.pc_move_date"/>
+              <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.pc_move_date"></datepicker>
             </p>
             <label class="label">예산</label>
             <p class="control">
@@ -152,6 +152,7 @@
   import addPartnersModal from './addPartnersModal'
   import StarRating from 'vue-star-rating'
   import _ from 'underscore'
+  import Datepicker from 'vue-bulma-datepicker'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -176,7 +177,8 @@
     components: {
       estimateSheet,
       addPartnersModal,
-      StarRating
+      StarRating,
+      Datepicker
     },
     data () {
       return {
