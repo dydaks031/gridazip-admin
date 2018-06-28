@@ -448,11 +448,11 @@ router.post('/process/detail', (req, res) => {
   const reqName = req.body.cpd_name.trim() || '';
   const reqCpPk = req.body.cp_pk || '';
   const reqLaborCosts = req.body.cpd_labor_costs || '';
-  const reqMinAmount = req.body.cpd_min_amount || '';
-  const reqUnit = req.body.cpd_unit || '';
+  const reqMinAmount = req.body.cpd_min_amount || 0;
+  const reqUnit = req.body.cpd_unit || 0;
   let obj = {};
 
-  if (reqName === '' || reqCpPk === '' || reqLaborCosts === '' || reqMinAmount ===  '' || reqUnit === '') {
+  if (reqName === '' || reqCpPk === '' || reqLaborCosts === '' || reqMinAmount ===  0) {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
   else {
