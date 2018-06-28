@@ -120,7 +120,7 @@ router.get('/:pk([0-9]+)', (req, res) => {
 router.post('/', (req, res) => {
   const reqName = req.body.cr_name || '';
   const reqContact = req.body.cr_contact || '';
-  const reqCommunicationScore = req.body.cr_communication_score || '';
+  const reqCommunicationScore = req.body.cr_communication_score || 0;
   const reqSkillList = req.body.constructorSkillList || [];
 
   if (reqName.trim() === '' || reqContact.trim() === '' || reqSkillList.length === 0) {
@@ -190,9 +190,9 @@ router.put('/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.cr_name || '';
   const reqContact = req.body.cr_contact || '';
-  const reqCommunicationScore = req.body.cr_communication_score || '';
+  const reqCommunicationScore = req.body.cr_communication_score || 0;
 
-  if (reqName === '' || reqContact === '' || reqCommunicationScore === '') {
+  if (reqName === '' || reqContact === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
