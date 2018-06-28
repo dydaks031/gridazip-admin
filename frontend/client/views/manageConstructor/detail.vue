@@ -6,20 +6,21 @@
           <h1 class="title">기본 정보</h1>
           <div class="block">
             <label class="label">이름</label>
-            <p class="control">
+            <div class="control">
               <input class="input" type="text" v-model="data.constructor.cr_name" :class="{'is-danger': $v.data.constructor.cr_name.$invalid }"/>
-            <p class="help is-danger" v-if="!$v.data.constructor.cr_name.required">이름을 입력해 주십시오.</p>
-            </p>
-            <label class="label">전화번호</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.constructor.cr_contact"/>
-            </p>
+              <p class="help is-danger" v-if="!$v.data.constructor.cr_name.required">이름을 입력해 주십시오.</p>
+            </div>
+            <label class="label">연락처</label>
+            <div class="control">
+              <input class="input" type="text" v-model="data.constructor.cr_contact" :class="{'is-danger': $v.data.constructor.cr_contact.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.data.constructor.cr_contact.required">연락처를 입력해 주십시오.</p>
+            </div>
             <label class="label">평점</label>
             <div class="control">
               <star-rating v-model="data.constructor.cr_communication_score" :show-rating="false" :star-size="35"></star-rating>
             </div>
             <p class="control">
-              <button class="button is-primary" @click="updateConstructor">수정</button>
+              <button class="button is-primary" @click="updateConstructor($v.constructor)">수정</button>
               <button class="button is-link" @click="router.back()">취소</button>
               <button class="button is-danger is-pulled-right" @click="deleteItem">삭제</button>
             </p>
@@ -90,28 +91,32 @@
         <article class="tile is-child box" v-else>
           <h1 class="title">기본 정보</h1>
           <div class="block">
-            <label class="label">가게명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.correspondent.co_name" />
-            </p>
+            <label class="label">상호명</label>
+            <div class="control">
+              <input class="input" type="text" v-model="data.correspondent.co_name" :class="{'is-danger': $v.data.correspondent.co_name.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.data.correspondent.co_name.required">상호명을 입력해 주십시오.</p>
+            </div>
             <label class="label">연락처</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.correspondent.co_contact" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.correspondent.co_contact" :class="{'is-danger': $v.data.correspondent.co_contact.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.data.correspondent.co_contact.required">연락처를 입력해 주십시오.</p>
+            </div>
             <label class="label">담당자</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.correspondent.co_manager_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.correspondent.co_manager_name" :class="{'is-danger': $v.data.correspondent.co_manager_name.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.data.correspondent.co_manager_name.required">담당자를 입력해 주십시오.</p>
+            </div>
             <label class="label">위치</label>
-            <p class="control">
-              <input class="input" type="text" v-model="data.correspondent.co_location"/>
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="data.correspondent.co_location" :class="{'is-danger': $v.data.correspondent.co_location.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.data.correspondent.co_location.required">위치를 입력해 주십시오.</p>
+            </div>
             <label class="label">비고</label>
-            <p class="control">
+            <div class="control">
               <textarea class="textarea" v-model="data.correspondent.co_memo"></textarea>
-            </p>
+            </div>
             <p class="control">
-              <button class="button is-primary" @click="updateCorrespondent">수정</button>
+              <button class="button is-primary" @click="updateCorrespondent($v.correspondent)">수정</button>
               <button class="button is-link">취소</button>
               <button class="button is-danger is-pulled-right" @click="deleteItem">삭제</button>
             </p>
@@ -236,9 +241,28 @@
         constructor: {
           cr_name: {
             required
+          },
+          cr_contact: {
+            required
+          }
+        },
+        correspondent: {
+          co_name: {
+            required
+          },
+          co_contact: {
+            required
+          },
+          co_manager_name: {
+            required
+          },
+          co_location: {
+            required
           }
         }
-      }
+      },
+      constructor: ['data.constructor.cr_name', 'data.constructor.cr_contact'],
+      correspondent: ['data.correspondent.co_name', 'data.correspondent.co_contact', 'data.correspondent.co_manager_name', 'data.correspondent.co_location']
     },
     methods: {
       loadData () {
@@ -259,7 +283,10 @@
         item.isModify = !item.isModify
         this.$forceUpdate()
       },
-      updateConstructor () {
+      updateConstructor (validator) {
+        if (validator.$invalid) {
+          return false
+        }
         this.$http.put(`${queryApi}/${this.type}/${this.id}`, this.data.constructor)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -317,6 +344,11 @@
 
             item.isModify = false
             item.ct_name = construction.ct_name
+            openNotification({
+              message: '기술 정보가 수정되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
             this.$forceUpdate()
           })
           .catch((error) => {
@@ -330,6 +362,11 @@
               return false
             }
             this.data.constructorSkillList = _.without(this.data.constructorSkillList, item)
+            openNotification({
+              message: '기술 정보가 삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
             this.$forceUpdate()
           })
           .catch((error) => {
@@ -348,7 +385,10 @@
             console.error(error)
           })
       },
-      updateCorrespondent () {
+      updateCorrespondent (validator) {
+        if (validator.$invalid) {
+          return false
+        }
         this.$http.put(`${queryApi}/${this.type}/${this.id}`, this.data.correspondent)
           .then((response) => {
             if (response.data.code !== 200) {
