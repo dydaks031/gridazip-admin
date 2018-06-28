@@ -247,12 +247,12 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
     }
   }
   if (isExistValuable) {
-    if (['0','1','2','3'].indexOf(rq_is_valuable) < 0) {
+    if (['0','1','2','3'].indexOf(rq_is_valuable.toString()) < 0) {
       errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.'
     }
   }
   if (isExistContracted) {
-    if (['0','1','2'].indexOf(rq_is_contracted) < 0) {
+    if (['0','1','2'].indexOf(rq_is_contracted.toString()) < 0) {
       errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.'
     }
   }
