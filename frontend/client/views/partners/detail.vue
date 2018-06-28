@@ -64,7 +64,8 @@
     },
     methods: {
       loadDetail (id) {
-        this.$http.post(`${queryApi}/${id}`)
+        console.log(`${queryApi}/${id}`)
+        this.$http.get(`${queryApi}/${id}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
