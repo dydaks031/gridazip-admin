@@ -199,6 +199,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('constructor_tbl')
         .update({
+          cr_name: reqName,
           cr_contact: reqContact,
           cr_communication_score: reqCommunicationScore
         })
