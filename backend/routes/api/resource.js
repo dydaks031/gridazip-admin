@@ -173,7 +173,7 @@ router.get('/type', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
-        .select('rt_pk', 'rt_name', 'rt_extra_labor_costs')
+        .select('rt_pk', 'rt_name', 'rt_extra_labor_costs', 'rt_sub')
         .where('rt_rcpk',reqPk)
         .andWhere('rt_deleted', false)
         .orderBy('rt_order')
@@ -197,18 +197,22 @@ router.get('/type', (req, res) => {
 router.post('/type', (req, res) => {
   const reqName = req.body.rt_name || '';
   const reqRcPk = req.body.rc_pk || '';
-  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '0';
+  const reqSub = req.body.rt_sub || '0';
+
   let obj = {};
-  if (reqName.trim() === '' || reqRcPk === '' || reqExtraLaborCosts === '') {
+  if (reqName.trim() === '' || reqRcPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
     obj.rt_rcpk = reqRcPk;
     obj.rt_name = reqName.trim();
     obj.rt_extra_labor_costs = reqExtraLaborCosts;
+    obj.rt_sub = reqSub;
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .max('rt_order as order')
+        .where('rt_rcpk', reqRcPk)
         .then(response => {
           obj.rt_order = response[0].order + 1;
           cur('resource_type_tbl')
@@ -235,9 +239,9 @@ router.post('/type', (req, res) => {
 router.put('/type/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.rt_name || '';
-  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '';
+  const reqExtraLaborCosts = req.body.rt_extra_labor_costs || '0';
   let obj = {};
-  if (reqPk === '' || reqName === '' || reqExtraLaborCosts === '') {
+  if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
@@ -269,7 +273,8 @@ router.delete('/type/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('resource_type_tbl')
         .update({
-          rt_deleted: true
+          rt_deleted: true,
+          rt_order: 0
         })
         .where('rt_pk', reqPk)
         .then(() => {
@@ -358,11 +363,11 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   const reqRtPk = req.body.rt_pk || '';
   const reqName = req.body.rs_name || '';
-  const reqRuPk = req.body.ru_pk || '';
+  const reqRuPk = req.body.rs_rupk || '';
   const reqCode = req.body.rs_code || '';
-  const reqPrice = req.body.rs_price || '';
+  const reqPrice = req.body.rs_price || 0;
   let obj = {};
-  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
+  if(reqRtPk === '' || reqName === '' || reqRuPk === '' || reqPrice === 0) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
@@ -393,10 +398,10 @@ router.put('/:pk([0-9]+)', (req, res) => {
   const reqName = req.body.rs_name || '';
   const reqRuPk = req.body.rs_rupk || '';
   const reqCode = req.body.rs_code || '';
-  const reqPrice = req.body.rs_price || '';
+  const reqPrice = req.body.rs_price || 0;
   let obj = {};
 
-  if(reqName === '' || reqRuPk === '' || reqCode === '' || reqPrice === '' ) {
+  if(reqName === '' || reqRuPk === '' || reqPrice === 0 ) {
     res.json(resHelper.getError('필수 파라메터는 반드시 입력해야 합니다.'))
   }
   else {
@@ -516,8 +521,9 @@ router.put('/unit/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqName = req.body.ru_name || '';
   const reqCalcExpression = req.body.ru_calc_expression || '';
-  const reqCeilFlag = req.body.ru_ceil_flag || '';
+  const reqCeilFlag = req.body.ru_ceil_flag || '0';
   let obj = {};
+  console.log(reqPk, reqName, reqCalcExpression, reqCeilFlag)
   if (reqPk === '' || reqName === '' || reqCalcExpression === '' || reqCeilFlag === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
