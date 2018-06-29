@@ -129,6 +129,9 @@ router.get('/:pk([0-9]+)', (req, res) => {
       .then(response => {
         const item = response;
         item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
+        item.pc_etc_costs_ratio = item.pc_etc_costs_ratio * 100 || 0.05 * 100;
+        item.pc_design_costs_ratio = item.pc_design_costs_ratio * 100 || 0.10 * 100;
+        item.pc_supervision_costs_ratio = item.pc_supervision_costs_ratio * 100 || 0.10 * 100;
         res.json(resHelper.getJson({
           contract: item
         }));
@@ -206,16 +209,18 @@ router.put('/:pk([0-9]+)', (req, res) => {
     updateObj.pc_move_date = req.body.pc_move_date || '';
     updateObj.pc_budget = req.body.pc_budget || '';
     updateObj.pc_memo = req.body.pc_memo || '';
-    updateObj.pc_etc_costs_ratio = req.pc_etc_costs_ratio / 100 || 0.05;
-    updateObj.pc_design_costs_ratio = req.pc_design_costs_ratio / 100 || 0.10;
-    updateObj.pc_supervision_costs_ratio = req.pc_supervision_costs_ratio / 100 || 0.10;
-
+    updateObj.pc_etc_costs_ratio = req.body.pc_etc_costs_ratio / 100 || 0.05;
+    updateObj.pc_design_costs_ratio = req.body.pc_design_costs_ratio / 100 || 0.10;
+    updateObj.pc_supervision_costs_ratio = req.body.pc_supervision_costs_ratio / 100 || 0.10;
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
         .update(updateObj)
         .where('pc_pk', reqPk)
         .then(() => {
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
+          updateObj.pc_etc_costs_ratio  = updateObj.pc_etc_costs_ratio * 100
+          updateObj.pc_design_costs_ratio  = updateObj.pc_design_costs_ratio * 100
+          updateObj.pc_supervision_costs_ratio  = updateObj.pc_supervision_costs_ratio * 100
           res.json(resHelper.getJson({
             msg: '진행 계약건이 정상적으로 변경되었습니다.',
             data: updateObj

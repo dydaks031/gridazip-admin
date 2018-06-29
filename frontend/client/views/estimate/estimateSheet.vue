@@ -16,7 +16,8 @@
           <th>자재</th>
           <th>물량</th>
           <th>자재단위</th>
-          <th>금액</th>
+          <th>인건비</th>
+          <th>자재비</th>
         </tr>
       </thead>
       <tbody>
@@ -27,6 +28,7 @@
           <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
           <td>{{generalData.resource_amount}}</td>
           <td>{{generalData.ru_name}}</td>
+          <td>{{addCommas(generalData.labor_costs)}}</td>
           <td>{{addCommas(generalData.resource_costs)}}</td>
         </tr>
       </tbody>
@@ -111,10 +113,16 @@
                 <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
               </p>
               <p>
+                <span>디자인 및 설계비: {{addCommas(viewerData.total.design_costs)}}원</span>
+              </p>
+              <p>
+                <span>감리비: {{addCommas(viewerData.total.supervision_costs)}}원</span>
+              </p>
+              <p>
                 <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
               </p>
               <p>
-                <span>합: {{addCommas(viewerData.total.resource_costs + viewerData.total.labor_costs + viewerData.total.etc_costs)}}원</span>
+                <span>합: {{addCommas(viewerData.total.resource_costs + viewerData.total.labor_costs + viewerData.total.etc_costs + viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
               </p>
             </div>
           </div>

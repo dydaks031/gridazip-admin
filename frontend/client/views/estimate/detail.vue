@@ -45,6 +45,18 @@
             <p class="control">
               <textarea class="textarea" v-model="detailData.pc_memo"></textarea>
             </p>
+            <label class="label">공과잡비(%)</label>
+            <p class="control">
+              <input class="input" v-model="detailData.pc_etc_costs_ratio" />
+            </p>
+            <label class="label">디자인 및 설계비(%)</label>
+            <p class="control">
+              <input class="input" v-model="detailData.pc_design_costs_ratio" />
+            </p>
+            <label class="label">감리비(%)</label>
+            <p class="control">
+              <input class="input" v-model="detailData.pc_supervision_costs_ratio" />
+            </p>
             <p class="control">
               <button class="button is-primary" @click="updateContract">등록</button>
               <button class="button is-link" @click="router.back()">Cancel</button>
