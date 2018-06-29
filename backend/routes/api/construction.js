@@ -27,24 +27,24 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const reqName = req.body.name || '';
+  const reqName = req.body.ct_name || '';
+  let obj = {};
   if (reqName.trim() === '') {
     res.json(resHelper.getError('공사명은 반드시 입력해야 합니다.'));
   }
   else {
+    obj.ct_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_tbl')
         .max('ct_order as order')
-        .then(res => {
-          const order = res[0].order + 1;
+        .then(response => {
+          obj.ct_order = response[0].order + 1;
           cur('construction_tbl')
-            .insert({
-              ct_name: reqName,
-              ct_order: order
-            })
+            .insert(obj)
             .then(() => {
               res.json(resHelper.getJson({
-                msg: '공사가 정상적으로 추가되었습니다.'
+                msg: '공사가 정상적으로 추가되었습니다.',
+                data: obj
               }));
             })
             .catch(err => {
@@ -62,20 +62,21 @@ router.post('/', (req, res) => {
 
 router.put('/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.ct_name || '';
+  let obj = {};
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.ct_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_tbl')
-        .update({
-          ct_name: reqName
-        })
+        .update(obj)
         .where('ct_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '공사가 정상적으로 변경되었습니다.'
+            msg: '공사가 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -135,6 +136,9 @@ router.put('/order', (req, res) => {
       })
         .then(function(updates) {
           console.log(updates.length + 'lines updated.');
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
         })
         .catch(function(err) {
           res.json(
@@ -159,7 +163,7 @@ router.get('/place', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            placeList: response
+            constructionPlaceList: response
           })
         );
       })
@@ -173,24 +177,24 @@ router.get('/place', (req, res) => {
 });
 
 router.post('/place', (req, res) => {
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
+  let obj = {};
   if (reqName.trim() === '') {
     res.json(resHelper.getError('공사위치는 반드시 입력해야 합니다.'));
   }
   else {
+    obj.cp_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_place_tbl')
         .max('cp_order as order')
-        .then(res => {
-          const order = res[0].order + 1;
+        .then(response => {
+          obj.cp_order = response[0].order + 1;
           cur('construction_place_tbl')
-            .insert({
-              cp_name: reqName,
-              cp_order: order
-            })
+            .insert(obj)
             .then(() => {
               res.json(resHelper.getJson({
-                msg: '공사위치가 정상적으로 추가되었습니다.'
+                msg: '공사위치가 정상적으로 추가되었습니다.',
+                data: obj
               }));
             })
             .catch(err => {
@@ -208,20 +212,21 @@ router.post('/place', (req, res) => {
 
 router.put('/place/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
+  let obj = {};
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.cp_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_place_tbl')
-        .update({
-          cp_name: reqName
-        })
+        .update(obj)
         .where('cp_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '공사위치가 정상적으로 변경되었습니다.'
+            msg: '공사위치가 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -259,7 +264,7 @@ router.delete('/place/:pk([0-9]+)', (req, res) => {
 });
 
 router.put('/place/order', (req, res) => {
-  const reqPlaceList = req.body.placeList || '';
+  const reqPlaceList = req.body.constructionPlaceList || '';
   if (reqPlaceList === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
@@ -282,6 +287,9 @@ router.put('/place/order', (req, res) => {
         })
           .then(function(updates) {
             console.log(updates.length + 'lines updated.');
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
           })
           .catch(function(err) {
             res.json(
@@ -297,7 +305,7 @@ router.put('/place/order', (req, res) => {
 /* 공정 */
 
 router.get('/process', (req, res) => {
-  const reqCtPk = req.query.ctPk || '';
+  const reqCtPk = req.query.ct_pk || '';
   if (reqCtPk === '') {
     res.json(resHelper.getError('공사 키는 반드시 전송해야 합니다.'));
   }
@@ -311,7 +319,7 @@ router.get('/process', (req, res) => {
         .then(response => {
           res.json(
             resHelper.getJson({
-              processList: response
+              constructionProcessList: response
             })
           );
         })
@@ -326,22 +334,23 @@ router.get('/process', (req, res) => {
 });
 
 router.post('/process', (req, res) => {
-  const reqCtPk = req.body.ctPk || '';
-  const reqName = req.body.name || '';
+  const reqCtPk = req.body.ct_pk || '';
+  const reqName = req.body.cp_name || '';
+  let obj = {};
 
   if (reqName.trim() === '' || reqCtPk === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.cp_ctpk = reqCtPk;
+    obj.cp_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_tbl')
-        .insert({
-          cp_ctpk: reqCtPk,
-          cp_name: reqName
-        })
+        .insert(obj)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '공정이 정상적으로 추가되었습니다.'
+            msg: '공정이 정상적으로 추가되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -354,20 +363,21 @@ router.post('/process', (req, res) => {
 
 router.put('/process/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
+  const reqName = req.body.cp_name || '';
+  let obj = {};
   if (reqPk === '' || reqName === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.cp_name = reqName.trim();
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_tbl')
-        .update({
-          cp_name: reqName
-        })
+        .update(obj)
         .where('cp_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '공정이 정상적으로 변경되었습니다.'
+            msg: '공정이 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -406,20 +416,21 @@ router.delete('/process/:pk([0-9]+)', (req, res) => {
 /* 공정상세 */
 
 router.get('/process/detail', (req, res) => {
-  const reqCpPk = req.query.cpPk || '';
+  const reqCpPk = req.query.cp_pk || '';
   if (reqCpPk === '') {
     res.json(resHelper.getError('공정 키는 반드시 전송해야 합니다.'));
   }
   else {
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_detail_tbl')
-        .select('cpd_pk', 'cpd_name', 'cpd_labor_costs')
+        .select('cpd_pk', 'cpd_name', 'cpd_labor_costs', 'cpd_min_amount', 'cpd_unit')
         .where('cpd_cppk',reqCpPk)
+        .andWhere('cpd_deleted', false)
         .orderBy('cpd_name')
         .then(response => {
           res.json(
             resHelper.getJson({
-              processDetailList: response
+              constructionProcessDetailList: response
             })
           );
         })
@@ -434,28 +445,35 @@ router.get('/process/detail', (req, res) => {
 });
 
 router.post('/process/detail', (req, res) => {
-  const reqName = req.body.name || '';
-  const reqCpPk = req.body.cpPk || '';
-  const reqLaborCosts = req.body.laborCosts || '';
-  if (reqName.trim() === '' || reqCpPk === '' || reqLaborCosts === '') {
+  const reqName = req.body.cpd_name.trim() || '';
+  const reqCpPk = req.body.cp_pk || '';
+  const reqLaborCosts = req.body.cpd_labor_costs || '';
+  const reqMinAmount = req.body.cpd_min_amount || 0;
+  const reqUnit = req.body.cpd_unit || '';
+  let obj = {};
+
+  if (reqName === '' || reqCpPk === '' || reqLaborCosts === '' || reqMinAmount ===  0 || reqUnit === '') {
     res.json(resHelper.getError('전송받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.cpd_name = reqName;
+    obj.cpd_cppk = reqCpPk;
+    obj.cpd_labor_costs = reqLaborCosts;
+    obj.cpd_min_amount = reqMinAmount;
+    obj.cpd_unit = reqUnit;
+
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_detail_tbl')
-        .insert({
-          cpd_name: reqName,
-          cpd_cppk: reqCpPk,
-          cpd_labor_costs: reqLaborCosts
-        })
+        .insert(obj)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '상세공정이 정상적으로 추가되었습니다.'
+            msg: '상세공정이 정상적으로 추가되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
           console.error(err);
-          res.json(resHelper.getError('[0001] 상세공정을 추가하는 중 오류가 발생하였습니다.'));
+          res.json(resHelper.getError('[0001] 상세공정을 수정하는 중 오류가 발생하였습니다.'));
         })
     })
   }
@@ -463,22 +481,29 @@ router.post('/process/detail', (req, res) => {
 
 router.put('/process/detail/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqName = req.body.name || '';
-  const reqLaborCosts = req.body.laborCosts || '';
-  if (reqPk === '' || reqName === '' || reqLaborCosts === '') {
+  const reqName = req.body.cpd_name || '';
+  const reqLaborCosts = req.body.cpd_labor_costs || '';
+  const reqMinAmount = req.body.cpd_min_amount || 0;
+  const reqUnit = req.body.cpd_unit || 0;
+  let obj = {};
+
+  if (reqPk === '' || reqName === '' || reqLaborCosts === '' || reqMinAmount ===  '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
   else {
+    obj.cpd_name = reqName;
+    obj.cpd_labor_costs = reqLaborCosts;
+    obj.cpd_min_amount = reqMinAmount;
+    obj.cpd_unit = reqUnit;
+
     knexBuilder.getConnection().then(cur => {
       cur('construction_process_detail_tbl')
-        .update({
-          cpd_name: reqName,
-          cpd_labor_costs: reqLaborCosts
-        })
+        .update(obj)
         .where('cpd_pk', reqPk)
         .then(() => {
           res.json(resHelper.getJson({
-            msg: '상세공정이 정상적으로 변경되었습니다.'
+            msg: '상세공정이 정상적으로 변경되었습니다.',
+            data: obj
           }));
         })
         .catch(err => {
@@ -496,7 +521,7 @@ router.delete('/process/detail/:pk([0-9]+)', (req, res) => {
   }
   else {
     knexBuilder.getConnection().then(cur => {
-      cur('construction_process_tbl')
+      cur('construction_process_detail_tbl')
         .update({
           cpd_deleted: true
         })

@@ -45,6 +45,45 @@ const state = {
         auth: true
       },
       component: lazyLoading('partners', true)
+    },
+    {
+      name: '견적보조시스템',
+      meta: {
+        icon: 'fa-table',
+        expanded: false
+      },
+      children: [
+        {
+          name: '진행계약 목록',
+          path: '/estimate',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'estimate/index.vue',
+            auth: true
+          },
+          component: lazyLoading('estimate', true)
+        },
+        {
+          name: '메타데이터 등록',
+          path: '/meta-register',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'meta-register/index.vue',
+            auth: true
+          },
+          component: lazyLoading('meta-register', true)
+        },
+        {
+          name: '기술자 및 거래처',
+          path: '/manage-constructor',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'manageConstructor/index.vue',
+            auth: true
+          },
+          component: lazyLoading('manageConstructor', true)
+        }
+      ]
     }
   ]
 }

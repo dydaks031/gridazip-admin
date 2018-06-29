@@ -22,6 +22,8 @@ export default {
 @import '~bulma/sass/utilities/mixins';
 
 .footer {
+  z-index: -1;
+  position: relative;
   margin-left: 180px;
 
   @include mobile() {

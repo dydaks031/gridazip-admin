@@ -3,53 +3,29 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <h4 class="title">상담신청내역</h4>
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>
-              <col width="10%" />
-              <col width="10%" />
-              <col width="10%" />
-              <col width="15%" />
-              <col width="15%" />
-              <col width="15%" />
+              <col width="auto" />
               <col width="auto" />
               <col width="auto" />
               <col width="auto" />
             </colgroup>
             <thead>
             <tr>
-              <th>이름</th>
-              <th>평수</th>
-              <th>예산</th>
+              <th>고객명</th>
               <th>전화번호</th>
-              <th>방문상담일</th>
-              <th>신청일자</th>
-              <th>유효여부</th>
-              <th>방문상담여부</th>
-              <th>삭제</th>
+              <th>주소</th>
+              <th>이사일자</th>
+              <th></th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
-              <td>{{item.rq_name}}</td>
-              <td>{{item.rq_size_str}}</td>
-              <td>{{item.rq_budget_str}}</td>
-              <td>{{item.rq_phone}}</td>
-              <td>{{(item.rq_date === '0000-00-00' || !item.rq_date) ? '' : moment(item.rq_date, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
-              <td>{{(item.rq_reg_dt === '0000-00-00' || !item.rq_reg_dt) ? '' : moment(item.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
-              <td>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="1" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >X</label>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="2" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >&#9651;</label>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="3" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >O</label>
-              </td>
-              <td>
-                <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="1" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >X</label>
-                <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="2" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >O</label>
-              </td>
-              <td>
-                <button class="button" v-on:click.stop="deleteRow(item)">삭제</button>
-              </td>
+            <tr v-for="contract in contractList" @click="moveToPage(contract)">
+              <td>{{contract.pc_name}}</td>
+              <td>{{contract.pc_phone}}</td>
+              <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
+              <td>{{contract.pc_move_date}}</td>
             </tr>
             </tbody>
           </table>
@@ -73,7 +49,7 @@
 
   const NotificationComponent = Vue.extend(Notification)
 
-  const queryApi = '/api/request'
+  const queryApi = '/api/contract'
 
   const openNotification = (propsData = {
     title: '',
@@ -90,7 +66,7 @@
   }
 
   export default {
-    name: 'requestList',
+    name: 'estimateList',
     components: {
       PaginationVue,
       Notification
@@ -99,7 +75,10 @@
       return {
         page: new Pagenation(),
         filter: new Filter(),
-        data: [],
+        data: {},
+        contractList: [],
+        type: 'resource',
+        type_2: 'construction',
         isLoading: false,
         moment
       }
@@ -116,8 +95,8 @@
             return
           }
           const dataList = response.data.data
-          this.data = dataList.data
           this.page.set(dataList.page)
+          this.contractList = dataList.contractList
         }).catch((error) => {
           console.log(error)
         })
@@ -125,7 +104,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `/request-list/${curItem.rq_pk}`,
+          path: `/estimate/${curItem.pc_pk}`,
           params: curItem
         })
       },
@@ -142,15 +121,15 @@
       updateRowValuable (curItem, key) {
         const sendData = {}
         sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.rq_pk)
+        this.updateRowState(sendData, curItem.pc_pk)
       },
       updateRowContracted (curItem, key) {
         const sendData = {}
         sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.rq_pk)
+        this.updateRowState(sendData, curItem.pc_pk)
       },
       deleteRow (curItem) {
-        this.$http.delete(`${queryApi}/${curItem.rq_pk}`, {})
+        this.$http.delete(`${queryApi}/${curItem.pc_pk}`, {})
           .then((data) => {
             openNotification({
               message: '삭제되었습니다.',
@@ -164,7 +143,6 @@
               this.page.setPoint(null)
             }
             this.page.setLimit(20)
-            this.loadData()
           })
           .catch((error) => {
             console.log(error)
@@ -182,7 +160,7 @@
       },
       moveToRegister () {
         router.push({
-          path: '/request-list/register'
+          path: '/estimate/register'
         })
       }
     },

@@ -1,5 +1,5 @@
 <template>
-  <section class="hero is-bold app-navbar animated" :class="{ slideInDown: show, slideOutDown: !show }">
+  <section class="hero is-bold app-navbar animated" :class="{ slideInDown: show, slideOutDown: !show, none: forceHide }">
     <div class="hero-head">
       <nav class="nav">
         <div class="nav-left">
@@ -28,6 +28,7 @@
 
 <script>
 import Tooltip from 'vue-bulma-tooltip'
+import EventBus from '../../services/eventBus'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -45,6 +46,11 @@ export default {
     sidebar: 'sidebar'
   }),
 
+  data () {
+    return {
+      forceHide: false
+    }
+  },
   methods: {
     ...mapActions([
       'toggleSidebar'
@@ -59,6 +65,11 @@ export default {
         // etc...
       })
     }
+  },
+  mounted () {
+    EventBus.$on('togglePrintMode', () => {
+      this.forceHide = !this.forceHide
+    })
   }
 }
 </script>
@@ -95,5 +106,8 @@ export default {
   .admin {
     color: #28374B;
   }
+}
+.none {
+  display:none
 }
 </style>
