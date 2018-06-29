@@ -145,7 +145,7 @@ router.post('/', (req, res) => {
       cur('correspondent_tbl')
         .insert({
           co_name: reqName,
-          co_contact: cryptoHelper.encrypt(reqContact),
+          co_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
           co_manager_name: reqManagerName,
           co_location: reqLocation || '',
           co_memo: reqMemo || ''
@@ -204,7 +204,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
       cur('correspondent_tbl')
         .update({
           co_name: reqName,
-          co_contact: reqContact,
+          co_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
           co_manager_name: reqManagerName,
           co_location: reqLocation,
           co_memo: reqMemo

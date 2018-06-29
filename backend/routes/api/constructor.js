@@ -200,7 +200,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
       cur('constructor_tbl')
         .update({
           cr_name: reqName,
-          cr_contact: reqContact,
+          cr_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
           cr_communication_score: reqCommunicationScore
         })
         .where('cr_pk', reqPk)
