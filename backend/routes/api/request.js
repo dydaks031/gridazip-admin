@@ -161,6 +161,7 @@ router.post('/', (req, res) => {
   else {
     let insertObj = {};
     insertObj.rq_name = reqName;
+    insertObj.rq_nickname = req.body.rq_nickname
     insertObj.rq_phone = cryptoHelper.encrypt(reqPhone);
     insertObj.rq_family = req.body.rq_family || '';
     insertObj.rq_size = req.body.rq_size || '';
@@ -265,6 +266,7 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
   else {
     if (isExistValuable && isExistContracted) {
       updateObj.rq_name = req.body.rq_name || '';
+      updateObj.rq_nickname = req.body.rq_nickname
       updateObj.rq_family = req.body.rq_family || '';
       updateObj.rq_phone = cryptoHelper.encrypt(req.body.rq_phone) || '';
       updateObj.rq_size = req.body.rq_size || '';
