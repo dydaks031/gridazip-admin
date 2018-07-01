@@ -38,6 +38,10 @@
           <p class="control">
             {{ data.rq_name }}
           </p>
+          <label class="label">별칭</label>
+          <p class="control">
+            <input type="text" class="input" v-model="data.rq_nickname" />
+          </p>
           <label class="label">연락처</label>
           <p class="control">
             <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr'}" v-model="data.rq_phone" v-on:change="updateValue">

@@ -33,6 +33,10 @@
           <p class="control">
             <input class="input" type="text" v-model="data.rq_name" id="rqName"/>
           </p>
+          <label class="label" for="rqNickname">별칭</label>
+          <p class="control">
+            <input class="input" type="text" v-model="data.rq_nickname" id="rqNickname"/>
+          </p>
           <label class="label">연락처</label>
           <p class="control">
             <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr' }" v-model="data.rq_phone">
