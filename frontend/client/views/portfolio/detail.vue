@@ -2,7 +2,7 @@
   <div class="tile is-ancestor">
     <div class="tile is-parent">
       <article class="tile is-child box">
-        <h4 class="title">상담신청내역 상세</h4>
+        <h4 class="title">포트폴리오 상세</h4>
         <div class="block">
           <label class="label">제목</label>
           <p class="control">
