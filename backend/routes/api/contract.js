@@ -1014,8 +1014,8 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
       .select(
         'cco_pk',
         'co_pk',
-        'ct_pk',
-        'ct_name',
+        'rc_pk',
+        'rc_name',
         'co_name',
         'co_contact',
         'co_manager_name',
@@ -1024,9 +1024,9 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
         'ci_brand')
       .innerJoin({ci: 'correspondent_item_tbl'}, 'co.co_pk', 'ci.ci_copk')
       .innerJoin({cco: 'contract_correspondent_tbl'}, function() {
-        this.on('cco.cco_copk','=','ci.ci_copk').andOn('cco.cco_ctpk','=','ci.ci_ctpk')
+        this.on('cco.cco_copk','=','ci.ci_copk').andOn('cco.cco_rcpk','=','ci.ci_rcpk')
       })
-      .innerJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
+      .innerJoin({rc: 'resource_category_tbl'}, 'ci.ci_rcpk', 'rc.rc_pk')
       .where('cco.cco_pcpk', reqPcPk)
       .map(obj => {
         obj.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(obj.co_contact));
@@ -1050,10 +1050,10 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
 
 router.post('/:pk([0-9]+)/correspondent', (req, res) => {
   const reqPcPk = req.params.pk || '';
-  const reqCtPk = req.body.ct_pk || '';
+  const reqRcPk = req.body.rc_pk || '';
   const reqCoPk = req.body.co_pk || '';
 
-  if (reqPcPk === '' ||reqCtPk === '' ||reqCoPk === '') {
+  if (reqPcPk === '' ||reqRtPk === '' ||reqCoPk === '') {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
     );
@@ -1062,7 +1062,7 @@ router.post('/:pk([0-9]+)/correspondent', (req, res) => {
       cur('contract_correspondent_tbl')
         .insert({
           cco_pcpk: reqPcPk,
-          cco_ctpk: reqCtPk,
+          cco_rcpk: reqRcPk,
           cco_copk: reqCoPk
         })
         .then(() => {
