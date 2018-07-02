@@ -97,7 +97,7 @@
                 </colgroup>
                 <thead>
                 <tr>
-                  <th>공사</th>
+                  <th>자재분류</th>
                   <th>취급 브랜드</th>
                   <th></th>
                 </tr>
@@ -106,9 +106,9 @@
                 <tr v-for="(item, index) in newData.correspondentItemList">
                   <td>
                     <div class="select">
-                      <select v-model="item.ci_ctpk">
+                      <select v-model="item.ci_rcpk">
                         <option value="" disabled class="disabled">선택</option>
-                        <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                        <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
                       </select>
                     </div>
                   </td>
@@ -160,6 +160,7 @@
 
   const queryApi = '/api'
   const constructionQueryApi = '/api/construction'
+  const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
     name: 'manageConstructorRegister',
@@ -167,7 +168,7 @@
       StarRating
     },
     mounted () {
-      this.getConstructionList()
+      this.getSelectList()
     },
     data () {
       return {
@@ -175,6 +176,7 @@
         isConstructorPage: false,
         type: '',
         constructionList: [],
+        resourceCategoryList: [],
         newData: {
           cr_name: '',
           cr_contact: '',
@@ -189,7 +191,7 @@
             cs_skill_score: 0
           }],
           correspondentItemList: [{
-            ci_ctpk: '',
+            ci_rcpk: '',
             ci_brand: ''
           }]
         }
@@ -236,13 +238,20 @@
       }
     },
     methods: {
-      getConstructionList () {
+      getSelectList () {
         this.$http.get(`${constructionQueryApi}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             this.constructionList = response.data.data.constructionList
+            return this.$http.get(`${resourceCategoryQueryApi}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.resourceCategoryList = response.data.data.resourceCategoryList
           })
           .catch((error) => {
             console.error(error)
