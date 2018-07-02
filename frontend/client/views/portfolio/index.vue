@@ -36,7 +36,7 @@
               <td>{{item.pf_address}}</td>
               <td>{{item.pf_size}} 평</td>
               <td>{{item.pf_price}} 만원</td>
-              <td>{{(item.pf_reg_dt === '0000-00-00' || !item.pf_reg_dt) ? '' : moment(item.pf_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
+              <td>{{getComputedDate(item.pf_reg_dt)}}</td>
               <td><button class="button" v-on:click.stop="deleteRow(item)">삭제</button></td>
             </tr>
             </tbody>
@@ -58,6 +58,7 @@
   import PaginationVue from '../components/pagination'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -82,6 +83,7 @@
     components: {
       PaginationVue
     },
+    mixins: [mixin],
     data () {
       return {
         page: new Pagenation(),

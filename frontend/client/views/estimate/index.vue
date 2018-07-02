@@ -25,7 +25,7 @@
               <td>{{contract.pc_name}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
-              <td>{{contract.pc_move_date}}</td>
+              <td>{{getComputedDate(contract.pc_move_date)}}</td>
             </tr>
             </tbody>
           </table>
@@ -46,6 +46,7 @@
   import PaginationVue from '../components/pagination'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -71,6 +72,7 @@
       PaginationVue,
       Notification
     },
+    mixins: [mixin],
     data () {
       return {
         page: new Pagenation(),

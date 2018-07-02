@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 const mixin = {
   methods: {
     addCommas (data) {
@@ -5,6 +7,14 @@ const mixin = {
         return 0
       }
       return data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    },
+    getComputedDate (date, wantFormat) {
+      const formattedDate = moment(date, 'YYYY-MM-DDTHH:mm:ss.SSSZ')
+      if (formattedDate.isValid()) {
+        return formattedDate.format(wantFormat || 'YYYY-MM-DD')
+      } else {
+        return '-'
+      }
     }
   },
   mounted () {}
