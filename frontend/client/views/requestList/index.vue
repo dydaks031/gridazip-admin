@@ -31,7 +31,7 @@
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
-              <td>{{(item.rq_reg_dt === '0000-00-00' || !item.rq_reg_dt) ? '' : moment(item.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
+              <td>{{getComputedDate(item.rq_reg_dt)}}</td>
               <td>
                 <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="1" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >X</label>
                 <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="3" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >&#9651;</label>
@@ -64,6 +64,7 @@
   import PaginationVue from '../components/pagination'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -89,6 +90,7 @@
       PaginationVue,
       Notification
     },
+    mixins: [mixin],
     data () {
       return {
         page: new Pagenation(),
