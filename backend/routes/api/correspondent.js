@@ -7,7 +7,7 @@ const FormatService = require('../../services/format/helper');
 /* 거래처 */
 
 router.get('/', (req, res) => {
-  const reqCtPk = req.query.ct_pk || '';
+  const reqRtPk = req.query.rt_pk || '';
   const reqName = req.query.co_name || '';
   const reqManagerName = req.query.co_maneger_name || '';
   const reqPcPk = req.query.pc_pk || '';
@@ -17,8 +17,8 @@ router.get('/', (req, res) => {
     let query = cur({co: 'correspondent_tbl'})
       .select(
         'co_pk',
-        'ct_pk',
-        'ct_name',
+        'rc_pk',
+        'rc_name',
         'co_name',
         'co_manager_name',
         'co_contact',
@@ -27,11 +27,11 @@ router.get('/', (req, res) => {
         'co_memo'
         )
       .leftJoin({ci: 'correspondent_item_tbl'}, 'co.co_pk', 'ci.ci_copk')
-      .leftJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
+      .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rcpk', 'rc.rc_pk')
       .where('co_deleted', false)
-      .orderBy('ct.ct_pk', 'co.co_name');
+      .orderBy('rc.rc_pk', 'co.co_name');
 
-    if (reqCtPk.trim()) query = query.whereIn('ct_pk', reqCtPk.split(','));
+    if (reqRtPk.trim()) query = query.whereIn('rt_pk', reqRtPk.split(','));
     if (reqName.trim()) query = query.where('co_name', 'like', `%${reqName}%`);
     if (reqManagerName.trim()) query = query.where('co_manager_name', 'like', `%${reqManagerName}%`);
     if (reqPcPk) {
@@ -40,7 +40,7 @@ router.get('/', (req, res) => {
           .select('ci_pk')
           .innerJoin({ci:'correspondent_item_tbl'}, function(){
             this.on('cco.cco_copk', '=', 'ci.ci_copk')
-              .andOn('cco.cco_ctpk', '=', 'ci.ci_ctpk')
+              .andOn('cco.cco_rcpk', '=', 'ci.ci_rcpk')
           })
           .where('cco_pcpk', reqPcPk)
       );
@@ -95,11 +95,11 @@ router.get('/:pk([0-9]+)', (req, res) => {
           cur({ci: 'correspondent_item_tbl'})
             .select(
               'ci_pk',
-              'ct_pk',
-              'ct_name',
+              'rc_pk',
+              'rt_name',
               'ci_brand'
             )
-            .leftJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
+            .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rtpk', 'rc.rc_pk')
             .where('ci_copk', reqPk)
             .orderBy('ci.ci_pk')
             .then(response => {
@@ -136,7 +136,7 @@ router.post('/', (req, res) => {
     let coPk;
 
     reqItemList.forEach(item => {
-      if (item.ci_ctpk === undefined || item.ci_ctpk === '') {
+      if (item.ci_rcpk === undefined || item.ci_rcpk === '') {
         res.json(resHelper.getError('[0002] 필수 파라메터가 누락되었습니다.'));
       }
     });
@@ -159,7 +159,7 @@ router.post('/', (req, res) => {
               const query = cur.table('correspondent_item_tbl')
                 .insert({
                   ci_copk: coPk,
-                  ci_ctpk: obj.ci_ctpk,
+                  ci_rcpk: obj.ci_rcpk,
                   ci_brand: obj.ci_brand
                 })
                 .transacting(trx);
@@ -259,12 +259,12 @@ router.get('/:copk([0-9]+)/item', (req, res) => {
     cur({ci: 'correspondent_item_tbl'})
       .select(
         'ci_pk',
-        'ct_pk',
-        'ct_name',
+        'rc_pk',
+        'rc_name',
         'ci_brand'
       )
-      .leftJoin({ct: 'construction_tbl'}, 'ci.ci_ctpk', 'ct.ct_pk')
-      .orderBy('ct.ct_pk', 'cr.cr_name')
+      .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rcpk', 'rc.rc_pk')
+      .orderBy('rc.rc_pk')
       .where('ci_copk', reqCoPk)
       .then(response => {
         res.json(
@@ -284,16 +284,16 @@ router.get('/:copk([0-9]+)/item', (req, res) => {
 
 router.post('/:copk([0-9]+)/item', (req, res) => {
   const reqCoPk = req.params.copk || '';
-  const reqCtPk = req.body.ct_pk || '';
+  const reqRcPk = req.body.rt_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
-  if (reqCoPk === '' || reqCtPk === '') {
+  if (reqCoPk === '' || reqRcPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
     const obj = {};
     obj.ci_copk = reqCoPk;
-    obj.ci_ctpk = reqCtPk;
+    obj.ci_rcpk = reqRcPk;
     obj.ci_brand = reqBrand;
 
     knexBuilder.getConnection().then(cur => {
@@ -318,15 +318,15 @@ router.post('/:copk([0-9]+)/item', (req, res) => {
 
 router.put('/:copk([0-9]+)/item/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
-  const reqCtPk = req.body.ct_pk || '';
+  const reqRcPk = req.body.rc_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
-  if (reqCtPk === '') {
+  if (reqRcPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else {
     const obj = {};
-    obj.ci_ctpk = reqCtPk;
+    obj.ci_rcpk = reqRcPk;
     obj.ci_brand = reqBrand;
     knexBuilder.getConnection().then(cur => {
       cur('correspondent_item_tbl')
