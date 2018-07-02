@@ -3,6 +3,18 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
+          <div class="block">
+            <p class="control">
+              <input class="checkbox" type="checkbox" id="showAllCheckbox" v-model="isHideRow">
+              <label for="showAllCheckbox">숨김내역 전체보기</label>
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="tile is-ancestor">
+      <div class="tile is-parent">
+        <article class="tile is-child box">
           <h4 class="title">상담신청내역</h4>
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
@@ -27,7 +39,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-if="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || !isHideRow">
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
@@ -97,6 +109,7 @@
         filter: new Filter(),
         data: [],
         isLoading: false,
+        isHideRow: true,
         moment
       }
     },
@@ -129,7 +142,15 @@
         console.log(`${queryApi}/${key}`)
         this.$http.put(`${queryApi}/${key}`, sendData)
           .then((data) => {
+            if (data.data.code !== 200) {
+              openNotification({
+                message: '수정에 실패하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+            }
 
+            this.$forceUpdate()
           })
           .catch((error) => {
             console.log(error)
