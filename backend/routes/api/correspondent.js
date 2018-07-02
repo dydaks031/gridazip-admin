@@ -96,10 +96,10 @@ router.get('/:pk([0-9]+)', (req, res) => {
             .select(
               'ci_pk',
               'rc_pk',
-              'rt_name',
+              'rc_name',
               'ci_brand'
             )
-            .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rtpk', 'rc.rc_pk')
+            .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rcpk', 'rc.rc_pk')
             .where('ci_copk', reqPk)
             .orderBy('ci.ci_pk')
             .then(response => {
@@ -284,7 +284,7 @@ router.get('/:copk([0-9]+)/item', (req, res) => {
 
 router.post('/:copk([0-9]+)/item', (req, res) => {
   const reqCoPk = req.params.copk || '';
-  const reqRcPk = req.body.rt_pk || '';
+  const reqRcPk = req.body.rc_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
   if (reqCoPk === '' || reqRcPk === '') {

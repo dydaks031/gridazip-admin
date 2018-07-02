@@ -130,7 +130,7 @@
                 </colgroup>
                 <thead>
                 <tr>
-                  <th>공사</th>
+                  <th>자재분류</th>
                   <th>취급 브랜드</th>
                   <th></th>
                 </tr>
@@ -138,11 +138,11 @@
                 <tbody>
                 <tr v-for="item in data.correspondentItemList">
                   <td>
-                    <span v-if="!item.isModify">{{item.ct_name}}</span>
+                    <span v-if="!item.isModify">{{item.rc_name}}</span>
                     <div class="select" v-if="item.isModify">
-                      <select v-model="item.ct_pk">
+                      <select v-model="item.rc_pk">
                         <option value="" disabled class="disabled">선택</option>
-                        <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                        <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
                       </select>
                     </div>
                   </td>
@@ -161,9 +161,9 @@
                 <tr>
                   <td>
                     <div class="select">
-                      <select v-model="newData.ct_pk">
+                      <select v-model="newData.rc_pk">
                         <option value="" disabled class="disabled">선택</option>
-                        <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                        <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
                       </select>
                     </div>
                   </td>
@@ -212,6 +212,7 @@
 
   const queryApi = '/api'
   const constructionQueryApi = '/api/construction'
+  const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
     name: 'manageConstructorIdDetail',
@@ -228,10 +229,12 @@
           correspondent: {}
         },
         constructionList: [],
+        resourceCategoryList: [],
         newData: {
           ct_pk: '',
           cs_skill_score: 0,
-          cs_memo: ''
+          cs_memo: '',
+          rc_pk: ''
         },
         router
       }
@@ -373,13 +376,20 @@
             console.error(error)
           })
       },
-      getConstructionList () {
+      getSelectList () {
         this.$http.get(`${constructionQueryApi}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             this.constructionList = response.data.data.constructionList
+            return this.$http.get(`${resourceCategoryQueryApi}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.resourceCategoryList = response.data.data.resourceCategoryList
           })
           .catch((error) => {
             console.error(error)
@@ -414,12 +424,11 @@
             }
             const data = response.data.data.data
             const insertData = deepClone(this.newData)
-            const constructionName = _.find(this.constructionList, (item) => {
-              return item.ct_pk === data.ci_ctpk
+            const resourceCategoryName = _.find(this.resourceCategoryList, (item) => {
+              return item.rc_pk === data.ci_rcpk
             })
-
             insertData.ci_pk = data.ci_pk
-            insertData.ct_name = constructionName.ct_name
+            insertData.rc_name = resourceCategoryName.rc_name
             console.log(insertData)
             this.data.correspondentItemList.push(insertData)
             openNotification({
@@ -438,7 +447,11 @@
             if (response.data.code !== 200) {
               return false
             }
+            const resourceCategory = _.find(this.resourceCategoryList, (_resourceCategory) => {
+              return _resourceCategory.rc_pk === item.rc_pk
+            })
             item.isModify = false
+            item.rc_name = resourceCategory.rc_name
             openNotification({
               message: '취급 브랜드 정보가 변경되었습니다.',
               type: 'success',
@@ -505,7 +518,7 @@
         router.back()
       }
       this.loadData()
-      this.getConstructionList()
+      this.getSelectList()
     },
     created () {
       const url = this.$route.path

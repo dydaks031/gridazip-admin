@@ -9,9 +9,14 @@
         <div class="block">
           <div class="control has-addons">
             <div class="select">
-              <select v-model="searchOptions.searchConstruction">
-                <option :value="getConstructionAllSearchOption()">전체</option>
+              <select v-model="searchOptions.searchConstruction" v-if="type === 'constructor'">
+                <option :value="getAllSearchOption(constructionList, 'ct_pk')">전체</option>
                 <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+              </select>
+
+              <select v-model="searchOptions.searchConstruction" v-if="type === 'correspondent'">
+                <option :value="getAllSearchOption(resourceCategoryList, 'rc_pk')">전체</option>
+                <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
               </select>
             </div>
             <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name" @keypress.enter.stop="loadPartners">
@@ -71,7 +76,7 @@
           </colgroup>
           <thead>
           <tr>
-            <th>공사</th>
+            <th>자재분류</th>
             <th>상호명</th>
             <th>전화번호</th>
             <th>담당자</th>
@@ -81,7 +86,7 @@
           </thead>
           <tbody>
           <tr v-for="item in listData.correspondent" v-if="listData.correspondent.length !== 0">
-            <td>{{item.ct_name}}</td>
+            <td>{{item.rc_name}}</td>
             <td>{{item.co_name}}</td>
             <td>{{item.co_contact}}</td>
             <td>{{item.co_manager_name}}</td>
@@ -134,6 +139,7 @@
       type: String,
       id: String,
       constructionList: Array,
+      resourceCategoryList: Array,
       beforeClose: Function
     },
     data () {
@@ -144,6 +150,7 @@
         },
         searchOptions: {
           searchConstruction: '',
+          resourceCategory: '',
           name: ''
         }
       }
@@ -156,9 +163,12 @@
       },
       loadPartners () {
         if (!this.searchOptions.searchConstruction) {
-          this.searchOptions.searchConstruction = this.getConstructionAllSearchOption()
+          this.searchOptions.searchConstruction = this.getAllSearchOption(this.constructionList, 'ct_pk')
         }
-        let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}`
+        if (!this.searchOptions.resourceCategory) {
+          this.searchOptions.resourceCategory = this.getAllSearchOption(this.resourceCategoryList, 'rc_pk')
+        }
+        let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}&rc_pk=${this.searchOptions.resourceCategory}`
         switch (this.type) {
           case 'constructor':
             url = `${url}&cr_name=${this.searchOptions.name}`
@@ -192,8 +202,8 @@
             this.$modal.hide('addPartnersModal')
           })
       },
-      getConstructionAllSearchOption () {
-        const values = _.pluck(this.constructionList, 'ct_pk')
+      getAllSearchOption (list, key) {
+        const values = _.pluck(list, key)
         return values.join(',')
       }
     }

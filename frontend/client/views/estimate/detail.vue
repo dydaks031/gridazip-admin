@@ -122,7 +122,7 @@
             </colgroup>
             <thead>
             <tr>
-              <th>공사</th>
+              <th>자재분류</th>
               <th>상호명</th>
               <th>전화번호</th>
               <th>담당자</th>
@@ -132,7 +132,7 @@
             </thead>
             <tbody>
             <tr v-for="item in partners.correspondent">
-              <td>{{item.ct_name}}</td>
+              <td>{{item.rc_name}}</td>
               <td>{{item.co_name}}</td>
               <td>{{item.co_contact}}</td>
               <td>{{item.co_manager_name}}</td>
@@ -151,6 +151,7 @@
       :type="addPartnersModalData.type"
       :id="param.id"
       :constructionList="partners.construction"
+      :resourceCategoryList="partners.resourceCategory"
       :beforeClose="loadPartner"/>
   </div>
 </template>
@@ -183,6 +184,7 @@
   }
 
   const queryApi = '/api/contract'
+  const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
     name: 'estimateDetail',
@@ -216,7 +218,8 @@
         partners: {
           constructor: [],
           correspondent: [],
-          construction: []
+          construction: [],
+          resourceCategory: []
         }
       }
     },
@@ -382,6 +385,11 @@
           })
           .then((response) => {
             this.partners.construction = response.data.data.constructionList
+            // return this.$http.get(`${queryApi}/resource/category`)
+            return this.$http.get(`${resourceCategoryQueryApi}`)
+          })
+          .then((response) => {
+            this.partners.resourceCategory = response.data.data.resourceCategory
           })
           .catch((error) => {
             console.error(error)
