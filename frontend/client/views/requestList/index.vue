@@ -5,7 +5,7 @@
         <article class="tile is-child box">
           <div class="block">
             <p class="control">
-              <input class="checkbox" type="checkbox" id="showAllCheckbox" v-model="isHideRow">
+              <input class="checkbox" type="checkbox" id="showAllCheckbox" v-model="isShowAllRow">
               <label for="showAllCheckbox">숨김내역 전체보기</label>
             </p>
           </div>
@@ -39,7 +39,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-if="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || !isHideRow">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-if="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
@@ -109,7 +109,7 @@
         filter: new Filter(),
         data: [],
         isLoading: false,
-        isHideRow: true,
+        isShowAllRow: false,
         moment
       }
     },
