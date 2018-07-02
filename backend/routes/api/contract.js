@@ -1053,7 +1053,7 @@ router.post('/:pk([0-9]+)/correspondent', (req, res) => {
   const reqRcPk = req.body.rc_pk || '';
   const reqCoPk = req.body.co_pk || '';
 
-  if (reqPcPk === '' ||reqRtPk === '' ||reqCoPk === '') {
+  if (reqPcPk === '' ||reqRcPk === '' ||reqCoPk === '') {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
     );
@@ -1126,6 +1126,30 @@ router.get('/:pk([0-9]+)/construction', (req, res) => {
         console.error(err);
         res.json(
           resHelper.getError('해당 진행계약의 공사 목록을 조회하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+router.get('/:pk([0-9]+)/resource', (req, res) => {
+  const reqPk = req.params.pk;
+  knexBuilder.getConnection().then(cur => {
+    const edQuery = cur('estimate_detail_hst').select('ed_rtpk').where('ed_pcpk', reqPk).groupBy('ed_rtpk');
+    const rtQuery = cur({rt: 'resource_type_tbl'}).select('rt_rcpk').innerJoin({ed: edQuery}, 'rt.rt_pk', 'ed.ed_rtpk').groupBy('rt_rcpk');
+    const query = cur({rc:'resource_category_tbl'}).select('rc.rc_pk', 'rc.rc_name').innerJoin({a: rtQuery}, 'a.rt_rcpk', 'rc.rc_pk');
+
+    query
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            coresspondentList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('해당 진행계약의 거래처 목록을 조회하는 중 오류가 발생했습니다.')
         );
       })
   })

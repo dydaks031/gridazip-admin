@@ -10,9 +10,14 @@
       <div class="block">
         <div class="control has-addons">
           <div class="select">
-            <select v-model="searchOptions.ct_pk">
+            <select v-model="searchOptions.ct_pk" v-if="openTab === constructor">
               <option value="">전체</option>
               <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+            </select>
+
+            <select v-model="searchOptions.ct_pk" v-if="openTab === correspondent">
+              <option value="">전체</option>
+              <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
             </select>
           </div>
           <input class="input" type="text" placeholder="이름 입력" v-model="searchOptions.name" @keypress.enter.stop="loadData">
@@ -85,7 +90,7 @@
               </colgroup>
               <thead>
               <tr>
-                <th>공사</th>
+                <th>자재분류</th>
                 <th>이름</th>
                 <th>담당자</th>
                 <th>연락처</th>
@@ -96,7 +101,7 @@
               </thead>
               <tbody>
               <tr v-for="item in data.correspondent" @click="moveToDetail(item)">
-                <td>{{item.ct_name}}</td>
+                <td>{{item.rc_name}}</td>
                 <td>{{item.co_name}}</td>
                 <td>{{item.co_contact}}</td>
                 <td>{{item.co_manager_name}}</td>
@@ -147,6 +152,7 @@
 
   const queryApi = '/api'
   const constructionQueryApi = '/api/construction'
+  const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
     name: 'manageConstructorIndex',
@@ -176,6 +182,7 @@
           ct_pk: ''
         },
         constructionList: [],
+        resourceCategoryList: [],
         moment
       }
     },
@@ -236,13 +243,20 @@
           path: `/manage-constructor/${this.openTab}/register`
         })
       },
-      getConstructionList () {
+      getSelectList () {
         this.$http.get(`${constructionQueryApi}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             this.constructionList = response.data.data.constructionList
+            return this.$http.get(`${resourceCategoryQueryApi}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.resourceCategoryList = response.data.data.resourceCategoryList
           })
           .catch((error) => {
             console.error(error)
@@ -251,7 +265,7 @@
     },
     mounted () {
       this.openTab = this.constructor
-      this.getConstructionList()
+      this.getSelectList()
       this.loadData()
     }
   }

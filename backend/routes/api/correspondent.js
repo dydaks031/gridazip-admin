@@ -7,7 +7,7 @@ const FormatService = require('../../services/format/helper');
 /* 거래처 */
 
 router.get('/', (req, res) => {
-  const reqRtPk = req.query.rt_pk || '';
+  const reqRcPk = req.query.rc_pk || '';
   const reqName = req.query.co_name || '';
   const reqManagerName = req.query.co_maneger_name || '';
   const reqPcPk = req.query.pc_pk || '';
@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
       .where('co_deleted', false)
       .orderBy('rc.rc_pk', 'co.co_name');
 
-    if (reqRtPk.trim()) query = query.whereIn('rt_pk', reqRtPk.split(','));
+    if (reqRcPk.trim()) query = query.whereIn('rc_pk', reqRcPk.split(','));
     if (reqName.trim()) query = query.where('co_name', 'like', `%${reqName}%`);
     if (reqManagerName.trim()) query = query.where('co_manager_name', 'like', `%${reqManagerName}%`);
     if (reqPcPk) {
@@ -96,10 +96,10 @@ router.get('/:pk([0-9]+)', (req, res) => {
             .select(
               'ci_pk',
               'rc_pk',
-              'rt_name',
+              'rc_name',
               'ci_brand'
             )
-            .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rtpk', 'rc.rc_pk')
+            .leftJoin({rc: 'resource_category_tbl'}, 'ci.ci_rcpk', 'rc.rc_pk')
             .where('ci_copk', reqPk)
             .orderBy('ci.ci_pk')
             .then(response => {
@@ -284,7 +284,7 @@ router.get('/:copk([0-9]+)/item', (req, res) => {
 
 router.post('/:copk([0-9]+)/item', (req, res) => {
   const reqCoPk = req.params.copk || '';
-  const reqRcPk = req.body.rt_pk || '';
+  const reqRcPk = req.body.rc_pk || '';
   const reqBrand = req.body.ci_brand || '';
 
   if (reqCoPk === '' || reqRcPk === '') {
