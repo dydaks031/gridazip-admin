@@ -389,7 +389,7 @@
             return this.$http.get(`${resourceCategoryQueryApi}`)
           })
           .then((response) => {
-            this.partners.resourceCategory = response.data.data.resourceCategory
+            this.partners.resourceCategory = response.data.data.resourceCategoryList
           })
           .catch((error) => {
             console.error(error)

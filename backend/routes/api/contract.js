@@ -1053,7 +1053,7 @@ router.post('/:pk([0-9]+)/correspondent', (req, res) => {
   const reqRcPk = req.body.rc_pk || '';
   const reqCoPk = req.body.co_pk || '';
 
-  if (reqPcPk === '' ||reqRtPk === '' ||reqCoPk === '') {
+  if (reqPcPk === '' ||reqRcPk === '' ||reqCoPk === '') {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
     );

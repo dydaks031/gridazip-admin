@@ -14,7 +14,7 @@
                 <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
               </select>
 
-              <select v-model="searchOptions.searchConstruction" v-if="type === 'correspondent'">
+              <select v-model="searchOptions.searchResourceCategory" v-if="type === 'correspondent'">
                 <option :value="getAllSearchOption(resourceCategoryList, 'rc_pk')">전체</option>
                 <option v-for="resourceCategory in resourceCategoryList" :value="resourceCategory.rc_pk">{{resourceCategory.rc_name}}</option>
               </select>
@@ -150,7 +150,7 @@
         },
         searchOptions: {
           searchConstruction: '',
-          resourceCategory: '',
+          searchResourceCategory: '',
           name: ''
         }
       }
@@ -165,8 +165,8 @@
         if (!this.searchOptions.searchConstruction) {
           this.searchOptions.searchConstruction = this.getAllSearchOption(this.constructionList, 'ct_pk')
         }
-        if (!this.searchOptions.resourceCategory) {
-          this.searchOptions.resourceCategory = this.getAllSearchOption(this.resourceCategoryList, 'rc_pk')
+        if (!this.searchOptions.searchResourceCategory) {
+          this.searchOptions.searchResourceCategory = this.getAllSearchOption(this.resourceCategoryList, 'rc_pk')
         }
         let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}&rc_pk=${this.searchOptions.resourceCategory}`
         switch (this.type) {
