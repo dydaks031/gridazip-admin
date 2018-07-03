@@ -6,6 +6,7 @@ const cryptoHelper = require('../../services/crypto/helper');
 const filterService = require('../../services/filter/main');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const https = require('https')
 
 const request_size_map = {
   '': '평수 없음',
@@ -184,9 +185,35 @@ router.post('/', (req, res) => {
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
-          res.json(resHelper.getJson({
-            msg: '상담내역이 정상적으로 추가되었습니다.'
-          }));
+
+          const options = {
+            host: 'https://gridazip.slack.com',
+            path: '/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23general',
+            method: 'POST',
+            rejectUnauthorized: false
+          }
+
+          const reqObject = https.request(options, (_res) => {
+            _res.setEncoding('utf8')
+            _res.on('data', (chunk) => {
+              console.log(chunk)
+            })
+            _res.on('end', () => {
+              console.log('end!')
+              res.json(resHelper.getJson({
+                msg: '상담내역이 정상적으로 추가되었습니다.'
+              }));
+            })
+          })
+          reqObject.on('error', (e) => {
+            console.log(e.message)
+          })
+
+          const data = {
+            data: 'Hi'
+          }
+          reqObject.write(JSON.stringify(data))
+          reqObject.end()
         })
         .catch(err => {
           console.error(err);
