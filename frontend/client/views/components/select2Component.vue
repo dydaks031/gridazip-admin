@@ -32,10 +32,14 @@
     watch: {
       value: function (value) {
         // update value
+        this.value = value
         $(this.$el)
           .val(value)
       },
       options: function (options, oldValue) {
+        if (options.length === oldValue.length) {
+          return
+        }
         // update options
         $(this.$el).empty().select2({
           data: options

@@ -577,7 +577,7 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     cur('estimate_detail_hst')
-      .first('ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_alias')
+      .first('ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk')
       .where('ed_pk', reqEdPk)
       .then(row => {
         constructionPk = row.ed_ctpk;
@@ -585,7 +585,6 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
         constructionProcessDetailPk = row.ed_cpdpk;
         resourceTypePk = row.ed_rtpk;
         resourcePk = row.ed_rspk;
-        resourceAlias = row.ed_alias;
 
         return cur('construction_place_tbl')
           .select('cp_pk', 'cp_name', 'cp_order')
@@ -663,7 +662,6 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
             resourceCategoryList,
             resourceTypeList,
             resourceList,
-            resourceAlias
           })
         );
       })
