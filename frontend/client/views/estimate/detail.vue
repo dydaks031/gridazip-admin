@@ -184,7 +184,6 @@
   }
 
   const queryApi = '/api/contract'
-  const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
     name: 'estimateDetail',
@@ -386,10 +385,10 @@
           .then((response) => {
             this.partners.construction = response.data.data.constructionList
             // return this.$http.get(`${queryApi}/resource/category`)
-            return this.$http.get(`${resourceCategoryQueryApi}`)
+            return this.$http.get(`${queryApi}/${id}/resource`)
           })
           .then((response) => {
-            this.partners.resourceCategory = response.data.data.resourceCategoryList
+            this.partners.resourceCategory = response.data.data.coresspondentList
           })
           .catch((error) => {
             console.error(error)
