@@ -4,6 +4,7 @@ const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const moment = require('moment');
 const calc = require('calculator');
+const httpClient = require('request');
 
 router.post('/moment', (req, res) => {
   let now = moment();
@@ -362,6 +363,45 @@ router.get('/redirect_uri', (req, res) => {
   } else {
 
   }
+});
+
+router.get('/https', (req,res) => {
+  console.log('https request beam!!!!!');
+  const options = {
+    host: 'gridazip.slack.com',
+    path: '/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23general',
+    port: 443,
+    method: 'POST',
+    rejectUnauthorized: false
+  };
+
+  httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:'123aaa'}, function(err,httpResponse,body){ console.log(err); console.log(body); });
+
+  // const request = https.request(options, response => {
+  //   console.log(response.statusCode);
+  //   response.on('data', data => {
+  //     console.log(data);
+  //     process.stdout.write(data);
+  //     console.log('');
+  //
+  //     res.json(
+  //       resHelper.getJson(data)
+  //     );
+  //   });
+  //
+  //   response.on('end', () => {
+  //     console.log('end');
+  //   });
+  // });
+  // request.write('123123123123');
+  // request.end();
+  //
+  // request.on('error', function(e) {
+  //   console.error(e);
+  //   res.json(
+  //     resHelper.getJson('')
+  //   );
+  // });
 });
 
 module.exports = router;
