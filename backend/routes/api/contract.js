@@ -218,9 +218,9 @@ router.put('/:pk([0-9]+)', (req, res) => {
         .where('pc_pk', reqPk)
         .then(() => {
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
-          updateObj.pc_etc_costs_ratio  = updateObj.pc_etc_costs_ratio * 100
-          updateObj.pc_design_costs_ratio  = updateObj.pc_design_costs_ratio * 100
-          updateObj.pc_supervision_costs_ratio  = updateObj.pc_supervision_costs_ratio * 100
+          updateObj.pc_etc_costs_ratio  = updateObj.pc_etc_costs_ratio * 100;
+          updateObj.pc_design_costs_ratio  = updateObj.pc_design_costs_ratio * 100;
+          updateObj.pc_supervision_costs_ratio  = updateObj.pc_supervision_costs_ratio * 100;
           res.json(resHelper.getJson({
             msg: '진행 계약건이 정상적으로 변경되었습니다.',
             data: updateObj
@@ -882,9 +882,13 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
           ) l
         `, [reqPcPk, reqPcPk])
           .then(response => {
+            let totalCosts = response[0][0];
+            totalCosts.total_costs = totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+            totalCosts.vat_costs = totalCosts.total_costs * 0.1;
+            totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(
               resHelper.getJson({
-                totalCosts: response[0][0]
+                totalCosts
               })
             );
           })

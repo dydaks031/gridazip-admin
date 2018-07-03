@@ -6,6 +6,7 @@ const cryptoHelper = require('../../services/crypto/helper');
 const filterService = require('../../services/filter/main');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const httpClient = require('request');
 
 const request_size_map = {
   '': '평수 없음',
@@ -161,8 +162,8 @@ router.post('/', (req, res) => {
   else {
     let insertObj = {};
     insertObj.rq_name = reqName;
-    insertObj.rq_nickname = req.body.rq_nickname
-    insertObj.rq_phone = cryptoHelper.encrypt(reqPhone);
+    insertObj.rq_nickname = req.body.rq_nickname;
+    insertObj.rq_phone = cryptoHelper.encrypt(reqPhone.split('-').join(''));
     insertObj.rq_family = req.body.rq_family || '';
     insertObj.rq_size = req.body.rq_size || '';
     insertObj.rq_address_brief = req.body.rq_address_brief || '';
@@ -184,6 +185,9 @@ router.post('/', (req, res) => {
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
+          const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
+          httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
+
           res.json(resHelper.getJson({
             msg: '상담내역이 정상적으로 추가되었습니다.'
           }));
@@ -192,9 +196,10 @@ router.post('/', (req, res) => {
           console.error(err);
           res.json(resHelper.getError('[0001] 상담내역을 추가하는 중 오류가 발생하였습니다.'));
         })
-    })
+    });
   }
 });
+
 
 router.delete('/:rqpk([0-9]+)', (req, res) => {
   const reqPk = req.params.rqpk || '';
