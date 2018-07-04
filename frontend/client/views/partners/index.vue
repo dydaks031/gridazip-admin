@@ -106,7 +106,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `/partner-list/${curItem.pn_pk}`,
+          path: `/private/partner-list/${curItem.pn_pk}`,
           params: curItem
         })
       },

@@ -39,7 +39,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-if="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-show="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
@@ -77,6 +77,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
+  import PrivateWrapper from '../components/PrivateWrapper'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -99,6 +100,7 @@
   export default {
     name: 'requestList',
     components: {
+      PrivateWrapper,
       PaginationVue,
       Notification
     },
@@ -134,7 +136,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `/request-list/${curItem.rq_pk}`,
+          path: `/private/request-list/${curItem.rq_pk}`,
           params: curItem
         })
       },
@@ -199,7 +201,7 @@
       },
       moveToRegister () {
         router.push({
-          path: '/request-list/register'
+          path: '/private/request-list/register'
         })
       }
     },
