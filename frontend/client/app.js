@@ -46,6 +46,7 @@ const nprogress = new NProgress({ parent: '.nprogress-container' })
 const { state } = store
 
 router.beforeEach((route, redirect, next) => {
+  console.log(route)
   if (state.app.device.isMobile && state.app.sidebar.opened) {
     store.commit(TOGGLE_SIDEBAR, {
       opened: false

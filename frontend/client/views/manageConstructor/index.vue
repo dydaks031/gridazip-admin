@@ -222,7 +222,7 @@
         this.loadData()
       },
       moveToDetail (item) {
-        let path = `/manage-constructor/${this.openTab}`
+        let path = `manage-constructor/${this.openTab}`
 
         switch (this.openTab) {
           case this.correspondent:
@@ -240,7 +240,7 @@
       },
       moveToRegister () {
         router.push({
-          path: `/manage-constructor/${this.openTab}/register`
+          path: `manage-constructor/${this.openTab}/register`
         })
       },
       getSelectList () {
