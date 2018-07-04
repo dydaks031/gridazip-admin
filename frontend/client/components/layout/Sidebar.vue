@@ -61,9 +61,7 @@ export default {
       this.isReady = true
       this.shouldExpandMatchItem(route)
     }
-    console.log(this.menu)
     EventBus.$on('togglePrintMode', () => {
-      console.log(this.show)
       this.forceHide = !this.forceHide
     })
   },

@@ -115,7 +115,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `portfolio/${curItem.pf_pk}`,
+          path: `/private/portfolio/${curItem.pf_pk}`,
           params: curItem
         })
       },
@@ -126,7 +126,7 @@
       },
       moveToRegister () {
         router.push({
-          path: `portfolio/register`
+          path: `/private/portfolio/register`
         })
       },
       deleteRow (curItem) {

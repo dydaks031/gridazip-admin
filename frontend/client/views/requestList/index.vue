@@ -136,7 +136,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `request-list/${curItem.rq_pk}`,
+          path: `/private/request-list/${curItem.rq_pk}`,
           params: curItem
         })
       },
@@ -201,7 +201,7 @@
       },
       moveToRegister () {
         router.push({
-          path: 'request-list/register'
+          path: '/private/request-list/register'
         })
       }
     },

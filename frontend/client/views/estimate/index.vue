@@ -106,7 +106,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `estimate/${curItem.pc_pk}`,
+          path: `/private/estimate/${curItem.pc_pk}`,
           params: curItem
         })
       },
@@ -162,7 +162,7 @@
       },
       moveToRegister () {
         router.push({
-          path: 'estimate/register'
+          path: '/private/estimate/register'
         })
       }
     },

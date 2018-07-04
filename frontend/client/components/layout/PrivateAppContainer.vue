@@ -32,7 +32,6 @@
         if (!document.hidden) {
           let rect = body.getBoundingClientRect()
           let isMobile = rect.width - RATIO < WIDTH
-          console.log(isMobile)
           this.toggleDevice(isMobile ? 'mobile' : 'other')
           this.toggleSidebar({
             opened: !isMobile
