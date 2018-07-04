@@ -39,7 +39,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-if="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-show="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
