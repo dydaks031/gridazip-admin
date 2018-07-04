@@ -176,7 +176,7 @@
     methods: {
       moveToRegister () {
         router.push({
-          path: `/estimate/${this.param.id}/register`
+          path: `/private/estimate/${this.param.id}/register`
         })
       },
       printPage () {

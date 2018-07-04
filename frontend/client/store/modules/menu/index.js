@@ -8,7 +8,7 @@ const state = {
   items: [
     {
       name: 'Dashboard',
-      path: '/dashboard',
+      path: '/private/dashboard',
       meta: {
         icon: 'fa-tachometer',
         link: 'dashboard/index.vue',
@@ -18,7 +18,7 @@ const state = {
     },
     {
       name: '상담요청조회',
-      path: '/request-list',
+      path: '/private/request-list',
       meta: {
         icon: 'fa-rocket',
         link: 'requestList/index.vue',
@@ -28,7 +28,7 @@ const state = {
     },
     {
       name: '포트폴리오',
-      path: '/portfolio',
+      path: '/private/portfolio',
       meta: {
         icon: 'fa-rocket',
         link: 'portfolio/index.vue',
@@ -38,7 +38,7 @@ const state = {
     },
     {
       name: '협력업체 신청 목록',
-      path: '/partner-list',
+      path: '/private/partner-list',
       meta: {
         icon: 'fa-rocket',
         link: 'partners/index.vue',
@@ -55,7 +55,7 @@ const state = {
       children: [
         {
           name: '진행계약 목록',
-          path: '/estimate',
+          path: '/private/estimate',
           meta: {
             icon: 'fa-rocket',
             link: 'estimate/index.vue',
@@ -65,7 +65,7 @@ const state = {
         },
         {
           name: '메타데이터 등록',
-          path: '/meta-register',
+          path: '/private/meta-register',
           meta: {
             icon: 'fa-rocket',
             link: 'meta-register/index.vue',
@@ -75,7 +75,7 @@ const state = {
         },
         {
           name: '기술자 및 거래처',
-          path: '/manage-constructor',
+          path: '/private/manage-constructor',
           meta: {
             icon: 'fa-rocket',
             link: 'manageConstructor/index.vue',

@@ -77,6 +77,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
+  import PrivateWrapper from '../components/PrivateWrapper'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -99,6 +100,7 @@
   export default {
     name: 'requestList',
     components: {
+      PrivateWrapper,
       PaginationVue,
       Notification
     },
@@ -134,7 +136,7 @@
       moveToPage (curItem) {
         console.log(curItem)
         router.push({
-          path: `/request-list/${curItem.rq_pk}`,
+          path: `/private/request-list/${curItem.rq_pk}`,
           params: curItem
         })
       },
@@ -199,7 +201,7 @@
       },
       moveToRegister () {
         router.push({
-          path: '/request-list/register'
+          path: '/private/request-list/register'
         })
       }
     },
