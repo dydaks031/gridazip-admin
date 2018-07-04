@@ -138,7 +138,7 @@ export default new Router({
         ...generateRoutesFromMenu(menuModule.state.items),
         {
           path: '*',
-          redirect: '/'
+          redirect: '/private'
         }
       ]
     },
@@ -153,13 +153,13 @@ export default new Router({
         },
         {
           path: '*',
-          redirect: '/'
+          redirect: '/customer'
         }
       ]
     },
     {
       path: '*',
-      redirect: 'private/'
+      redirect: '/private/login'
     }
   ]
 })
