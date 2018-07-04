@@ -333,6 +333,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   const reqDetailPlace = req.body.ed_detail_place || '';
   const reqAlias = req.body.ed_alias || '';
 
+  const cf = 1000;
+
   if (reqPcPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
@@ -409,8 +411,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
         .then(row => {
           labor_costs += row.rt_extra_labor_costs;
           insertObj.rc_pk = reqRcPk;
-          insertObj.labor_costs = labor_costs * reqInputValue;
-          insertObj.resource_costs = resource_price * insertObj.ed_resource_amount;
+          insertObj.labor_costs = labor_costs * (reqInputValue * cf) / cf;
+          insertObj.resource_costs = resource_price * (insertObj.ed_resource_amount * cf) / cf;
 
           res.json(
             resHelper.getJson({
