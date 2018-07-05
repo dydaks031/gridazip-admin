@@ -262,6 +262,70 @@ router.delete('/:pk([0-9]+)', (req, res) => {
 
 
 /* estimate */
+router.get('/:pk([0-9]+)/estimate', (req, res) => {
+  const reqPcPk = req.params.pk || '';
+  let tabInfo;
+  knexBuilder.getConnection().then(cur => {
+    cur('estimate_tbl')
+      .select('es_pk', 'es_version')
+      .where('es_pcpk', reqPcPk)
+      .orderBy('es_version')
+      .then(response => {
+        tabInfo = response;
+
+        cur({'ed': 'estimate_detail_hst'})
+          .select([
+            'ed_pk',
+            {place_name: 'pl.cp_name'},
+            'ed.ed_place_pk',
+            'ed.ed_detail_place',
+            'ed.ed_ctpk',
+            'ct.ct_name',
+            'ed.ed_cppk',
+            'cp.cp_name',
+            'ed.ed_cpdpk',
+            'cpd.cpd_name',
+            'rc.rc_pk',
+            'rc.rc_name',
+            'ed.ed_rtpk',
+            'rt.rt_name',
+            'rt.rt_sub',
+            'ed.ed_rspk',
+            'rs.rs_name',
+            'ed.ed_alias',
+            'ru.ru_name',
+            'ed.ed_input_value',
+            'ed.ed_resource_amount',
+            'cpd.cpd_unit',
+            cur.raw(`ed.ed_input_value * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs`),
+            cur.raw(`ed.ed_resource_amount * rs.rs_price as resource_costs`)
+          ])
+          .where('ed_espk', reqPcPk)
+          .leftJoin({pl: 'construction_place_tbl'}, 'ed.ed_place_pk', 'pl.cp_pk')
+          .leftJoin({ct: 'construction_tbl'}, 'ed.ed_ctpk', 'ct.ct_pk')
+          .leftJoin({cp: 'construction_process_tbl'}, 'ed.ed_cppk', 'cp.cp_pk')
+          .leftJoin({cpd: 'construction_process_detail_tbl'}, 'ed.ed_cpdpk', 'cpd.cpd_pk')
+          .leftJoin({rt: 'resource_type_tbl'}, 'ed.ed_rtpk', 'rt.rt_pk')
+          .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
+          .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
+          .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
+          .orderBy('ed.ed_place_pk', 'ed_pk')
+          .then(response => {
+            res.json(
+              resHelper.getJson({
+                estimateList: response
+              })
+            );
+          })
+          .catch(err => {
+            console.log(err);
+            res.json(
+              resHelper.getError('상세견적 목록을 조회하는 중 오류가 발생하였습니다.')
+            );
+          })
+      })
+  });
+});
 
 router.get('/:pk([0-9]+)/estimate', (req, res) => {
   const reqPcPk = req.params.pk || '';
