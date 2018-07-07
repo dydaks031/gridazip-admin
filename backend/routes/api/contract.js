@@ -8,9 +8,9 @@ const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const calc = require('calculator');
 
-router.get('/pk', (req, res) => {
-  const reqPhone = req.query.phone || '';
-  const reqPassword = req.query.password || '';
+router.post('/pk', (req, res) => {
+  const reqPhone = req.body.phone || '';
+  const reqPassword = req.body.password || '';
 
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
@@ -703,6 +703,7 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
         return cur.raw(`
           select pl.cp_name as place_name,
                  pl.cp_pk as place_pk,
+                 ed.ed_detail_place as detail_place,
                  ct.ct_pk,
                  ct.ct_name,
                  cp.cp_name,
@@ -768,8 +769,11 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
 
     cur.raw(`
       select ct.ct_name,
+             ct.ct_pk,
              cp.cp_name,
+             cp.cp_pk,
              cpd.cpd_name,
+             cpd.cpd_pk,
              rt.rt_name,
              rt.rt_sub,
              rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
@@ -814,6 +818,7 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
              rs.rs_code,
              rs.rs_price,
              rc.rc_name,
+             rc.rc_pk,
              ceil(sum(ed.ed_resource_amount)) as resource_amount,
              ru.ru_name,
              ed.ed_alias,

@@ -1,226 +1,209 @@
 <template>
-  <div class="wrapper">
-    <div class="title-wrapper is-clearfix">
-      <h1 class="title">인테리어 <span class="is-bold">상세견적서</span></h1>
-      <a class="button is-rounded is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄하기</a>
-    </div>
-    <!-- Main container -->
-    <nav class="level user-info">
-      <!-- Left side -->
-      <div class="level-left">
-        <div class="level-item user-name">
-          <p class="subtitle is-5">
-            <strong>김태리</strong> 고객
-          </p>
-          <hr />
-        </div>
-        <div class="level-item">
-          <p>
-            <strong>연락처</strong>
-            <span class="is-block">010-4321-9876</span>
-          </p>
-        </div>
-        <div class="level-item">
-          <p>
-            <strong>이사일</strong>
-            <span class="is-block">2018.08.01</span>
-          </p>
-        </div>
-        <div class="level-item">
-          <p>
-            <strong>평수</strong>
-            <span class="is-block">18평</span>
-          </p>
-        </div>
-        <div class="level-item">
-          <p>
-            <strong>주소</strong>
-            <span class="is-block">서울시 강서구 양천로 551 10층 1010호</span>
-          </p>
-        </div>
+  <div>
+    <div class="wrapper" :class="{'modal-closed': !isCloseModal}">
+      <div class="title-wrapper is-clearfix">
+        <h1 class="title">인테리어 <span class="is-bold">상세견적서</span></h1>
+        <a class="button is-rounded is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄하기</a>
       </div>
-    </nav>
-
-    <div class="contents">
-      <section class="space-base-info">
-        <h2 class="title has-text-centered">공간별 견적</h2>
-        <table class="table position-base-table">
-        <colgroup>
-          <col width="8%" />
-          <col width="5%" />
-          <col width="10%" />
-          <col width="auto" />
-          <col width="5%" />
-          <col width="10%" />
-          <col width="10%" />
-          <col width="10%" />
-        </colgroup>
-        <thead>
-        <tr>
-          <th>위치</th>
-          <th>공사</th>
-          <th>공정</th>
-          <th>자재</th>
-          <th>물량</th>
-          <th>자재단위</th>
-          <th>인건비</th>
-          <th>자재비</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
-          <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-          <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-          <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-          <td>{{generalData.resource_amount}}</td>
-          <td>{{generalData.ru_name}}</td>
-          <td>{{addCommas(generalData.labor_costs)}}</td>
-          <td>{{addCommas(generalData.resource_costs)}}</td>
-        </tr>
-        </tbody>
-      </table>
-        <div class="more-data">
-          <i class="fa fa-angle-down" /><span>더보기</span>
+      <!-- Main container -->
+      <nav class="level user-info">
+        <!-- Left side -->
+        <div class="level-left">
+          <div class="level-item user-name">
+            <p class="subtitle is-5">
+              <strong>{{userInfo.pc_name}}</strong> 고객
+            </p>
+            <hr />
+          </div>
+          <div class="level-item">
+            <p>
+              <strong>연락처</strong>
+              <span class="is-block">{{userInfo.pc_phone}}</span>
+            </p>
+          </div>
+          <div class="level-item">
+            <p>
+              <strong>이사일</strong>
+              <span class="is-block">{{getComputedDate(userInfo.pc_move_date)}}</span>
+            </p>
+          </div>
+          <div class="level-item">
+            <p>
+              <strong>평수</strong>
+              <span class="is-block">{{userInfo.pc_size}}평</span>
+            </p>
+          </div>
+          <div class="level-item">
+            <p>
+              <strong>주소</strong>
+              <span class="is-block">{{getFullAddress(userInfo.pc_address_brief, userInfo.pc_address_detail)}}</span>
+            </p>
+          </div>
         </div>
-      </section>
-      <section  class="detail-info columns">
-        <div class="column is-6">
-          <article>
-            <h2 class="title has-text-centered">자재비</h2>
-            <div class="content">
-              <table class="table">
-                <colgroup>
-                  <col width="auto"/>
-                </colgroup>
-                <thead>
-                <tr>
-                  <th>자재분류</th>
-                  <th>자재</th>
-                  <th>물량</th>
-                  <th>자재단위</th>
-                  <th>단가</th>
-                  <th>금액</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="resource in viewerData.resource" v-show="resource.rs_price !== 0">
-                  <td>{{resource.rc_name}}</td>
-                  <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                  <td>{{resource.resource_amount}}</td>
-                  <td>{{resource.ru_name}}</td>
-                  <td>{{addCommas(resource.rs_price)}}</td>
-                  <td>{{addCommas(resource.resource_costs)}}</td>
-                </tr>
-                </tbody>
-              </table>
-              <div class="more-data">
-                <i class="fa fa-angle-down" /><span>더보기</span>
+      </nav>
+
+      <div class="contents">
+        <section class="space-base-info">
+          <h2 class="title has-text-centered">공간별 견적</h2>
+          <table class="table position-base-table">
+            <colgroup>
+              <col width="8%" />
+              <col width="5%" />
+              <col width="10%" />
+              <col width="10%" />
+              <col width="10%" />
+              <col width="auto" />
+              <col width="10%" />
+              <col width="10%" />
+              <col width="10%" />
+            </colgroup>
+            <thead>
+            <tr>
+              <th>위치</th>
+              <th>공사</th>
+              <th>공정</th>
+              <th>상세공정</th>
+              <th>상세위치</th>
+              <th>자재</th>
+              <th>인건비</th>
+              <th>자재비</th>
+              <th>총 금액</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
+              <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
+              <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+              <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+              <td>{{generalData.cpd_name}}</td>
+              <td>{{generalData.detail_place}}</td>
+              <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+              <td>{{addCommas(generalData.labor_costs)}}</td>
+              <td>{{addCommas(generalData.resource_costs)}}</td>
+              <td>{{addCommas(generalData.labor_costs + generalData.resource_costs)}}</td>
+            </tr>
+            </tbody>
+          </table>
+          <div class="more-data" @click="toggleMoreData('general')">
+            <i class="fa fa-angle-down" /><span>더보기</span>
+          </div>
+        </section>
+        <section  class="detail-info columns">
+          <div class="column is-6">
+            <article>
+              <h2 class="title has-text-centered">자재비</h2>
+              <div class="content">
+                <table class="table">
+                  <colgroup>
+                    <col width="15%"/>
+                    <col width="auto"/>
+                    <col width="auto"/>
+                    <col width="auto"/>
+                    <col width="auto"/>
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>자재분류</th>
+                    <th>자재</th>
+                    <th>물량</th>
+                    <th>단가</th>
+                    <th>금액</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr v-for="(resource, index) in viewerData.resource" v-if="resource.rs_price !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
+                    <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
+                    <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
+                    <td>{{resource.resource_amount}} {{resource.ru_name}}</td>
+                    <td>{{addCommas(resource.rs_price)}}</td>
+                    <td>{{addCommas(resource.resource_costs)}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+                <div class="more-data" @click="toggleMoreData('resource')">
+                  <i class="fa fa-angle-down" /><span>더보기</span>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div class="column is-6">
+            <article>
+              <h2 class="title has-text-centered">인건비</h2>
+              <div class="content">
+                <table class="table">
+                  <colgroup>
+                    <col width="auto"/>
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>공사</th>
+                    <th>공정</th>
+                    <th>상세공정</th>
+                    <th>자재군</th>
+                    <th>인건비</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr v-for="(labor, index) in viewerData.labor" v-if="labor.labor_costs !== 0 && (index <= 5 || isMoreBtnStatus.labor)">
+                    <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                    <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                    <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
+                    <td>{{labor.rt_name}}</td>
+                    <td>{{addCommas(labor.labor_costs)}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+                <div class="more-data" @click="toggleMoreData('labor')">
+                  <i class="fa fa-angle-down" /><span>더보기</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="summary-info">
+          <nav class="level">
+            <!-- Left side -->
+            <div class="level-left">
+              <h3 class="subtitle">총 견적금액</h3>
+            </div>
+            <div class="level-right">
+              <div class="level-item mr-15">
+                <p>자재비</p>
+                <p>인건비</p>
+                <p>디자인 및 설계비</p>
+                <p>감리비</p>
+                <p>공과잡비</p>
+              </div>
+              <div class="level-item flex-item-right">
+                <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.design_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.supervision_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
               </div>
             </div>
-          </article>
-        </div>
-        <div class="column is-6">
-          <article>
-            <h2 class="title has-text-centered">인건비</h2>
-            <div class="content">
-              <table class="table">
-                <colgroup>
-                  <col width="auto"/>
-                </colgroup>
-                <thead>
-                <tr>
-                  <th>공사</th>
-                  <th>공정</th>
-                  <th>상세공정</th>
-                  <th>자재군</th>
-                  <th>인건비</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="labor in viewerData.labor" v-show="labor.labor_costs !== 0">
-                  <td>{{labor.ct_name}}</td>
-                  <td>{{labor.cp_name}}</td>
-                  <td>{{labor.cpd_name}}</td>
-                  <td>{{labor.rt_name}}</td>
-                  <td>{{addCommas(labor.labor_costs)}}</td>
-                </tr>
-                </tbody>
-              </table>
-              <div class="more-data">
-                <i class="fa fa-angle-down" /><span>더보기</span>
+          </nav>
+          <nav class="level">
+            <!-- Left side -->
+            <div class="level-left flex-center-text">
+              <h3 class="subtitle">합계(VAT 포함)</h3>
+            </div>
+            <div class="level-right flex-center-text">
+              <div class="level-item summary">
+                <p>{{addCommas(viewerData.total.total_costs_including_vat)}}원</p>
               </div>
             </div>
-          </article>
-        </div>
-      </section>
-      <section class="summary-info">
-        <nav class="level">
-          <!-- Left side -->
-          <div class="level-left">
-            <h3 class="subtitle">총 견적금액</h3>
-          </div>
-          <div class="level-right">
-            <div class="level-item mr-15">
-              <p>자재비</p>
-              <p>인건비</p>
-              <p>디자인 및 설계비</p>
-              <p>감리비</p>
-              <p>공과잡비</p>
-            </div>
-            <div class="level-item">
-              <p>9,172,100원</p>
-              <p>9,172,100원</p>
-              <p>9,172,100원</p>
-              <p>9,172,100원</p>
-              <p>9,172,100원</p>
-            </div>
-          </div>
-        </nav>
-        <nav class="level">
-          <!-- Left side -->
-          <div class="level-left flex-center-text">
-            <h3 class="subtitle">합계</h3>
-          </div>
-          <div class="level-right flex-center-text">
-            <div class="level-item summary">
-              <p>19,376,375원</p>
-            </div>
-          </div>
-        </nav>
-      </section>
-      <!--<div class="tile is-ancestor summary">-->
-        <!--<div class="tile is-parent">-->
-          <!--<article class="tile is-child box">-->
-            <!--<div class="is-clearfix">-->
-              <!--<div class="is-pulled-right">-->
-                <!--<p>-->
-                  <!--<span>자재비: {{addCommas(viewerData.total.resource_costs)}}원</span>-->
-                <!--</p>-->
-                <!--<p>-->
-                  <!--<span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>-->
-                <!--</p>-->
-                <!--<p>-->
-                  <!--<span>디자인 및 설계비: {{addCommas(viewerData.total.design_costs)}}원</span>-->
-                <!--</p>-->
-                <!--<p>-->
-                  <!--<span>감리비: {{addCommas(viewerData.total.supervision_costs)}}원</span>-->
-                <!--</p>-->
-                <!--<p>-->
-                  <!--<span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>-->
-                <!--</p>-->
-                <!--<p>-->
-                  <!--<span>합: {{addCommas(viewerData.total.resource_costs + viewerData.total.labor_costs + viewerData.total.etc_costs + viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>-->
-                <!--</p>-->
-              <!--</div>-->
-            <!--</div>-->
-          <!--</article>-->
-        <!--</div>-->
-      <!--</div>-->
-    </div>
-    <div class="footer">
+          </nav>
+        </section>
+      </div>
+      <div class="footer">
 
+      </div>
     </div>
+    <estimate-auth-view
+      :beforeClose="loadEstimateView"
+      :isCloseModal.sync="isCloseModal"
+      v-on:changeCloseModalStatus="changeCloseModalStatus"/>
   </div>
 </template>
 
@@ -230,12 +213,14 @@
   import mixin from '../../services/mixin'
   import EventBus from '../../services/eventBus'
   import deepClone from '../../services/deepClone'
+  import EstimateAuthView from './EstimateAuthView'
   import _ from 'underscore'
 
   const queryApi = '/api/contract'
   const estimateId = 6
 
   export default {
+    components: {EstimateAuthView},
     name: 'estimate-sheet',
     mixins: [mixin],
     data () {
@@ -250,12 +235,19 @@
         },
         isOpenSubResource: {
         },
+        userInfo: {},
         estimateData: {
           general: [],
           labor: [],
           resource: [],
           total: {}
-        }
+        },
+        isMoreBtnStatus: {
+          general: false,
+          labor: false,
+          resource: false
+        },
+        isCloseModal: false
       }
     },
     methods: {
@@ -324,9 +316,42 @@
             })
           }
         }
+
         let resultData = [].concat.apply([], Object.values(generalData))
         // Categorize & Rowspan
         // place_pk, ct_pk, cp_pk 순 정렬
+        const placeByData = _.groupBy(resultData, 'place_pk')
+        for (let i in placeByData) {
+          const placeItem = placeByData[i]
+          const placePk = placeItem[0].place_pk
+          placeByData[i].push({
+            cp_name: '',
+            cp_pk: '999',
+            cpd_min_amount: '',
+            cpd_name: '',
+            ct_name: '소계',
+            ct_pk: '999',
+            ed_alias: '',
+            ed_input_value: '',
+            labor_costs: _.reduce(placeItem, (memo, obj) => {
+              return memo + obj.labor_costs
+            }, 0),
+            place_name: '공용욕실',
+            place_pk: placePk,
+            resource_amount: '',
+            resource_costs: _.reduce(placeItem, (memo, obj) => {
+              return memo + obj.resource_costs
+            }, 0),
+            rs_code: '',
+            rs_name: '',
+            rs_pk: '',
+            rs_price: '',
+            rt_name: '',
+            rt_sub: 0,
+            ru_name: ''
+          })
+        }
+        resultData = [].concat.apply([], Object.values(placeByData))
         resultData = _(resultData).chain()
           .sortBy((data) => {
             return data.cp_pk
@@ -339,7 +364,7 @@
           })
           .value()
           .concat(subResourceData)
-        const placeByData = _.groupBy(resultData, 'place_pk')
+
         const mergeCount = {}
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in placeByData) {
@@ -372,6 +397,7 @@
           }
         }
 
+        console.log(resultData)
         const firstMeetPk = {
           place: {
 
@@ -402,6 +428,171 @@
         }
         this.viewerData.general = resultData
       },
+      mergeResourceTable (resource) {
+        let resultData = deepClone(resource)
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
+        const resourceCategoryByData = _.groupBy(resultData, 'rc_pk')
+        for (let i in resourceCategoryByData) {
+          const resourceCategoryItem = resourceCategoryByData[i]
+          resourceCategoryByData[i].push({
+            ed_alias: '',
+            rc_name: '소계',
+            resource_amount: '',
+            rc_pk: resourceCategoryItem[0].rc_pk,
+            resource_costs: _.reduce(resourceCategoryItem, (memo, obj) => {
+              return memo + obj.resource_costs
+            }, 0),
+            rs_code: '',
+            rs_name: '소계',
+            rs_price: '',
+            ru_name: ''
+          })
+        }
+        resultData = [].concat.apply([], Object.values(resourceCategoryByData))
+        resultData = _(resultData).chain()
+          .sortBy((data) => {
+            return data.rc_pk
+          })
+          .value()
+
+        const mergeCount = {}
+        // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
+        for (let i in resourceCategoryByData) {
+          const resourceCategoryItem = resourceCategoryByData[i]
+          const resourceCategoryPk = resourceCategoryItem[0].rc_pk
+          mergeCount[resourceCategoryPk] = {
+            count: resourceCategoryItem.length
+          }
+        }
+
+        console.log(resourceCategoryByData)
+
+        console.log(resultData)
+        const firstMeetPk = {
+          resourceCategory: {
+
+          }
+        }
+        let item
+        const resultCount = resultData.length
+        for (let i = 0; i < resultCount; i++) {
+          item = resultData[i]
+          // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
+
+          if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
+            item.resource_category_count = mergeCount[item.rc_pk].count
+            firstMeetPk.resourceCategory[item.rc_pk] = {}
+          }
+        }
+
+        this.viewerData.resource = resultData
+      },
+      mergeLaborTable (labor) {
+        let resultData = [].concat.apply([], Object.values(labor))
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
+        const constructionByData = _.groupBy(resultData, 'ct_pk')
+        for (let i in constructionByData) {
+          const constructionItem = constructionByData[i]
+          const constructionPk = constructionItem[0].ct_pk
+          constructionByData[i].push({
+            ct_pk: constructionByData[i][0].ct_pk,
+            cp_pk: '999',
+            cpd_pk: '999',
+            cp_name: '소계',
+            cpd_min_amount: '',
+            cpd_name: '',
+            ct_name: '',
+            input_value: 0,
+            labor_costs: _.reduce(constructionItem, (memo, obj) => {
+              return memo + obj.labor_costs
+            }, 0),
+            labor_price: 0,
+            rt_name: '',
+            rt_sub: 0
+          })
+        }
+        resultData = [].concat.apply([], Object.values(constructionByData))
+        resultData = _(resultData).chain()
+          .sortBy((data) => {
+            return data.cpd_pk
+          })
+          .sortBy((data) => {
+            return data.cp_pk
+          })
+          .sortBy((data) => {
+            return data.ct_pk
+          })
+          .value()
+
+        const mergeCount = {}
+        // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
+        for (let i in constructionByData) {
+          const constructionItem = constructionByData[i]
+          const constructionPk = constructionItem[0].ct_pk
+          mergeCount[constructionPk] = {
+            count: constructionItem.length,
+            constructionProcess: {
+            }
+          }
+          console.log(constructionItem)
+          // 위의 위치의 해당하는 데이터 중 동일한 공사의 데이터가 몇건인지 확인한다.
+          const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
+          for (let j in constructionProcessByData) {
+            const constructionProcessItem = constructionProcessByData[j]
+            const constructionProcessPk = constructionProcessItem[0].cp_pk
+            mergeCount[constructionPk].constructionProcess[constructionProcessPk] = {
+              count: constructionProcessItem.length,
+              constructionProcessDetail: {
+              }
+            }
+            // 위의 공사에 해당하는 데이터 중 동일한 공정의 데이터가 몇건인지 확인한다.
+            const constructionProcessDetailByData = _.groupBy(constructionProcessItem, 'cpd_pk')
+            for (let k in constructionProcessDetailByData) {
+              const constructionProcessDetailItem = constructionProcessDetailByData[k]
+              const constructionProcessDetailPk = constructionProcessDetailItem[0].cpd_pk
+              mergeCount[constructionPk].constructionProcess[constructionProcessPk].constructionProcessDetail[constructionProcessDetailPk] = {
+                count: constructionProcessDetailItem.length
+              }
+            }
+          }
+        }
+
+        const firstMeetPk = {
+          construction: {
+
+          }
+        }
+        console.log(mergeCount)
+        let item
+        const resultCount = resultData.length
+        for (let i = 0; i < resultCount; i++) {
+          item = resultData[i]
+          // 이미 위에서 labor_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
+          console.log(`ct_pk : ${item.ct_pk}`)
+          console.log(`cp_pk : ${item.cp_pk}`)
+          console.log(`cpd_pk : ${item.cpd_pk}`)
+          if (!firstMeetPk.construction.hasOwnProperty(item.ct_pk)) {
+            item.construction_count = mergeCount[item.ct_pk].count
+            firstMeetPk.construction[item.ct_pk] = {
+              constructionProcess: {}
+            }
+          }
+          if (!firstMeetPk.construction[item.ct_pk].constructionProcess.hasOwnProperty(item.cp_pk)) {
+            item.construction_process_count = mergeCount[item.ct_pk].constructionProcess[item.cp_pk].count
+            firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk] = {
+              constructionProcessDetail: {}
+            }
+          }
+          if (!firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail.hasOwnProperty(item.cpd_pk)) {
+            item.construction_process_detail_count = mergeCount[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk].count
+            firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk] = true
+          }
+        }
+        console.log(resultData)
+        this.viewerData.labor = resultData
+      },
       openSubResource (item) {
         if (!item.hasOwnProperty('sub_key')) {
           return false
@@ -411,6 +602,7 @@
       },
       loadEstimateView () {
         const id = estimateId
+        let userInfo
         let general
         let labor
         let resource
@@ -418,7 +610,15 @@
         if (!id) {
           return false
         }
-        this.$http.get(`${queryApi}/${id}/estimate/general`)
+        this.$http.get(`${queryApi}/${id}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            userInfo = response.data.data.contract
+            return this.$http.get(`${queryApi}/${id}/estimate/general`)
+          })
+
           .then((response) => {
             if (response.data.code !== 200) {
               return false
@@ -445,6 +645,7 @@
               return
             }
             total = response.data.data.totalCosts
+            this.userInfo = userInfo
             this.estimateData = {
               general,
               labor,
@@ -461,21 +662,44 @@
             }
             console.log(error)
           })
+      },
+      changeCloseModalStatus (result) {
+        this.isCloseModal = result.closeStatus
+        this.estimateData = result.pc_pk
+        if (this.isCloseModal) {
+          this.loadEstimateView()
+        }
+      },
+      rowHideCondition (item, index) {
+        return (item.rt_sub === 0 || (item.hasOwnProperty('sub_key') && this.isOpenSubResource[item.sub_key] === true)) && (index <= 5 || this.isMoreBtnStatus.general)
+      },
+      toggleMoreData (type) {
+        this.isMoreBtnStatus[type] = !this.isMoreBtnStatus[type]
+      },
+      getFullAddress (brief, detail) {
+        if (!(brief || detail)) {
+          return '-'
+        } else {
+          return `${brief} ${detail}`
+        }
       }
     },
     mounted () {
-      this.loadEstimateView()
+      this.$modal.show('estimateAuthView')
     },
     created () {
     },
     watch: {
       estimateData: {
         handler (newValue, oldValue) {
-          this.viewerData.general = newValue.general
-          this.viewerData.labor = newValue.labor
-          this.viewerData.resource = newValue.resource
-          this.viewerData.total = newValue.total
-          this.mergeSubResource(newValue.general)
+          console.log(newValue)
+          this.viewerData.general = newValue.general || []
+          this.viewerData.labor = newValue.labor || []
+          this.viewerData.resource = newValue.resource || []
+          this.viewerData.total = newValue.total || {}
+          this.mergeSubResource(this.viewerData.general)
+          this.mergeResourceTable(this.viewerData.resource)
+          this.mergeLaborTable(this.viewerData.labor)
         },
         deep: true
       }
@@ -487,10 +711,20 @@
   $main-color: #9dadff;
   $background-grey: #f8f7fc;
   $default-font-size: 14px;
+  $table-hover-color: #fcfbfe;
 
   .wrapper {
     background:#f8f7fc;
-    overflow: hidden
+
+    &.modal-closed {
+      height:100vh;
+      overflow: hidden;
+      filter: blur(8px);
+      -ms-filter: blur(8px);
+      -moz-filter: blur(8px);
+      -webkit-filter: blur(8px);
+      -o-filter: blur(8px);
+    }
   }
   .is-one-fifth {
     flex: none;
@@ -501,6 +735,9 @@
   }
   .flex-center-text {
     align-self: center;
+  }
+  .flex-item-right {
+    align-items: flex-end;
   }
 
   .title-wrapper {
@@ -563,19 +800,22 @@
       border: solid 1px #e1e1e1;
       tr {
         &:hover {
-          background-color: inherit;
+          background-color: $table-hover-color;
         }
         border: solid 1px #e1e1e1;
       }
 
       td, th {
-        padding: 1rem;
+        padding: 0.8rem;
       }
 
       thead {
         background: #b5b5be;
         border: none;
         tr {
+          &:hover {
+            background-color: inherit;
+          }
           th {
             color: white;
             border: none;
@@ -590,12 +830,18 @@
           }
           td {
             color: #000000;
+
+            .resource-code {
+              display:block;
+              font-size:0.8rem;
+              color: #777777;
+            }
           }
         }
       }
     }
     .space-base-info {
-      padding: 0 4rem;
+      padding: 0 4rem 2rem 4rem;
     }
     .detail-info {
       background: $background-grey;
@@ -695,7 +941,6 @@
       }
     }
   }
-
   .footer {
     padding: calc((14px * 2.2 * 1.15) + (14px * 4));
     background: #666a86;
@@ -703,12 +948,9 @@
     z-index: 0;
     margin-top: calc(-1* ((14px * 2.2 * 1.15) + (14px * 4) + (14px * 0.25)))
   }
-
-
   .position-base-table {
     margin: 1rem 0 3rem 0
   }
-
   .is-rounded {
     border-radius: 20px;
   }

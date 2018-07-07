@@ -122,7 +122,10 @@
                 <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
               </p>
               <p>
-                <span>합: {{addCommas(viewerData.total.resource_costs + viewerData.total.labor_costs + viewerData.total.etc_costs + viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
+                <span>부가세: {{addCommas(viewerData.total.vat_costs)}}원</span>
+              </p>
+              <p>
+                <span>합: {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
               </p>
             </div>
           </div>
@@ -131,7 +134,6 @@
     </div>
   </div>
 </template>
-
 <script>
   /* eslint-disable no-unused-vars */
   import router from '../../router'
@@ -344,7 +346,6 @@
     }
   }
 </script>
-
 <style scoped lang="scss">
   .title-wrapper {
     padding: 1rem;
