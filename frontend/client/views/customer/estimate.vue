@@ -111,7 +111,7 @@
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="(resource, index) in viewerData.resource" v-if="resource.rs_price !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
+                  <tr v-for="(resource, index) in viewerData.resource" v-if="resource.resource_costs !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
                     <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                     <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                     <td>{{resource.resource_amount}} {{resource.ru_name}}</td>
@@ -320,11 +320,11 @@
         let resultData = [].concat.apply([], Object.values(generalData))
         // Categorize & Rowspan
         // place_pk, ct_pk, cp_pk 순 정렬
-        const placeByData = _.groupBy(resultData, 'place_pk')
-        for (let i in placeByData) {
-          const placeItem = placeByData[i]
+        const placeBySumData = _.groupBy(resultData, 'place_pk')
+        for (let i in placeBySumData) {
+          const placeItem = placeBySumData[i]
           const placePk = placeItem[0].place_pk
-          placeByData[i].push({
+          placeBySumData[i].push({
             cp_name: '',
             cp_pk: '999',
             cpd_min_amount: '',
@@ -336,7 +336,7 @@
             labor_costs: _.reduce(placeItem, (memo, obj) => {
               return memo + obj.labor_costs
             }, 0),
-            place_name: '공용욕실',
+            place_name: '',
             place_pk: placePk,
             resource_amount: '',
             resource_costs: _.reduce(placeItem, (memo, obj) => {
@@ -351,7 +351,10 @@
             ru_name: ''
           })
         }
-        resultData = [].concat.apply([], Object.values(placeByData))
+        resultData = [].concat.apply([], Object.values(placeBySumData))
+
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
         resultData = _(resultData).chain()
           .sortBy((data) => {
             return data.cp_pk
@@ -364,7 +367,7 @@
           })
           .value()
           .concat(subResourceData)
-
+        const placeByData = _.groupBy(resultData, 'place_pk')
         const mergeCount = {}
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in placeByData) {
@@ -397,7 +400,6 @@
           }
         }
 
-        console.log(resultData)
         const firstMeetPk = {
           place: {
 
@@ -459,16 +461,14 @@
         const mergeCount = {}
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in resourceCategoryByData) {
-          const resourceCategoryItem = resourceCategoryByData[i]
+          const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
+            return item.rs_price.toString() !== '0'
+          })
           const resourceCategoryPk = resourceCategoryItem[0].rc_pk
           mergeCount[resourceCategoryPk] = {
             count: resourceCategoryItem.length
           }
         }
-
-        console.log(resourceCategoryByData)
-
-        console.log(resultData)
         const firstMeetPk = {
           resourceCategory: {
 
@@ -479,7 +479,9 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-
+          if (item.rs_price.toString() === '0') {
+            continue
+          }
           if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
             item.resource_category_count = mergeCount[item.rc_pk].count
             firstMeetPk.resourceCategory[item.rc_pk] = {}
@@ -529,7 +531,9 @@
         const mergeCount = {}
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in constructionByData) {
-          const constructionItem = constructionByData[i]
+          const constructionItem = _.filter(constructionByData[i], (item) => {
+            return item.labor_costs.toString() !== '0'
+          })
           const constructionPk = constructionItem[0].ct_pk
           mergeCount[constructionPk] = {
             count: constructionItem.length,
@@ -573,6 +577,9 @@
           console.log(`ct_pk : ${item.ct_pk}`)
           console.log(`cp_pk : ${item.cp_pk}`)
           console.log(`cpd_pk : ${item.cpd_pk}`)
+          if (item.labor_costs.toString() === '0') {
+            continue
+          }
           if (!firstMeetPk.construction.hasOwnProperty(item.ct_pk)) {
             item.construction_count = mergeCount[item.ct_pk].count
             firstMeetPk.construction[item.ct_pk] = {

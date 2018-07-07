@@ -54,9 +54,8 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="resource in viewerData.resource" v-show="resource.rs_price !== 0">
-
-                <td>{{resource.rc_name}}</td>
+              <tr v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
+                <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                 <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
@@ -88,10 +87,10 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="labor in viewerData.labor" v-show="labor.labor_costs !== 0">
-                <td>{{labor.ct_name}}</td>
-                <td>{{labor.cp_name}}</td>
-                <td>{{labor.cpd_name}}</td>
+              <tr v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
+                <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
                 <td>{{labor.rt_name}}</td>
                 <td>{{addCommas(labor.labor_costs)}}</td>
               </tr>
@@ -241,7 +240,43 @@
             })
           }
         }
+
         let resultData = [].concat.apply([], Object.values(generalData))
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
+        const placeBySumData = _.groupBy(resultData, 'place_pk')
+        for (let i in placeBySumData) {
+          const placeItem = placeBySumData[i]
+          const placePk = placeItem[0].place_pk
+          placeBySumData[i].push({
+            cp_name: '',
+            cp_pk: '999',
+            cpd_min_amount: '',
+            cpd_name: '',
+            ct_name: '소계',
+            ct_pk: '999',
+            ed_alias: '',
+            ed_input_value: '',
+            labor_costs: _.reduce(placeItem, (memo, obj) => {
+              return memo + obj.labor_costs
+            }, 0),
+            place_name: '',
+            place_pk: placePk,
+            resource_amount: '',
+            resource_costs: _.reduce(placeItem, (memo, obj) => {
+              return memo + obj.resource_costs
+            }, 0),
+            rs_code: '',
+            rs_name: '',
+            rs_pk: '',
+            rs_price: '',
+            rt_name: '',
+            rt_sub: 0,
+            ru_name: ''
+          })
+        }
+        resultData = [].concat.apply([], Object.values(placeBySumData))
+
         // Categorize & Rowspan
         // place_pk, ct_pk, cp_pk 순 정렬
         resultData = _(resultData).chain()
@@ -319,6 +354,176 @@
         }
         this.viewerData.general = resultData
       },
+      mergeResourceTable (resource) {
+        let resultData = deepClone(resource)
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
+        const resourceCategoryByData = _.groupBy(resultData, 'rc_pk')
+        for (let i in resourceCategoryByData) {
+          const resourceCategoryItem = resourceCategoryByData[i]
+          resourceCategoryByData[i].push({
+            ed_alias: '',
+            rc_name: '소계',
+            resource_amount: '',
+            rc_pk: resourceCategoryItem[0].rc_pk,
+            resource_costs: _.reduce(resourceCategoryItem, (memo, obj) => {
+              return memo + obj.resource_costs
+            }, 0),
+            rs_code: '',
+            rs_name: '소계',
+            rs_price: '',
+            ru_name: ''
+          })
+        }
+        resultData = [].concat.apply([], Object.values(resourceCategoryByData))
+        resultData = _(resultData).chain()
+          .sortBy((data) => {
+            return data.rc_pk
+          })
+          .value()
+
+        const mergeCount = {}
+        // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
+        for (let i in resourceCategoryByData) {
+          const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
+            return item.rs_price.toString() !== '0'
+          })
+          const resourceCategoryPk = resourceCategoryItem[0].rc_pk
+          mergeCount[resourceCategoryPk] = {
+            count: resourceCategoryItem.length
+          }
+        }
+        const firstMeetPk = {
+          resourceCategory: {
+
+          }
+        }
+        let item
+        const resultCount = resultData.length
+        for (let i = 0; i < resultCount; i++) {
+          item = resultData[i]
+          // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
+          if (item.rs_price.toString() === '0') {
+            continue
+          }
+          if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
+            item.resource_category_count = mergeCount[item.rc_pk].count
+            firstMeetPk.resourceCategory[item.rc_pk] = {}
+          }
+        }
+
+        this.viewerData.resource = resultData
+      },
+      mergeLaborTable (labor) {
+        let resultData = [].concat.apply([], Object.values(labor))
+        // Categorize & Rowspan
+        // place_pk, ct_pk, cp_pk 순 정렬
+        const constructionByData = _.groupBy(resultData, 'ct_pk')
+        for (let i in constructionByData) {
+          const constructionItem = constructionByData[i]
+          const constructionPk = constructionItem[0].ct_pk
+          constructionByData[i].push({
+            ct_pk: constructionByData[i][0].ct_pk,
+            cp_pk: '999',
+            cpd_pk: '999',
+            cp_name: '소계',
+            cpd_min_amount: '',
+            cpd_name: '',
+            ct_name: '',
+            input_value: 0,
+            labor_costs: _.reduce(constructionItem, (memo, obj) => {
+              return memo + obj.labor_costs
+            }, 0),
+            labor_price: 0,
+            rt_name: '',
+            rt_sub: 0
+          })
+        }
+        resultData = [].concat.apply([], Object.values(constructionByData))
+        resultData = _(resultData).chain()
+          .sortBy((data) => {
+            return data.cpd_pk
+          })
+          .sortBy((data) => {
+            return data.cp_pk
+          })
+          .sortBy((data) => {
+            return data.ct_pk
+          })
+          .value()
+
+        const mergeCount = {}
+        // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
+        for (let i in constructionByData) {
+          const constructionItem = _.filter(constructionByData[i], (item) => {
+            return item.labor_costs.toString() !== '0'
+          })
+          const constructionPk = constructionItem[0].ct_pk
+          mergeCount[constructionPk] = {
+            count: constructionItem.length,
+            constructionProcess: {
+            }
+          }
+          console.log(constructionItem)
+          // 위의 위치의 해당하는 데이터 중 동일한 공사의 데이터가 몇건인지 확인한다.
+          const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
+          for (let j in constructionProcessByData) {
+            const constructionProcessItem = constructionProcessByData[j]
+            const constructionProcessPk = constructionProcessItem[0].cp_pk
+            mergeCount[constructionPk].constructionProcess[constructionProcessPk] = {
+              count: constructionProcessItem.length,
+              constructionProcessDetail: {
+              }
+            }
+            // 위의 공사에 해당하는 데이터 중 동일한 공정의 데이터가 몇건인지 확인한다.
+            const constructionProcessDetailByData = _.groupBy(constructionProcessItem, 'cpd_pk')
+            for (let k in constructionProcessDetailByData) {
+              const constructionProcessDetailItem = constructionProcessDetailByData[k]
+              const constructionProcessDetailPk = constructionProcessDetailItem[0].cpd_pk
+              mergeCount[constructionPk].constructionProcess[constructionProcessPk].constructionProcessDetail[constructionProcessDetailPk] = {
+                count: constructionProcessDetailItem.length
+              }
+            }
+          }
+        }
+
+        const firstMeetPk = {
+          construction: {
+
+          }
+        }
+        console.log(mergeCount)
+        let item
+        const resultCount = resultData.length
+        for (let i = 0; i < resultCount; i++) {
+          item = resultData[i]
+          // 이미 위에서 labor_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
+          console.log(`ct_pk : ${item.ct_pk}`)
+          console.log(`cp_pk : ${item.cp_pk}`)
+          console.log(`cpd_pk : ${item.cpd_pk}`)
+          if (item.labor_costs.toString() === '0') {
+            continue
+          }
+          if (!firstMeetPk.construction.hasOwnProperty(item.ct_pk)) {
+            item.construction_count = mergeCount[item.ct_pk].count
+            firstMeetPk.construction[item.ct_pk] = {
+              constructionProcess: {}
+            }
+          }
+          if (!firstMeetPk.construction[item.ct_pk].constructionProcess.hasOwnProperty(item.cp_pk)) {
+            item.construction_process_count = mergeCount[item.ct_pk].constructionProcess[item.cp_pk].count
+            firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk] = {
+              constructionProcessDetail: {}
+            }
+          }
+          if (!firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail.hasOwnProperty(item.cpd_pk)) {
+            item.construction_process_detail_count = mergeCount[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk].count
+            firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk] = true
+          }
+        }
+        console.log(resultData)
+        this.viewerData.labor = resultData
+      },
       openSubResource (item) {
         if (!item.hasOwnProperty('sub_key')) {
           return false
@@ -339,7 +544,9 @@
           this.viewerData.labor = newValue.labor
           this.viewerData.resource = newValue.resource
           this.viewerData.total = newValue.total
-          this.mergeSubResource(newValue.general)
+          this.mergeSubResource(this.viewerData.general)
+          this.mergeResourceTable(this.viewerData.resource)
+          this.mergeLaborTable(this.viewerData.labor)
         },
         deep: true
       }
