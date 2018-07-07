@@ -8,9 +8,9 @@ const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const calc = require('calculator');
 
-router.get('/pk', (req, res) => {
-  const reqPhone = req.query.phone || '';
-  const reqPassword = req.query.password || '';
+router.post('/pk', (req, res) => {
+  const reqPhone = req.body.phone || '';
+  const reqPassword = req.body.password || '';
 
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
@@ -146,6 +146,17 @@ router.get('/:pk([0-9]+)', (req, res) => {
 router.post('/', (req, res) => {
   const reqName = req.body.pc_name || '';
   const reqPhone = req.body.pc_phone || '';
+
+  const makeRandomNumber = digit => {
+    let result = '';
+    let cnt = 0;
+    while (cnt < digit) {
+      result += Math.floor(Math.random() * 10);
+      cnt++;
+    }
+    return result;
+  };
+
   if (reqName.trim() === '') {
     res.json(resHelper.getError('고객명은 반드시 입력해야 합니다.'));
   }
@@ -162,6 +173,7 @@ router.post('/', (req, res) => {
     insertObj.pc_move_date = req.body.pc_move_date || '';
     insertObj.pc_budget = req.body.pc_budget || '';
     insertObj.pc_memo = req.body.pc_memo || '';
+    insertObj.pc_password = makeRandomNumber(4);
 
     knexBuilder.getConnection().then(cur => {
       insertObj.pc_recency = cur.raw('UNIX_TIMESTAMP() * -1');
@@ -703,6 +715,7 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
         return cur.raw(`
           select pl.cp_name as place_name,
                  pl.cp_pk as place_pk,
+                 ed.ed_detail_place as detail_place,
                  ct.ct_pk,
                  ct.ct_name,
                  cp.cp_name,
@@ -768,8 +781,11 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
 
     cur.raw(`
       select ct.ct_name,
+             ct.ct_pk,
              cp.cp_name,
+             cp.cp_pk,
              cpd.cpd_name,
+             cpd.cpd_pk,
              rt.rt_name,
              rt.rt_sub,
              rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
@@ -814,6 +830,7 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
              rs.rs_code,
              rs.rs_price,
              rc.rc_name,
+             rc.rc_pk,
              ceil(sum(ed.ed_resource_amount)) as resource_amount,
              ru.ru_name,
              ed.ed_alias,
