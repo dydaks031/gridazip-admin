@@ -146,6 +146,17 @@ router.get('/:pk([0-9]+)', (req, res) => {
 router.post('/', (req, res) => {
   const reqName = req.body.pc_name || '';
   const reqPhone = req.body.pc_phone || '';
+
+  const makeRandomNumber = digit => {
+    let result = '';
+    let cnt = 0;
+    while (cnt < digit) {
+      result += Math.floor(Math.random() * 10);
+      cnt++;
+    }
+    return result;
+  };
+
   if (reqName.trim() === '') {
     res.json(resHelper.getError('고객명은 반드시 입력해야 합니다.'));
   }
@@ -162,6 +173,7 @@ router.post('/', (req, res) => {
     insertObj.pc_move_date = req.body.pc_move_date || '';
     insertObj.pc_budget = req.body.pc_budget || '';
     insertObj.pc_memo = req.body.pc_memo || '';
+    insertObj.pc_password = makeRandomNumber(4);
 
     knexBuilder.getConnection().then(cur => {
       insertObj.pc_recency = cur.raw('UNIX_TIMESTAMP() * -1');
