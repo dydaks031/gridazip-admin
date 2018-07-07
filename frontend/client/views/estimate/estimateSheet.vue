@@ -7,17 +7,27 @@
     </div>
     <table class="table position-base-table">
       <colgroup>
+        <col width="8%" />
+        <col width="5%" />
+        <col width="10%" />
+        <col width="10%" />
+        <col width="10%" />
+        <col width="auto" />
+        <col width="10%" />
+        <col width="10%" />
+        <col width="10%" />
       </colgroup>
       <thead>
         <tr>
           <th>위치</th>
           <th>공사</th>
           <th>공정</th>
+          <th>상세공정</th>
+          <th>상세위치</th>
           <th>자재</th>
-          <th>물량</th>
-          <th>자재단위</th>
           <th>인건비</th>
           <th>자재비</th>
+          <th>총 금액</th>
         </tr>
       </thead>
       <tbody>
@@ -25,11 +35,12 @@
           <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+          <td>{{generalData.cpd_name}}</td>
+          <td>{{generalData.detail_place}}</td>
           <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-          <td>{{generalData.resource_amount}}</td>
-          <td>{{generalData.ru_name}}</td>
           <td>{{addCommas(generalData.labor_costs)}}</td>
           <td>{{addCommas(generalData.resource_costs)}}</td>
+          <td>{{addCommas(generalData.labor_costs + generalData.resource_costs)}}</td>
         </tr>
       </tbody>
     </table>
