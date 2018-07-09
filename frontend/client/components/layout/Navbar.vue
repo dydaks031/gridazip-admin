@@ -57,7 +57,7 @@ export default {
     ]),
     logout () {
       this.$auth.logout({
-        redirect: 'Home',
+        redirect: '/private/login',
         makeRequest: false,
         // params: {},
         success: function () { },

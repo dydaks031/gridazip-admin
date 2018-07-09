@@ -59,6 +59,7 @@ export default {
   methods: {
     login () {
       var redirect = this.$auth.redirect()
+      console.log(redirect)
       this.$auth.login({
         headers: {
           'Content-Type': 'application/json'
