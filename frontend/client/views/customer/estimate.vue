@@ -71,7 +71,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
+            <tr :class="{'is-summary': generalData.is_summary}" v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
               <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
               <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
               <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
@@ -111,7 +111,7 @@
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="(resource, index) in viewerData.resource" v-if="resource.resource_costs !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
+                  <tr :class="{'is-summary': resource.is_summary}" v-for="(resource, index) in viewerData.resource" v-if="resource.resource_costs !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
                     <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                     <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                     <td>{{resource.resource_amount}} {{resource.ru_name}}</td>
@@ -144,7 +144,7 @@
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="(labor, index) in viewerData.labor" v-if="labor.labor_costs !== 0 && (index <= 5 || isMoreBtnStatus.labor)">
+                  <tr :class="{'is-summary': labor.is_summary}" v-for="(labor, index) in viewerData.labor" v-if="labor.labor_costs !== 0 && (index <= 5 || isMoreBtnStatus.labor)">
                     <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
                     <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
                     <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
@@ -170,15 +170,13 @@
               <div class="level-item mr-15">
                 <p>자재비</p>
                 <p>인건비</p>
-                <p>디자인 및 설계비</p>
-                <p>감리비</p>
+                <p>설계비 및 감리비</p>
                 <p>공과잡비</p>
               </div>
               <div class="level-item flex-item-right">
                 <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
                 <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.design_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.supervision_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</p>
                 <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
               </div>
             </div>
@@ -348,7 +346,8 @@
             rs_price: '',
             rt_name: '',
             rt_sub: 0,
-            ru_name: ''
+            ru_name: '',
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(placeBySumData))
@@ -448,7 +447,8 @@
             rs_code: '',
             rs_name: '소계',
             rs_price: '',
-            ru_name: ''
+            ru_name: '',
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(resourceCategoryByData))
@@ -512,7 +512,8 @@
             }, 0),
             labor_price: 0,
             rt_name: '',
-            rt_sub: 0
+            rt_sub: 0,
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(constructionByData))
@@ -671,6 +672,9 @@
           })
       },
       changeCloseModalStatus (result) {
+        if (window.hasOwnProperty('sessionStorage')) {
+          window.sessionStorage.setItem('pc_pk', result.pc_pk)
+        }
         this.isCloseModal = result.closeStatus
         this.estimateData = result.pc_pk
         if (this.isCloseModal) {
@@ -692,7 +696,19 @@
       }
     },
     mounted () {
-      this.$modal.show('estimateAuthView')
+      if (window.hasOwnProperty('sessionStorage')) {
+        console.log(window.sessionStorage)
+        const pcPk = window.sessionStorage.getItem('pc_pk')
+        console.log(pcPk)
+        if (pcPk) {
+          this.changeCloseModalStatus({
+            closeStatus: true,
+            pc_pk: this.pc_pk
+          })
+        } else {
+          this.$modal.show('estimateAuthView')
+        }
+      }
     },
     created () {
     },
@@ -700,6 +716,9 @@
       estimateData: {
         handler (newValue, oldValue) {
           console.log(newValue)
+          if (!newValue) {
+            return false
+          }
           this.viewerData.general = newValue.general || []
           this.viewerData.labor = newValue.labor || []
           this.viewerData.resource = newValue.resource || []
@@ -835,9 +854,13 @@
           &:first-child {
             border-top: none;
           }
+          &.is-summary {
+            td {
+              font-weight: bold;
+            }
+          }
           td {
             color: #000000;
-
             .resource-code {
               display:block;
               font-size:0.8rem;

@@ -143,7 +143,8 @@ export default new Router({
       ]
     },
     {
-      path: '/customer/',
+      path: '/customer',
+      redirect: '/customer/estimate',
       component: require('../components/layout/PublicAppContainer'),
       children: [
         {
@@ -153,7 +154,7 @@ export default new Router({
         },
         {
           path: '*',
-          redirect: '/customer'
+          redirect: '/customer/estimate'
         }
       ]
     },

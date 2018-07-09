@@ -181,10 +181,9 @@
         if (data.isFirstSelectDataLoaded) {
           return false
         }
-        const sendData = data.selectedData
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
-        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
+        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
@@ -192,16 +191,18 @@
             console.log(response.data.data)
             const selectBoxData = response.data.data
             for (const key in selectBoxData) {
-              const type = this.getType(key)
-              const realKey = key.replace(/List$/, '')
-              const meta = _.find(this.metaData[type], (item) => {
-                return item.id === realKey
-              })
-              data.options[realKey] = this.changedDataToSelect2Data(meta.keyList, selectBoxData[key])
-              data.options[realKey].unshift({
-                text: `${meta.label} 선택`,
-                id: ''
-              })
+              if (selectBoxData.hasOwnProperty(key)) {
+                const type = this.getType(key)
+                const realKey = key.replace(/List$/, '')
+                const meta = _.find(this.metaData[type], (item) => {
+                  return item.id === realKey
+                })
+                data.options[realKey] = this.changedDataToSelect2Data(meta.keyList, selectBoxData[key])
+                data.options[realKey].unshift({
+                  text: `${meta.label} 선택`,
+                  id: ''
+                })
+              }
             }
             this.$forceUpdate()
             data.isFirstSelectDataLoaded = true
