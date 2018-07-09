@@ -19,7 +19,7 @@ export default new Router({
           component: require('../views/Home'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -33,7 +33,7 @@ export default new Router({
           component: require('../views/requestList/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -42,7 +42,7 @@ export default new Router({
           component: require('../views/requestList/register'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -51,7 +51,7 @@ export default new Router({
           component: require('../views/portfolio/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -60,7 +60,7 @@ export default new Router({
           component: require('../views/portfolio/register'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -69,7 +69,7 @@ export default new Router({
           component: require('../views/partners/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -78,7 +78,7 @@ export default new Router({
           component: require('../views/estimate/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -87,7 +87,7 @@ export default new Router({
           component: require('../views/estimate/register'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -96,7 +96,7 @@ export default new Router({
           component: require('../views/estimate/estimateRegister'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -105,7 +105,7 @@ export default new Router({
           component: require('../views/manageConstructor/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -114,7 +114,7 @@ export default new Router({
           component: require('../views/manageConstructor/detail'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -123,7 +123,7 @@ export default new Router({
           component: require('../views/manageConstructor/register'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
         {
@@ -132,10 +132,14 @@ export default new Router({
           component: require('../views/manageConstructor/register'),
           meta: {
             auth: true,
-            authRedirect: 'login'
+            authRedirect: 'private/login'
           }
         },
-        ...generateRoutesFromMenu(menuModule.state.items)
+        ...generateRoutesFromMenu(menuModule.state.items),
+        {
+          path: '*',
+          redirect: 'private/login'
+        }
       ]
     },
     {
@@ -153,18 +157,11 @@ export default new Router({
           redirect: '/customer/estimate'
         }
       ]
+    },
+    {
+      path: '*',
+      redirect: '/private'
     }
-    // {
-    //   path: '*',
-    //   redirect: '/private/login',
-    //   beforeEnter: (to, from, next) => {
-    //     console.log(`beforeEnter to:`)
-    //     console.log(to)
-    //     console.log(`beforeEnter from:`)
-    //     console.log(from)
-    //     next()
-    //   }
-    // }
   ]
 })
 

@@ -27,6 +27,7 @@ Vue.use(VueAuth, {
       return res.data.token
     }
   },
+  authRedirect: { path: '/private/login' },
   http: require('@websanova/vue-auth/drivers/http/axios.1.x.js'),
   router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js'),
   loginData: { url: '/api/authentication/login', fetchUser: true },
