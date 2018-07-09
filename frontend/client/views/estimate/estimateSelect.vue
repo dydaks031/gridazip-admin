@@ -66,7 +66,7 @@
           <span v-show="cpdUnit === 2">(단위: M^2)</span>
         </td>
         <td>
-          <button class="button" @click="getSelectedData">등록</button>
+          <button class="button" @click="registerEstimateRow">등록</button>
         </td>
       </tr>
     </tbody>
@@ -137,7 +137,7 @@
           if (response.data.code !== 200) {
             return
           }
-          this.options[metaData.id] = this.changedDataToSelect2Data(metaData.keyList, response.data.data[metaData.keyList.list])
+          this.options[metaData.id] = this.changedDataToSelect2Data(metaData, metaData.keyList, response.data.data[metaData.keyList.list])
           this.options[metaData.id].unshift({
             text: `${metaData.label} 선택`,
             id: ''
@@ -149,13 +149,20 @@
           console.error(error)
         })
       },
-      changedDataToSelect2Data (keyList = {}, data = []) {
+      changedDataToSelect2Data (metaData, keyList = {}, data = []) {
         const convertData = []
         _.forEach(data, (item) => {
-          convertData.push({
-            id: item[keyList.id],
-            text: item[keyList.name]
-          })
+          if (metaData.id !== 'resource') {
+            convertData.push({
+              id: item[keyList.id],
+              text: item[keyList.name]
+            })
+          } else {
+            convertData.push({
+              id: item[keyList.id],
+              text: `${item[keyList.name]}(${item.rs_code})`
+            })
+          }
         })
         return convertData
       },
@@ -228,12 +235,13 @@
           }
         }
       },
-      getSelectedData () {
+      registerEstimateRow () {
         const id = this.params.id
+        const esPk = this.params.es_pk
         if (!id) {
           return false
         }
-        this.$http.post(`${queryApi}/${id}/estimate`, this.selected)
+        this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
           .then((response) => {
             if (response.data.code !== 200) {
               return
