@@ -65,7 +65,7 @@
           </div>
         </article>
         <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
-          <estimate-sheet :estimateData.sync="estimateData"/>
+          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList"/>
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
@@ -219,7 +219,8 @@
           correspondent: [],
           construction: [],
           resourceCategory: []
-        }
+        },
+        estimateTabList: []
       }
     },
     validations: {
@@ -308,6 +309,14 @@
               return
             }
             total = response.data.data.totalCosts
+            return this.$http.get(`${queryApi}/${id}/estimate/tabs`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            console.log(response)
+            this.estimateTabList = response.data.data.tabs
             this.estimateData = {
               general,
               labor,

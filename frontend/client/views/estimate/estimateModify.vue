@@ -145,8 +145,9 @@
       deleteRow (data) {
         console.log(data)
         const id = this.$route.params.id
+        const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
-        this.$http.delete(`${queryApi}/${id}/estimate/${sendData.ed_pk}`)
+        this.$http.delete(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
         .then((response) => {
           if (response.data.code !== 200) {
             return false
@@ -159,8 +160,9 @@
       updateRow (data) {
         console.log(data)
         const id = this.$route.params.id
+        const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
-        this.$http.put(`${queryApi}/${id}/estimate/${sendData.ed_pk}`, sendData)
+        this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
           .then((response) => {
             if (response.data.code !== 200) {
               return
@@ -181,7 +183,8 @@
         }
         const sendData = data.selectedData
         const id = this.$route.params.id
-        this.$http.get(`${queryApi}/${id}/estimate/${sendData.ed_pk}`)
+        const esPk = this.$route.params.es_pk
+        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return

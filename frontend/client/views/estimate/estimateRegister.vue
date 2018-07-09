@@ -113,7 +113,9 @@
       },
       loadData () {
         const id = this.$route.params.id
-        this.$http.get(`${queryApi}/${id}/estimate`)
+        const esPk = this.$route.params.es_pk
+
+        this.$http.get(`${queryApi}/${id}/estimate/${esPk}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false

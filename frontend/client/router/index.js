@@ -92,7 +92,7 @@ export default new Router({
         },
         {
           name: '상세견적서 등록',
-          path: 'estimate/:id([0-9]+)/register',
+          path: 'estimate/:id([0-9]+)/register/:es_pk([0-9]+)',
           component: require('../views/estimate/estimateRegister'),
           meta: {
             auth: true,

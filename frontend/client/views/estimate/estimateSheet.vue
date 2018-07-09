@@ -159,6 +159,9 @@
           total: {}
         }
       },
+      estimateCurrentTabs: {
+        type: Array
+      },
       deleteRegisterBtn: {
         type: Boolean,
         default: false
@@ -181,8 +184,9 @@
     },
     methods: {
       moveToRegister () {
+        const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
         router.push({
-          path: `/private/estimate/${this.param.id}/register`
+          path: `/private/estimate/${this.param.id}/register/${tab.es_pk}`
         })
       },
       printPage () {
@@ -472,7 +476,6 @@
             constructionProcess: {
             }
           }
-          console.log(constructionItem)
           // 위의 위치의 해당하는 데이터 중 동일한 공사의 데이터가 몇건인지 확인한다.
           const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
           for (let j in constructionProcessByData) {
@@ -552,6 +555,12 @@
           this.mergeSubResource(this.viewerData.general)
           this.mergeResourceTable(this.viewerData.resource)
           this.mergeLaborTable(this.viewerData.labor)
+        },
+        deep: true
+      },
+      estimateCurrentTabs: {
+        handler (newValue, oldValue) {
+          console.log(newValue)
         },
         deep: true
       }

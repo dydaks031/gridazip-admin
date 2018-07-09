@@ -66,7 +66,7 @@
           <span v-show="cpdUnit === 2">(단위: M^2)</span>
         </td>
         <td>
-          <button class="button" @click="getSelectedData">등록</button>
+          <button class="button" @click="registerEstimateRow">등록</button>
         </td>
       </tr>
     </tbody>
@@ -228,12 +228,13 @@
           }
         }
       },
-      getSelectedData () {
+      registerEstimateRow () {
         const id = this.params.id
+        const esPk = this.params.es_pk
         if (!id) {
           return false
         }
-        this.$http.post(`${queryApi}/${id}/estimate`, this.selected)
+        this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
           .then((response) => {
             if (response.data.code !== 200) {
               return
