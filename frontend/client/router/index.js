@@ -138,7 +138,12 @@ export default new Router({
         ...generateRoutesFromMenu(menuModule.state.items),
         {
           path: '*',
-          redirect: '/private'
+          redirect: '/private',
+          beforeEnter: (to, from, next) => {
+            console.log(`beforeEnter to: ${to}`)
+            console.log(`beforeEnter from: ${from}`)
+            next()
+          }
         }
       ]
     },
