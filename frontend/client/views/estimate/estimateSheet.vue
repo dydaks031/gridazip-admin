@@ -576,9 +576,11 @@
     }
   }
   .summary {
-    span {
-      font-size: 1.5rem;
-      font-weight: bold;
+    p:last-child {
+      span {
+        font-size: 1.3rem;
+        font-weight: bold;
+      }
     }
   }
 </style>
