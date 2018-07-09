@@ -31,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
+        <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
           <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
@@ -65,7 +65,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
+              <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
                 <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                 <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
@@ -98,7 +98,7 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
+              <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
                 <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
                 <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
                 <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
@@ -123,19 +123,13 @@
                 <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
               </p>
               <p>
-                <span>디자인 및 설계비: {{addCommas(viewerData.total.design_costs)}}원</span>
-              </p>
-              <p>
-                <span>감리비: {{addCommas(viewerData.total.supervision_costs)}}원</span>
-              </p>
-              <p>
                 <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
               </p>
               <p>
-                <span>부가세: {{addCommas(viewerData.total.vat_costs)}}원</span>
+                <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
               </p>
               <p>
-                <span>합: {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
+                <span>합계(VAT 포함): {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
               </p>
             </div>
           </div>
@@ -283,7 +277,8 @@
             rs_price: '',
             rt_name: '',
             rt_sub: 0,
-            ru_name: ''
+            ru_name: '',
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(placeBySumData))
@@ -383,7 +378,8 @@
             rs_code: '',
             rs_name: '소계',
             rs_price: '',
-            ru_name: ''
+            ru_name: '',
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(resourceCategoryByData))
@@ -447,7 +443,8 @@
             }, 0),
             labor_price: 0,
             rt_name: '',
-            rt_sub: 0
+            rt_sub: 0,
+            is_summary: true
           })
         }
         resultData = [].concat.apply([], Object.values(constructionByData))
@@ -509,9 +506,6 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 labor_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-          console.log(`ct_pk : ${item.ct_pk}`)
-          console.log(`cp_pk : ${item.cp_pk}`)
-          console.log(`cpd_pk : ${item.cpd_pk}`)
           if (item.labor_costs.toString() === '0') {
             continue
           }
@@ -575,5 +569,16 @@
 
   .print-btn {
     margin-right: 1rem
+  }
+  .is-summary {
+    td {
+      font-weight: bold;
+    }
+  }
+  .summary {
+    span {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
   }
 </style>
