@@ -292,7 +292,9 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
       .first('pc_name', 'pc_phone', 'pc_password')
       .where('pc_pk', reqPcPk)
       .then(row => {
-        const smsMsg = `[그리다집] ${row.pc_name} 고객님의 비밀번호는 [${row.pc_password}]입니다. http://estimate.gridazip.com 에서 실시간 상세견적서를 확인하실 수 있습니다.`;
+        const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. estimate.gridazip.com 에서 상세견적을 확인해보세요.`;
+        console.log(smsMsg);
+        console.log(cryptoHelper.decrypt(row.pc_phone));
         smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
           .then(response => {
             console.log(response);
