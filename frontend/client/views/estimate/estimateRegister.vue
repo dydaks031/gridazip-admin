@@ -15,17 +15,17 @@
           <h1 class="title">입력된 견적 목록</h1>
           <table class="table">
             <colgroup>
-              <col />
-              <col width="9%"/>
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
+              <col width="5%"/>
+              <col width="7%"/>
+              <col width="4%" />
               <col width="7%" />
+              <col width="8%" />
+              <col width="5%" />
               <col width="7%" />
+              <col width="auto" />
+              <col width="auto" />
+              <col width="5%" />
+              <col width="5%" />
               <col />
               <col />
             </colgroup>

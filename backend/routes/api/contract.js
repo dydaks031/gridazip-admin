@@ -373,6 +373,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
         'rt.rt_sub',
         'ed.ed_rspk',
         'rs.rs_name',
+        'rs.rs_code',
         'ed.ed_alias',
         'ru.ru_name',
         'ed.ed_input_value',

@@ -35,10 +35,11 @@
         <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
         </select2>
       </td>
-      <td>
+      <td class="resource-view">
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
         <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
         </select2>
+        <span class="resource-code" v-show="data.isModify === false">{{data.selectedData.rs_code}}</span>
       </td>
       <td>
         <span v-show="data.isModify === false">{{data.selectedData.ed_alias || '-'}}</span>
@@ -197,7 +198,7 @@
                 const meta = _.find(this.metaData[type], (item) => {
                   return item.id === realKey
                 })
-                data.options[realKey] = this.changedDataToSelect2Data(meta.keyList, selectBoxData[key])
+                data.options[realKey] = this.changedDataToSelect2Data(meta, meta.keyList, selectBoxData[key])
                 data.options[realKey].unshift({
                   text: `${meta.label} 선택`,
                   id: ''
@@ -210,13 +211,20 @@
             console.log(error)
           })
       },
-      changedDataToSelect2Data (keyList = {}, data = []) {
+      changedDataToSelect2Data (metaData, keyList = {}, data = []) {
         const convertData = []
         _.forEach(data, (item) => {
-          convertData.push({
-            id: item[keyList.id],
-            text: item[keyList.name]
-          })
+          if (metaData.id !== 'resource') {
+            convertData.push({
+              id: item[keyList.id],
+              text: item[keyList.name]
+            })
+          } else {
+            convertData.push({
+              id: item[keyList.id],
+              text: `${item[keyList.name]}(${item.rs_code})`
+            })
+          }
         })
         return convertData
       },
@@ -311,7 +319,7 @@
           if (response.data.code !== 200) {
             return
           }
-          currentData.options[metaData.id] = this.changedDataToSelect2Data(metaData.keyList, response.data.data[metaData.keyList.list])
+          currentData.options[metaData.id] = this.changedDataToSelect2Data(metaData, metaData.keyList, response.data.data[metaData.keyList.list])
           currentData.options[metaData.id].unshift({
             text: `${metaData.label} 선택`,
             id: ''
@@ -338,6 +346,14 @@
       display: none;
       + .select2-container {
         display: block
+      }
+    }
+  }
+  .resource-view {
+    span {
+      display:block;
+      &.resource-code {
+        font-size: 0.8rem;
       }
     }
   }

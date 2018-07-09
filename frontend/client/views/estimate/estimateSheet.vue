@@ -25,9 +25,8 @@
           <th>상세공정</th>
           <th>상세위치</th>
           <th>자재</th>
-          <th>인건비</th>
-          <th>자재비</th>
-          <th>총 금액</th>
+          <th class="has-text-right">인건비</th>
+          <th class="has-text-right">자재비</th>
         </tr>
       </thead>
       <tbody>
@@ -38,9 +37,8 @@
           <td>{{generalData.cpd_name}}</td>
           <td>{{generalData.detail_place}}</td>
           <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-          <td>{{addCommas(generalData.labor_costs)}}</td>
-          <td>{{addCommas(generalData.resource_costs)}}</td>
-          <td>{{addCommas(generalData.labor_costs + generalData.resource_costs)}}</td>
+          <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
+          <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
         </tr>
       </tbody>
     </table>
@@ -60,8 +58,8 @@
                 <th>자재</th>
                 <th>물량</th>
                 <th>자재단위</th>
-                <th>단가</th>
-                <th>금액</th>
+                <th class="has-text-right">단가</th>
+                <th class="has-text-right">금액</th>
               </tr>
               </thead>
               <tbody>
@@ -70,8 +68,8 @@
                 <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                 <td>{{resource.resource_amount}}</td>
                 <td>{{resource.ru_name}}</td>
-                <td>{{addCommas(resource.rs_price)}}</td>
-                <td>{{addCommas(resource.resource_costs)}}</td>
+                <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
               </tr>
               </tbody>
             </table>
@@ -94,7 +92,7 @@
                 <th>공정</th>
                 <th>상세공정</th>
                 <th>자재군</th>
-                <th>인건비</th>
+                <th class="has-text-right">인건비</th>
               </tr>
               </thead>
               <tbody>
@@ -103,7 +101,7 @@
                 <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
                 <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
                 <td>{{labor.rt_name}}</td>
-                <td>{{addCommas(labor.labor_costs)}}</td>
+                <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
               </tr>
               </tbody>
             </table>
@@ -116,19 +114,19 @@
         <article class="tile is-child box">
           <div class="is-clearfix">
             <div class="is-pulled-right">
-              <p>
+              <p class="has-text-right">
                 <span>자재비: {{addCommas(viewerData.total.resource_costs)}}원</span>
               </p>
-              <p>
+              <p class="has-text-right">
                 <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
               </p>
-              <p>
+              <p class="has-text-right">
                 <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
               </p>
-              <p>
+              <p class="has-text-right">
                 <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
               </p>
-              <p>
+              <p class="has-text-right">
                 <span>합계(VAT 포함, 천단위 절삭): {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
               </p>
             </div>
@@ -590,6 +588,11 @@
         font-size: 1.3rem;
         font-weight: bold;
       }
+    }
+  }
+  .table th {
+    &.has-text-right {
+      text-align: right;
     }
   }
 </style>
