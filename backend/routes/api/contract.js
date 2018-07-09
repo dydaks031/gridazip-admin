@@ -292,6 +292,7 @@ router.delete('/:pk([0-9]+)', (req, res) => {
 // tabs :start
 
 router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
     cur('estimate_tbl')
       .select('es_pk', 'es_version')
