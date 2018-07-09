@@ -135,16 +135,7 @@ export default new Router({
             authRedirect: 'login'
           }
         },
-        ...generateRoutesFromMenu(menuModule.state.items),
-        {
-          path: '*',
-          redirect: '/private',
-          beforeEnter: (to, from, next) => {
-            console.log(`beforeEnter to: ${to}`)
-            console.log(`beforeEnter from: ${from}`)
-            next()
-          }
-        }
+        ...generateRoutesFromMenu(menuModule.state.items)
       ]
     },
     {
@@ -162,11 +153,18 @@ export default new Router({
           redirect: '/customer/estimate'
         }
       ]
-    },
-    {
-      path: '*',
-      redirect: '/private/login'
     }
+    // {
+    //   path: '*',
+    //   redirect: '/private/login',
+    //   beforeEnter: (to, from, next) => {
+    //     console.log(`beforeEnter to:`)
+    //     console.log(to)
+    //     console.log(`beforeEnter from:`)
+    //     console.log(from)
+    //     next()
+    //   }
+    // }
   ]
 })
 
