@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const ip = require('ip');
 const paginationService = require('../../services/pagination/main');
 const FormatService = require('../../services/format/helper');
 const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const calc = require('calculator');
+
+
+
+/* proceeding contract */
+
+
+// get customer's pk :start
 
 router.get('/pk', (req, res) => {
   const reqPhone = req.query.phone || '';
@@ -34,6 +40,11 @@ router.get('/pk', (req, res) => {
       })
   });
 });
+
+// get customer's pk :end
+
+
+// proceeding contract CRUD :start
 
 router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
@@ -113,7 +124,6 @@ router.get('/', (req, res) => {
       });
   });
 });
-
 
 router.get('/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
@@ -259,76 +269,76 @@ router.delete('/:pk([0-9]+)', (req, res) => {
   }
 });
 
+// proceeding contract CRUD :end
+
 
 
 /* estimate */
-router.get('/:pk([0-9]+)/estimate', (req, res) => {
-  const reqPcPk = req.params.pk || '';
-  let tabInfo;
+
+
+
+// tabs :start
+
+router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     cur('estimate_tbl')
       .select('es_pk', 'es_version')
       .where('es_pcpk', reqPcPk)
       .orderBy('es_version')
       .then(response => {
-        tabInfo = response;
-
-        cur({'ed': 'estimate_detail_hst'})
-          .select([
-            'ed_pk',
-            {place_name: 'pl.cp_name'},
-            'ed.ed_place_pk',
-            'ed.ed_detail_place',
-            'ed.ed_ctpk',
-            'ct.ct_name',
-            'ed.ed_cppk',
-            'cp.cp_name',
-            'ed.ed_cpdpk',
-            'cpd.cpd_name',
-            'rc.rc_pk',
-            'rc.rc_name',
-            'ed.ed_rtpk',
-            'rt.rt_name',
-            'rt.rt_sub',
-            'ed.ed_rspk',
-            'rs.rs_name',
-            'ed.ed_alias',
-            'ru.ru_name',
-            'ed.ed_input_value',
-            'ed.ed_resource_amount',
-            'cpd.cpd_unit',
-            cur.raw(`ed.ed_input_value * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs`),
-            cur.raw(`ed.ed_resource_amount * rs.rs_price as resource_costs`)
-          ])
-          .where('ed_espk', reqPcPk)
-          .leftJoin({pl: 'construction_place_tbl'}, 'ed.ed_place_pk', 'pl.cp_pk')
-          .leftJoin({ct: 'construction_tbl'}, 'ed.ed_ctpk', 'ct.ct_pk')
-          .leftJoin({cp: 'construction_process_tbl'}, 'ed.ed_cppk', 'cp.cp_pk')
-          .leftJoin({cpd: 'construction_process_detail_tbl'}, 'ed.ed_cpdpk', 'cpd.cpd_pk')
-          .leftJoin({rt: 'resource_type_tbl'}, 'ed.ed_rtpk', 'rt.rt_pk')
-          .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
-          .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
-          .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
-          .orderBy('ed.ed_place_pk', 'ed_pk')
-          .then(response => {
-            res.json(
-              resHelper.getJson({
-                estimateList: response
-              })
-            );
+        res.json(
+          resHelper.getJson({
+            tabs: response
           })
-          .catch(err => {
-            console.log(err);
-            res.json(
-              resHelper.getError('상세견적 목록을 조회하는 중 오류가 발생하였습니다.')
-            );
-          })
+        );
       })
-  });
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
 });
 
-router.get('/:pk([0-9]+)/estimate', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+
+  if (reqPcPk === '') {
+    res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
+  }
+  else {
+    knexBuilder.getConnection().then(cur => {
+      let version = 1;
+      cur('estimate_tbl')
+        .select('es_pk', 'es_version')
+        .where('es_pcpk', reqPcPk)
+        .orderBy('es_version')
+        .then(response => {
+          if (!response)
+          res.json(
+            resHelper.getJson({
+              tabs: response
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  }
+});
+
+// tabs :end
+
+
+// estimate CRUD :start
+
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
+  const reqEsPk = req.params.espk || '';
 
   knexBuilder.getConnection().then(cur => {
     cur({'ed': 'estimate_detail_hst'})
@@ -358,7 +368,7 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
         cur.raw(`ed.ed_input_value * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs`),
         cur.raw(`ed.ed_resource_amount * rs.rs_price as resource_costs`)
       ])
-      .where('ed_pcpk', reqPcPk)
+      .where('ed_espk', reqEsPk)
       .leftJoin({pl: 'construction_place_tbl'}, 'ed.ed_place_pk', 'pl.cp_pk')
       .leftJoin({ct: 'construction_tbl'}, 'ed.ed_ctpk', 'ct.ct_pk')
       .leftJoin({cp: 'construction_process_tbl'}, 'ed.ed_cppk', 'cp.cp_pk')
@@ -384,8 +394,9 @@ router.get('/:pk([0-9]+)/estimate', (req, res) => {
   })
 });
 
-router.post('/:pk([0-9]+)/estimate', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
   const reqCpPk = req.body.ed_cppk || '';
@@ -399,7 +410,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
 
   const cf = 1000;
 
-  if (reqPcPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
+  if (reqEsPk === '' || reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
   else if (reqInputValue.trim() === '') {
@@ -413,7 +424,7 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
     let labor_costs;
     let resource_price;
 
-    insertObj.ed_pcpk = reqPcPk;
+    insertObj.ed_espk = reqEsPk;
     insertObj.ed_place_pk = reqPlacePk;
     insertObj.ed_ctpk = reqCtPk;
     insertObj.ed_cppk = reqCpPk;
@@ -495,8 +506,8 @@ router.post('/:pk([0-9]+)/estimate', (req, res) => {
   }
 });
 
-router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
-  const reqEdPk = req.params.pk || '';
+router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+  const reqEdPk = req.params.edpk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
   const reqCpPk = req.body.ed_cppk || '';
@@ -505,6 +516,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   const reqRsPk = req.body.ed_rspk || '';
   const reqInputValue = req.body.ed_input_value || '';
   const reqDetailPlace = req.body.ed_detail_place || '';
+
+  const cf = 1000;
 
   if (reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
@@ -579,8 +592,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
         })
         .then(row => {
           labor_costs += row.rt_extra_labor_costs;
-          updateObj.labor_costs = (labor_costs * reqInputValue).toFixed(0);
-          updateObj.resource_costs = (resource_price * updateObj.ed_resource_amount).toFixed(0);
+          updateObj.labor_costs = (labor_costs * (reqInputValue * cf) / cf).toFixed(0);
+          updateObj.resource_costs = (resource_price * (updateObj.ed_resource_amount * cf) / cf).toFixed(0);
 
           res.json(
             resHelper.getJson({
@@ -599,8 +612,8 @@ router.put('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.delete('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
-  const reqEdPk = req.params.pk || '';
+router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+  const reqEdPk = req.params.edpk || '';
   if (reqEdPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -622,8 +635,13 @@ router.delete('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
-  const reqEdPk = req.params.pk || '';
+// estimate CRUD :end
+
+
+// estimate detail row's selectbox info :start
+
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+  const reqEdPk = req.params.edpk || '';
 
   let constructionPk;
   let constructionProcessPk;
@@ -631,7 +649,6 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   let resourceCategoryPk;
   let resourceTypePk;
   let resourcePk;
-  let resourceAlias;
 
   let constructionPlaceList;
   let constructionList;
@@ -734,8 +751,266 @@ router.get('/:pcpk([0-9]+)/estimate/:pk([0-9]+)', (req, res) => {
   });
 });
 
-router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+// estimate detail row's selectbox info :end
+
+
+// total tab view query  :start
+
+router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
+    const reqPcPk = req.params.pcpk || '';
+
+    let resourceList;
+    const cf = 1000;
+
+    knexBuilder.getConnection().then(cur => {
+
+      cur.raw(`
+      select rs.rs_pk,
+             count(rs.rs_pk) as count,
+             rs.rs_price,
+             ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
+             sum(ed.ed_resource_amount) as resource_amount
+        from estimate_detail_hst ed
+       inner join estimate_tbl es on ed.ed_espk = es.es_pk
+        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+       where es.es_pcpk = ?
+       group by ed.ed_rspk, ed.ed_alias
+       order by rs.rs_name
+    `, reqPcPk)
+        .then(response => {
+          resourceList = response[0].filter(resource => {
+            if (resource.ceil_resource_amount !== resource.resource_amount) return true;
+          });
+
+          resourceList.map(resource => {
+            resource.plus_value = Math.ceil((resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf);
+            return resource;
+          });
+
+          return cur.raw(`
+          select pl.cp_name as place_name,
+                 pl.cp_pk as place_pk,
+                 ct.ct_pk,
+                 ct.ct_name,
+                 cp.cp_name,
+                 cp.cp_pk,
+                 cpd.cpd_name,
+                 rt.rt_name,
+                 rt.rt_sub,
+                 rs.rs_name,
+                 rs.rs_pk,
+                 rs.rs_code,
+                 ed.ed_alias,
+                 ed.ed_resource_amount resource_amount,
+                 ru.ru_name,
+                 rs.rs_price,
+                 ed.ed_resource_amount * rs.rs_price resource_costs,
+                 ed.ed_input_value,
+                 cpd.cpd_min_amount,
+                 ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
+          
+            from estimate_detail_hst ed
+           inner join estimate_tbl es on ed.ed_espk = es.es_pk
+            left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
+            left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+            left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+            left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+            left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+            left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+            left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+           where es.es_pcpk = ?
+           group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
+           order by pl.cp_pk, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_sub desc, rt.rt_name, rs.rs_name
+          `, reqPcPk)
+
+        })
+        .then(response => {
+          return response[0];
+        })
+        .map(row => {
+          resourceList.forEach(resource => {
+            if (resource.rs_pk === row.rs_pk) row.resource_costs += resource.plus_value;
+          });
+          return row;
+        })
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              estimateList: response
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('상세견적서(공간별)를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  });
+
+router.get('/:pcpk([0-9]+)/estimate/labor', (req, res) => {
+    const reqPcPk = req.params.pcpk || '';
+
+    knexBuilder.getConnection().then(cur => {
+
+      cur.raw(`
+      select ct.ct_name,
+             cp.cp_name,
+             cpd.cpd_name,
+             rt.rt_name,
+             rt.rt_sub,
+             rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
+             sum(ed.ed_input_value) input_value,
+             cpd.cpd_min_amount,
+             case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+               then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+               else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+             end as labor_costs
+        from estimate_detail_hst ed
+       inner join estimate_tbl es on ed.ed_espk = es.es_pk
+        left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+        left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+        left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+        left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+       where es.es_pcpk = ?
+       group by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
+       order by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
+    `, reqPcPk)
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              estimateList: response[0]
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  });
+
+router.get('/:pcpk([0-9]+)/estimate/resource', (req, res) => {
+    const reqPcPk = req.params.pcpk || '';
+
+    knexBuilder.getConnection().then(cur => {
+
+      cur.raw(`
+      select rs.rs_name,
+             rs.rs_code,
+             rs.rs_price,
+             rc.rc_name,
+             ceil(sum(ed.ed_resource_amount)) as resource_amount,
+             ru.ru_name,
+             ed.ed_alias,
+             rs.rs_price * ceil(sum(ed.ed_resource_amount)) as resource_costs
+        from estimate_detail_hst ed
+       inner join estimate_tbl es on ed.ed_espk = es.es_pk
+        left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+        left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+        left join resource_category_tbl rc on rt.rt_rcpk = rc.rc_pk 
+       where es.es_pcpk = ?
+       group by ed.ed_rspk, ed.ed_alias
+       order by rc.rc_pk, rs.rs_name
+    `, reqPcPk)
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              estimateList: response[0]
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('상세견적서(자재)를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  });
+
+router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
+    const reqPcPk = req.params.pcpk || '';
+
+    knexBuilder.getConnection().then(cur => {
+      cur('proceeding_contract_tbl')
+        .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio')
+        .where('pc_pk', reqPcPk)
+        .then(row => {
+          cur.raw(`
+          SELECT resource_costs,
+                 labor_costs,
+                 (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
+                 (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
+                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs
+            FROM (
+              SELECT sum(resource_costs) resource_costs
+                FROM (
+                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+                    FROM estimate_detail_hst ed
+                   INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
+                  WHERE es.es_pcpk = ?
+                  GROUP BY ed.ed_rspk
+                  ORDER BY rs.rs_name
+                ) resource
+            ) r,
+          (
+          SELECT sum(labor_costs) labor_costs
+            FROM (
+              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+                     END AS labor_costs
+              FROM estimate_detail_hst ed
+             INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+             WHERE es.es_pcpk = ?
+             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
+            ) labor
+          ) l
+        `, [reqPcPk, reqPcPk])
+            .then(response => {
+              let totalCosts = response[0][0];
+              totalCosts.total_costs = totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+              totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
+              totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
+              res.json(
+                resHelper.getJson({
+                  totalCosts
+                })
+              );
+            })
+            .catch(err => {
+              console.log(err);
+              res.json(
+                resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
+              );
+            })
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  });
+
+// total tab view query  :end
+
+
+
+// view query per tabs :start
+
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
+  const reqEsPk = req.params.espk || '';
+
   let resourceList;
   const cf = 1000;
 
@@ -749,10 +1024,10 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
              sum(ed.ed_resource_amount) as resource_amount
         from estimate_detail_hst ed
         left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-       where ed.ed_pcpk = ?
+       where ed.ed_espk = ?
        group by ed.ed_rspk, ed.ed_alias
        order by rs.rs_name
-    `, reqPcPk)
+    `, reqEsPk)
       .then(response => {
         resourceList = response[0].filter(resource => {
           if (resource.ceil_resource_amount !== resource.resource_amount) return true;
@@ -760,7 +1035,6 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
 
         resourceList.map(resource => {
           resource.plus_value = Math.ceil((resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf);
-          console.log(resource.plus_value);
           return resource;
         });
 
@@ -794,10 +1068,10 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
             left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
             left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
             left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
-           where ed.ed_pcpk = ?
-           group by ed.ed_pcpk, ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
+           where ed.ed_espk = ?
+           group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
            order by 1,2,3,4,5,6
-          `, reqPcPk)
+          `, reqEsPk)
 
       })
       .then(response => {
@@ -825,8 +1099,8 @@ router.get('/:pk([0-9]+)/estimate/general', (req, res) => {
   })
 });
 
-router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
+  const reqEsPk = req.params.espk || '';
 
   knexBuilder.getConnection().then(cur => {
 
@@ -848,10 +1122,10 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
         left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
         left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
         left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-       where ed.ed_pcpk = ?
-       group by ed.ed_pcpk, ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
+       where ed.ed_espk = ?
+       group by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
        order by ed.ed_ctpk,ed.ed_cppk,ed.ed_cpdpk,ed.ed_rtpk
-    `, reqPcPk)
+    `, reqEsPk)
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -868,8 +1142,8 @@ router.get('/:pk([0-9]+)/estimate/labor', (req, res) => {
   })
 });
 
-router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/resource', (req, res) => {
+  const reqEsPk = req.params.espk || '';
 
   knexBuilder.getConnection().then(cur => {
 
@@ -887,10 +1161,10 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
         left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
         left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
         left join resource_category_tbl rc on rt.rt_rcpk = rc.rc_pk 
-       where ed.ed_pcpk = ?
+       where ed.ed_espk = ?
        group by ed.ed_rspk, ed.ed_alias
        order by rc.rc_pk, rs.rs_name
-    `, reqPcPk)
+    `, reqEsPk)
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -907,8 +1181,9 @@ router.get('/:pk([0-9]+)/estimate/resource', (req, res) => {
   })
 });
 
-router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsPk = req.params.espk || '';
 
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
@@ -927,7 +1202,7 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
                   SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
                   FROM estimate_detail_hst ed
                     LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
-                  WHERE ed.ed_pcpk = ?
+                  WHERE ed.ed_espk = ?
                   GROUP BY ed.ed_rspk
                   ORDER BY rs.rs_name
                 ) resource
@@ -942,15 +1217,15 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
               FROM estimate_detail_hst ed
               LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
               LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-             WHERE ed.ed_pcpk = ?
-             GROUP BY ed.ed_pcpk, ed.ed_cpdpk, ed.ed_rtpk
+             WHERE ed.ed_espk = ?
+             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
             ) labor
           ) l
-        `, [reqPcPk, reqPcPk])
+        `, [reqEsPk, reqEsPk])
           .then(response => {
             let totalCosts = response[0][0];
             totalCosts.total_costs = totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
-            totalCosts.vat_costs = totalCosts.total_costs * 0.1;
+            totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
             totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(
               resHelper.getJson({
@@ -974,11 +1249,18 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
   })
 });
 
+// view query per tabs :end
 
 
 
-/* 기술자 및 거래처 탭 */
-router.get('/:pk([0-9]+)/constructor', (req, res) => {
+
+
+/* constructor & correspondent  */
+
+
+// constructor CRUD :start
+
+router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
   const reqPcPk = req.params.pk || '';
   knexBuilder.getConnection().then(cur => {
     cur({cr: 'constructor_tbl'})
@@ -1018,7 +1300,7 @@ router.get('/:pk([0-9]+)/constructor', (req, res) => {
   });
 });
 
-router.post('/:pk([0-9]+)/constructor', (req, res) => {
+router.post('/:pcpk([0-9]+)/constructor', (req, res) => {
   const reqPcPk = req.params.pk || '';
   const reqCtPk = req.body.ct_pk || '';
   const reqCrPk = req.body.cr_pk || '';
@@ -1046,10 +1328,10 @@ router.post('/:pk([0-9]+)/constructor', (req, res) => {
   }
 });
 
-router.delete('/:pcpk([0-9]+)/constructor/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk || '';
+router.delete('/:pcpk([0-9]+)/constructor/:cspk([0-9]+)', (req, res) => {
+  const reqCsPk = req.params.cspk || '';
 
-  if (reqPk === '') {
+  if (reqCsPk === '') {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
     );
@@ -1057,7 +1339,7 @@ router.delete('/:pcpk([0-9]+)/constructor/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('contract_constructor_tbl')
         .del()
-        .where('cc_pk', reqPk)
+        .where('cc_pk', reqCsPk)
         .then(() => {
           res.json(
             resHelper.getJson({
@@ -1074,8 +1356,12 @@ router.delete('/:pcpk([0-9]+)/constructor/:pk([0-9]+)', (req, res) => {
   }
 });
 
+// constructor CRUD :end
 
-router.get('/:pk([0-9]+)/correspondent', (req, res) => {
+
+// correspondent CRUD :start
+
+router.get('/:pcpk([0-9]+)/correspondent', (req, res) => {
   const reqPcPk = req.params.pk || '';
   knexBuilder.getConnection().then(cur => {
     cur({co: 'correspondent_tbl'})
@@ -1116,7 +1402,7 @@ router.get('/:pk([0-9]+)/correspondent', (req, res) => {
   });
 });
 
-router.post('/:pk([0-9]+)/correspondent', (req, res) => {
+router.post('/:pcpk([0-9]+)/correspondent', (req, res) => {
   const reqPcPk = req.params.pk || '';
   const reqRcPk = req.body.rc_pk || '';
   const reqCoPk = req.body.co_pk || '';
@@ -1148,10 +1434,10 @@ router.post('/:pk([0-9]+)/correspondent', (req, res) => {
   }
 });
 
-router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk || '';
+router.delete('/:pcpk([0-9]+)/correspondent/:cipk([0-9]+)', (req, res) => {
+  const reqCiPk = req.params.cipk || '';
 
-  if (reqPk === '') {
+  if (reqCiPk === '') {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
     );
@@ -1159,7 +1445,7 @@ router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('contract_correspondent_tbl')
         .del()
-        .where('cco_pk', reqPk)
+        .where('cco_pk', reqCiPk)
         .then(() => {
           res.json(
             resHelper.getJson({
@@ -1176,10 +1462,15 @@ router.delete('/:pcpk([0-9]+)/correspondent/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.get('/:pk([0-9]+)/construction', (req, res) => {
-  const reqPk = req.params.pk;
+// correspondent CRUD :end
+
+
+// construction & resource category per contract :start
+
+router.get('/:pcpk([0-9]+)/construction', (req, res) => {
+  const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const subQuery = cur('estimate_detail_hst').select({'ct_pk': 'ed_ctpk'}).where('ed_pcpk', reqPk).groupBy('ct_pk');
+    const subQuery = cur('estimate_detail_hst').select({'ct_pk': 'ed_ctpk'}).where('ed_pcpk', reqPcPk).groupBy('ct_pk');
     cur({ct:'construction_tbl'})
       .select('ed.ct_pk', 'ct.ct_name')
       .innerJoin({ed: subQuery}, 'ct.ct_pk', 'ed.ct_pk')
@@ -1199,10 +1490,10 @@ router.get('/:pk([0-9]+)/construction', (req, res) => {
   })
 });
 
-router.get('/:pk([0-9]+)/resource', (req, res) => {
-  const reqPk = req.params.pk;
+router.get('/:pcpk([0-9]+)/resource', (req, res) => {
+  const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const edQuery = cur('estimate_detail_hst').select('ed_rtpk').where('ed_pcpk', reqPk).groupBy('ed_rtpk');
+    const edQuery = cur('estimate_detail_hst').select('ed_rtpk').where('ed_pcpk', reqPcPk).groupBy('ed_rtpk');
     const rtQuery = cur({rt: 'resource_type_tbl'}).select('rt_rcpk').innerJoin({ed: edQuery}, 'rt.rt_pk', 'ed.ed_rtpk').groupBy('rt_rcpk');
     const query = cur({rc:'resource_category_tbl'}).select('rc.rc_pk', 'rc.rc_name').innerJoin({a: rtQuery}, 'a.rt_rcpk', 'rc.rc_pk');
 
@@ -1210,7 +1501,7 @@ router.get('/:pk([0-9]+)/resource', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            coresspondentList: response
+            correspondentList: response
           })
         );
       })
@@ -1223,6 +1514,7 @@ router.get('/:pk([0-9]+)/resource', (req, res) => {
   })
 });
 
+// construction & resource category per contract :end
 
 
 module.exports = router;
