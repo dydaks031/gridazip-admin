@@ -904,7 +904,7 @@ router.get('/:pk([0-9]+)/estimate/total', (req, res) => {
             let totalCosts = response[0][0];
             totalCosts.total_costs = totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
             totalCosts.vat_costs = totalCosts.total_costs * 0.1;
-            totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
+            totalCosts.total_costs_including_vat = Math.floor((totalCosts.total_costs + totalCosts.vat_costs) * 0.001) * 1000;
             res.json(
               resHelper.getJson({
                 totalCosts
