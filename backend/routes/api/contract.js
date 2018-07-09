@@ -5,6 +5,7 @@ const FormatService = require('../../services/format/helper');
 const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const smsHelper = require('../../services/sms/helper');
 const calc = require('calculator');
 
 
@@ -284,6 +285,37 @@ router.delete('/:pk([0-9]+)', (req, res) => {
 // proceeding contract CRUD :end
 
 
+router.post('/:pcpk([0-9]+)/sms', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  knexBuilder.getConnection().then(cur => {
+    cur('proceeding_contract_tbl')
+      .first('pc_name', 'pc_phone', 'pc_password')
+      .where('pc_pk', reqPcPk)
+      .then(row => {
+        const smsMsg = `[그리다집] ${row.pc_name} 고객님의 비밀번호는 [${row.pc_password}]입니다. http://estimate.gridazip.com 에서 실시간 상세견적서를 확인하실 수 있습니다.`;
+        smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
+          .then(response => {
+            console.log(response);
+            res.json(
+              resHelper.getJson(response)
+            );
+          })
+          .catch(error => {
+            console.error(error);
+            res.json(
+              resHelper.getError(error)
+            );
+          });
+      })
+      .catch(error => {
+        console.error(error);
+        res.json(
+          resHelper.getError(error)
+        );
+      });
+  });
+});
+
 
 /* estimate */
 
@@ -322,18 +354,25 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   }
   else {
     knexBuilder.getConnection().then(cur => {
-      let version = 1;
+      const obj = {};
       cur('estimate_tbl')
-        .select('es_pk', 'es_version')
+        .max('es_version as version')
         .where('es_pcpk', reqPcPk)
-        .orderBy('es_version')
         .then(response => {
-          if (!response)
-          res.json(
-            resHelper.getJson({
-              tabs: response
-            })
-          );
+          if (response[0].version) obj.es_version = response[0].version + 1;
+          else obj.es_version = 1;
+
+          obj.es_pcpk = reqPcPk;
+          cur('estimate_tbl')
+            .insert(obj)
+            .then(response => {
+              obj.es_pk = response[0];
+              res.json(
+                resHelper.getJson({
+                  tab: obj
+                })
+              );
+            });
         })
         .catch(err => {
           console.log(err);
