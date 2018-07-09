@@ -135,11 +135,7 @@ export default new Router({
             authRedirect: 'private/login'
           }
         },
-        ...generateRoutesFromMenu(menuModule.state.items),
-        {
-          path: '*',
-          redirect: 'private/login'
-        }
+        ...generateRoutesFromMenu(menuModule.state.items)
       ]
     },
     {
@@ -157,10 +153,6 @@ export default new Router({
           redirect: '/customer/estimate'
         }
       ]
-    },
-    {
-      path: '*',
-      redirect: '/private'
     }
   ]
 })
