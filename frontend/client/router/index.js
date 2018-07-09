@@ -10,7 +10,7 @@ export default new Router({
   scrollBehavior: () => ({ y: 0 }),
   routes: [
     {
-      path: '/private/',
+      path: '/private',
       component: require('../components/layout/PrivateAppContainer'),
       children: [
         {
@@ -18,8 +18,7 @@ export default new Router({
           path: '/',
           component: require('../views/Home'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -32,8 +31,7 @@ export default new Router({
           path: 'request-list/:id([0-9]+)',
           component: require('../views/requestList/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -41,8 +39,7 @@ export default new Router({
           path: 'request-list/register',
           component: require('../views/requestList/register'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -50,8 +47,7 @@ export default new Router({
           path: 'portfolio/:id([0-9]+)',
           component: require('../views/portfolio/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -59,8 +55,7 @@ export default new Router({
           path: 'portfolio/register',
           component: require('../views/portfolio/register'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -68,8 +63,7 @@ export default new Router({
           path: 'partner-list/:id([0-9]+)',
           component: require('../views/partners/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -77,8 +71,7 @@ export default new Router({
           path: 'estimate/:id([0-9]+)',
           component: require('../views/estimate/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -86,8 +79,7 @@ export default new Router({
           path: 'estimate/register',
           component: require('../views/estimate/register'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -95,8 +87,7 @@ export default new Router({
           path: 'estimate/:id([0-9]+)/register/:es_pk([0-9]+)',
           component: require('../views/estimate/estimateRegister'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -104,8 +95,7 @@ export default new Router({
           path: 'manage-constructor/constructor/:id([0-9]+)',
           component: require('../views/manageConstructor/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -113,8 +103,7 @@ export default new Router({
           path: 'manage-constructor/correspondent/:id([0-9]+)',
           component: require('../views/manageConstructor/detail'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -122,8 +111,7 @@ export default new Router({
           path: 'manage-constructor/constructor/register',
           component: require('../views/manageConstructor/register'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
         {
@@ -131,11 +119,14 @@ export default new Router({
           path: 'manage-constructor/correspondent/register',
           component: require('../views/manageConstructor/register'),
           meta: {
-            auth: true,
-            authRedirect: 'private/login'
+            auth: true
           }
         },
-        ...generateRoutesFromMenu(menuModule.state.items)
+        ...generateRoutesFromMenu(menuModule.state.items),
+        {
+          path: '*',
+          redirect: '/private'
+        }
       ]
     },
     {
