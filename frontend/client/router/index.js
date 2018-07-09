@@ -144,6 +144,10 @@ export default new Router({
           redirect: '/customer/estimate'
         }
       ]
+    },
+    {
+      path: '*',
+      redirect: '/private'
     }
   ]
 })
