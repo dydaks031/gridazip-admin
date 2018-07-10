@@ -91,7 +91,7 @@ app.use(session({
 }));
 
 app.use('/', index);
-app.use(/^\/(?:[^api](.*))\/?(?=\/|$)/i, index);
+app.use(/^\/(?:(?!api)(.*))\/?(?=\/|$)/i, index);
 
 app.use('/api/company', apiCompany);
 app.use('/api/portfolio', apiPortfolio);
@@ -112,7 +112,6 @@ app.use(function (req, res) {
   //let err = new Error('Not Found');
   //err.status = 404;
   // next(err);
-  // console.log(req)
   res.redirect('/');
 });
 
