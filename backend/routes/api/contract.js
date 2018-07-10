@@ -24,6 +24,7 @@ router.post('/pk', (req, res) => {
       .first('pc_pk')
       .where('pc_phone', cryptoHelper.encrypt(reqPhone))
       .andWhere('pc_password', reqPassword)
+      .andWhere('pc_deleted', false)
       .then(row => {
         if (!row) {
           res.json(resHelper.getError('일치하는 진행 계약이 없습니다.'));
@@ -138,14 +139,20 @@ router.get('/:pcpk([0-9]+)', (req, res) => {
         pc_deleted: false
       })
       .then(response => {
-        const item = response;
-        item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
-        item.pc_etc_costs_ratio = item.pc_etc_costs_ratio * 100 || 0.05 * 100;
-        item.pc_design_costs_ratio = item.pc_design_costs_ratio * 100 || 0.10 * 100;
-        item.pc_supervision_costs_ratio = item.pc_supervision_costs_ratio * 100 || 0.10 * 100;
-        res.json(resHelper.getJson({
-          contract: item
-        }));
+        console.log(response);
+        if (!response) {
+          res.json(resHelper.getError('[0001] 존재하지 않는 고객입니다.'));
+        }
+        else {
+          const item = response;
+          item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
+          item.pc_etc_costs_ratio = item.pc_etc_costs_ratio * 100 || 0.05 * 100;
+          item.pc_design_costs_ratio = item.pc_design_costs_ratio * 100 || 0.10 * 100;
+          item.pc_supervision_costs_ratio = item.pc_supervision_costs_ratio * 100 || 0.10 * 100;
+          res.json(resHelper.getJson({
+            contract: item
+          }));
+        }
       })
       .catch(err => {
         console.error(err);
