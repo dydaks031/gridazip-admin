@@ -37,7 +37,6 @@ router.post('/login', (req, res) => {
         if (response.length > 0) {
           userResult = response[0];
           if ( userResult.user_permit === 'A' ) {
-            console.log(session)
             return appHelper.setUser(userResult, session)
               .then((result) => {
                 return jwtHelper.sign({

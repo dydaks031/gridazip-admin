@@ -7,7 +7,6 @@ const filterService = require('../../services/filter/main');
 
 
 router.get('/', (req, res) => {
-  console.log(req)
   let point= req.query.point;
   let pageIndex = req.query.page;
   let pageInst = new paginationService();
