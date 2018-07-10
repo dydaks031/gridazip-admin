@@ -9,7 +9,6 @@ const Helper = {
         issuer: config.issuer,
         subject: config.subject,
       }, (err, token) => {
-        console.log('jwt token: ' + token)
         if (err) {
           reject(err)
         }
@@ -26,7 +25,6 @@ const Helper = {
         if (err) {
           reject(err)
         }
-        console.log(plain)
         resolve(plain)
       })
     })
