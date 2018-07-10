@@ -3,6 +3,7 @@
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
       <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">등록/수정</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
     <table class="table position-base-table">
@@ -143,6 +144,25 @@
   import EventBus from '../../services/eventBus'
   import deepClone from '../../services/deepClone'
   import _ from 'underscore'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
+
+  const queryApi = '/api/contract'
 
   export default {
     name: 'estimate-sheet',
@@ -536,6 +556,19 @@
         }
         this.isOpenSubResource[item.sub_key] = !this.isOpenSubResource[item.sub_key]
         this.$forceUpdate()
+      },
+      sendToSmS () {
+        this.$http.post(`${queryApi}/${this.param.id}/sms`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            openNotification({
+              message: '고객님 휴대폰으로 메세지가 발송 되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+          })
       }
     },
     mounted () {

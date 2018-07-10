@@ -8,11 +8,11 @@
     </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent">
-        <article class="tile is-child box" v-show="openTab === constructionType">
+        <article class="tile is-child box is-overflow-hidden" v-show="openTab === constructionType">
           <hierarchy-resource-container :type="constructionType">
           </hierarchy-resource-container>
         </article>
-        <article class="tile is-child box" v-show="openTab === resourceType">
+        <article class="tile is-child box is-overflow-hidden" v-show="openTab === resourceType">
           <hierarchy-resource-container :type="resourceType">
           </hierarchy-resource-container>
         </article>
@@ -74,7 +74,7 @@
 
 <style scoped>
   article {
-    overflow: auto;
+    overflow: hidden;
   }
   #addBtn {
     margin: 1rem 0;
