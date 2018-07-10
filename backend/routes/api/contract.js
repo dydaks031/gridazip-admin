@@ -126,13 +126,13 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk || '';
+router.get('/:pcpk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
       .first('*')
       .where({
-        pc_pk: reqPk
+        pc_pk: reqPcPk
       })
       .andWhere({
         pc_deleted: false
@@ -209,11 +209,11 @@ router.post('/', (req, res) => {
   }
 });
 
-router.put('/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk || '';
+router.put('/:pcpk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   const reqName = req.body.pc_name || '';
   const reqPhone = req.body.pc_phone || '';
-  if (reqPk === '') {
+  if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
   }
   else if (reqName.trim() === '') {
@@ -238,7 +238,7 @@ router.put('/:pk([0-9]+)', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
         .update(updateObj)
-        .where('pc_pk', reqPk)
+        .where('pc_pk', reqPcPk)
         .then(() => {
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
           updateObj.pc_etc_costs_ratio  = updateObj.pc_etc_costs_ratio * 100;
@@ -257,9 +257,9 @@ router.put('/:pk([0-9]+)', (req, res) => {
   }
 });
 
-router.delete('/:pk([0-9]+)', (req, res) => {
-  const reqPk = req.params.pk || '';
-  if (reqPk === '') {
+router.delete('/:pcpk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
   }
   else {
@@ -268,7 +268,7 @@ router.delete('/:pk([0-9]+)', (req, res) => {
         .update({
           pc_deleted: true
         })
-        .where('pc_pk', reqPk)
+        .where('pc_pk', reqPcPk)
         .then(() => {
           res.json(resHelper.getJson({
             msg: '진행 계약건이 정상적으로 삭제되었습니다.'
@@ -1321,7 +1321,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
 // constructor CRUD :start
 
 router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+  const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
     cur({cr: 'constructor_tbl'})
       .select(
@@ -1361,7 +1361,7 @@ router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
 });
 
 router.post('/:pcpk([0-9]+)/constructor', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+  const reqPcPk = req.params.pcpk || '';
   const reqCtPk = req.body.ct_pk || '';
   const reqCrPk = req.body.cr_pk || '';
 
@@ -1422,7 +1422,7 @@ router.delete('/:pcpk([0-9]+)/constructor/:cspk([0-9]+)', (req, res) => {
 // correspondent CRUD :start
 
 router.get('/:pcpk([0-9]+)/correspondent', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+  const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
     cur({co: 'correspondent_tbl'})
       .select(
@@ -1463,7 +1463,7 @@ router.get('/:pcpk([0-9]+)/correspondent', (req, res) => {
 });
 
 router.post('/:pcpk([0-9]+)/correspondent', (req, res) => {
-  const reqPcPk = req.params.pk || '';
+  const reqPcPk = req.params.pcpk || '';
   const reqRcPk = req.body.rc_pk || '';
   const reqCoPk = req.body.co_pk || '';
 
@@ -1530,7 +1530,7 @@ router.delete('/:pcpk([0-9]+)/correspondent/:cipk([0-9]+)', (req, res) => {
 router.get('/:pcpk([0-9]+)/construction', (req, res) => {
   const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const subQuery = cur('estimate_detail_hst').select({'ct_pk': 'ed_ctpk'}).where('ed_pcpk', reqPcPk).groupBy('ct_pk');
+    const subQuery = cur({ed:'estimate_detail_hst'}).select({'ct_pk': 'ed_ctpk'}).innerJoin({es:'estimate_tbl'}, 'ed.ed_espk', 'es.es_pk').where('es.es_pcpk', reqPcPk).groupBy('ct_pk');
     cur({ct:'construction_tbl'})
       .select('ed.ct_pk', 'ct.ct_name')
       .innerJoin({ed: subQuery}, 'ct.ct_pk', 'ed.ct_pk')
@@ -1553,7 +1553,7 @@ router.get('/:pcpk([0-9]+)/construction', (req, res) => {
 router.get('/:pcpk([0-9]+)/resource', (req, res) => {
   const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const edQuery = cur('estimate_detail_hst').select('ed_rtpk').where('ed_pcpk', reqPcPk).groupBy('ed_rtpk');
+    const edQuery = cur({ed:'estimate_detail_hst'}).select('ed_rtpk').innerJoin({es:'estimate_tbl'}, 'ed.ed_espk', 'es.es_pk').where('es.es_pcpk', reqPcPk).groupBy('ed_rtpk');
     const rtQuery = cur({rt: 'resource_type_tbl'}).select('rt_rcpk').innerJoin({ed: edQuery}, 'rt.rt_pk', 'ed.ed_rtpk').groupBy('rt_rcpk');
     const query = cur({rc:'resource_category_tbl'}).select('rc.rc_pk', 'rc.rc_name').innerJoin({a: rtQuery}, 'a.rt_rcpk', 'rc.rc_pk');
 

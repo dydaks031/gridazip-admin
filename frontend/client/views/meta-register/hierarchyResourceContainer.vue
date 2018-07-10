@@ -9,7 +9,8 @@
                                v-on:createItem="createItem"
                                v-on:deleteItem="deleteItem"
                                v-on:modifyItem="modifyItem"
-                               v-on:newDetailItem="newDetailItem" />
+                               v-on:newDetailItem="newDetailItem"
+                               v-on:initializeEditView="initializeEditView" />
       <resource-detail-view class="column is-half"
                             :selected-data="selectedData"
                             :selected-model="selectedModel"
@@ -206,6 +207,18 @@
             this.removeChildData(child[i], target, parent)
           }
         }
+      },
+      initializeEditView () {
+        console.log(this.curData)
+        this.curData.forEach((item) => {
+          if (item.data && item.data.hasOwnProperty('length')) {
+            item.data.forEach((_item) => {
+              _item.is_modify = false
+            })
+          }
+        })
+
+        this.$forceUpdate()
       }
     },
     mounted () {

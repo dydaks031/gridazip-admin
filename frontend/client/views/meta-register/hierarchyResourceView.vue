@@ -58,6 +58,7 @@
         }
       },
       itemClickEvent (data) {
+        this.$emit('initializeEditView')
         this.model.data = _.map(this.model.data, (item) => {
           item.isSelected = false
           return item
