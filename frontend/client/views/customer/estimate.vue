@@ -215,7 +215,6 @@
   import _ from 'underscore'
 
   const queryApi = '/api/contract'
-  const estimateId = 6
 
   export default {
     components: {EstimateAuthView},
@@ -609,7 +608,7 @@
         this.$forceUpdate()
       },
       loadEstimateView () {
-        const id = estimateId
+        const id = this.pc_pk
         let userInfo
         let general
         let labor
@@ -676,7 +675,7 @@
           window.sessionStorage.setItem('pc_pk', result.pc_pk)
         }
         this.isCloseModal = result.closeStatus
-        this.estimateData = result.pc_pk
+        this.pc_pk = result.pc_pk
         if (this.isCloseModal) {
           this.loadEstimateView()
         }
@@ -699,11 +698,10 @@
       if (window.hasOwnProperty('sessionStorage')) {
         console.log(window.sessionStorage)
         const pcPk = window.sessionStorage.getItem('pc_pk')
-        console.log(pcPk)
         if (pcPk) {
           this.changeCloseModalStatus({
             closeStatus: true,
-            pc_pk: this.pc_pk
+            pc_pk: pcPk
           })
         } else {
           this.$modal.show('estimateAuthView')
