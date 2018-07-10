@@ -213,7 +213,7 @@
         this.curData.forEach((item) => {
           if (item.data && item.data.hasOwnProperty('length')) {
             item.data.forEach((_item) => {
-              return _item.is_modify = false
+              _item.is_modify = false
             })
           }
         })
