@@ -1530,7 +1530,7 @@ router.delete('/:pcpk([0-9]+)/correspondent/:cipk([0-9]+)', (req, res) => {
 router.get('/:pcpk([0-9]+)/construction', (req, res) => {
   const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const subQuery = cur('estimate_detail_hst').select({'ct_pk': 'ed_ctpk'}).where('ed_pcpk', reqPcPk).groupBy('ct_pk');
+    const subQuery = cur({ed:'estimate_detail_hst'}).select({'ct_pk': 'ed_ctpk'}).innerJoin({es:'estimate_tbl'}, 'ed.ed_espk', 'es.es_pk').where('es.es_pcpk', reqPcPk).groupBy('ct_pk');
     cur({ct:'construction_tbl'})
       .select('ed.ct_pk', 'ct.ct_name')
       .innerJoin({ed: subQuery}, 'ct.ct_pk', 'ed.ct_pk')
@@ -1553,7 +1553,7 @@ router.get('/:pcpk([0-9]+)/construction', (req, res) => {
 router.get('/:pcpk([0-9]+)/resource', (req, res) => {
   const reqPcPk = req.params.pcpk;
   knexBuilder.getConnection().then(cur => {
-    const edQuery = cur('estimate_detail_hst').select('ed_rtpk').where('ed_pcpk', reqPcPk).groupBy('ed_rtpk');
+    const edQuery = cur({ed:'estimate_detail_hst'}).select('ed_rtpk').innerJoin({es:'estimate_tbl'}, 'ed.ed_espk', 'es.es_pk').where('es.es_pcpk', reqPcPk).groupBy('ed_rtpk');
     const rtQuery = cur({rt: 'resource_type_tbl'}).select('rt_rcpk').innerJoin({ed: edQuery}, 'rt.rt_pk', 'ed.ed_rtpk').groupBy('rt_rcpk');
     const query = cur({rc:'resource_category_tbl'}).select('rc.rc_pk', 'rc.rc_name').innerJoin({a: rtQuery}, 'a.rt_rcpk', 'rc.rc_pk');
 
