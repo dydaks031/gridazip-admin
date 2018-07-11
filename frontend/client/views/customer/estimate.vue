@@ -48,23 +48,23 @@
           <table class="table position-base-table">
             <colgroup>
               <col width="8%" />
-              <col width="5%" />
+              <col class="is-hidden-mobile" width="5%" />
+              <col class="is-hidden-mobile" width="10%" />
               <col width="10%" />
               <col width="10%" />
-              <col width="10%" />
-              <col width="auto" />
-              <col width="10%" />
+              <col class="is-hidden-mobile" width="auto" />
+              <col class="is-hidden-mobile" width="10%" />
               <col width="10%" />
               <col width="10%" />
             </colgroup>
             <thead>
             <tr>
               <th>위치</th>
-              <th>공사</th>
-              <th>공정</th>
+              <th class="is-hidden-mobile">공사</th>
+              <th class="is-hidden-mobile">공정</th>
               <th>상세공정</th>
-              <th>상세위치</th>
-              <th>자재</th>
+              <th class="is-hidden-mobile">상세위치</th>
+              <th class="is-hidden-mobile">자재</th>
               <th class="has-text-right">인건비</th>
               <th class="has-text-right">자재비</th>
             </tr>
@@ -72,11 +72,11 @@
             <tbody>
             <tr :class="{'is-summary': generalData.is_summary}" v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
               <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-              <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-              <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+              <td class="is-hidden-mobile"v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+              <td class="is-hidden-mobile" v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
               <td>{{generalData.cpd_name}}</td>
-              <td>{{generalData.detail_place}}</td>
-              <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+              <td class="is-hidden-mobile">{{generalData.detail_place}}</td>
+              <td class="is-hidden-mobile">{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
               <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
               <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
             </tr>
@@ -86,25 +86,26 @@
             <i class="fa fa-angle-down" /><span>더보기</span>
           </div>
         </section>
-        <section  class="detail-info columns">
+        <section  class="detail-info columns is-desktop">
           <div class="column is-6">
             <article>
               <h2 class="title has-text-centered">자재비</h2>
               <div class="content">
                 <table class="table">
                   <colgroup>
-                    <col width="15%"/>
+                    <col class="is-hidden-mobile" width="15%"/>
+                    <col class="is-hidden-desktop" width="30%"/>
                     <col width="auto"/>
-                    <col width="auto"/>
-                    <col width="auto"/>
+                    <col class="is-hidden-mobile" width="auto"/>
+                    <col class="is-hidden-mobile" width="auto"/>
                     <col width="auto"/>
                   </colgroup>
                   <thead>
                   <tr>
                     <th>자재분류</th>
                     <th>자재</th>
-                    <th>물량</th>
-                    <th class="has-text-right">단가</th>
+                    <th class="is-hidden-mobile">물량</th>
+                    <th class="is-hidden-mobile has-text-right">단가</th>
                     <th class="has-text-right">금액</th>
                   </tr>
                   </thead>
@@ -112,8 +113,8 @@
                   <tr :class="{'is-summary': resource.is_summary}" v-for="(resource, index) in viewerData.resource" v-if="resource.resource_costs !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
                     <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                     <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                    <td>{{resource.resource_amount}} {{resource.ru_name}}</td>
-                    <td class="has-text-right">{{resource.is_summary ? '' : addCommas(resource.rs_price)}}</td>
+                    <td class="is-hidden-mobile">{{resource.resource_amount}} {{resource.ru_name}}</td>
+                    <td class="is-hidden-mobile has-text-right">{{resource.is_summary ? '' : addCommas(resource.rs_price)}}</td>
                     <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
                   </tr>
                   </tbody>
@@ -135,7 +136,7 @@
                   <thead>
                   <tr>
                     <th>공사</th>
-                    <th>공정</th>
+                    <th class="is-hidden-mobile">공정</th>
                     <th>상세공정</th>
                     <th>자재군</th>
                     <th class="has-text-right">인건비</th>
@@ -144,7 +145,7 @@
                   <tbody>
                   <tr :class="{'is-summary': labor.is_summary}" v-for="(labor, index) in viewerData.labor" v-if="labor.labor_costs !== 0 && (index <= 5 || isMoreBtnStatus.labor)">
                     <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
-                    <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                    <td class="is-hidden-mobile" v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
                     <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
                     <td>{{labor.rt_name}}</td>
                     <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
@@ -442,7 +443,7 @@
               return memo + obj.resource_costs
             }, 0),
             rs_code: '',
-            rs_name: '소계',
+            rs_name: '',
             rs_price: '',
             ru_name: '',
             is_summary: true
@@ -729,258 +730,5 @@
   }
 </script>
 
-<style scoped lang="scss">
-  $main-color: #9dadff;
-  $background-grey: #f8f7fc;
-  $default-font-size: 14px;
-  $table-hover-color: #fcfbfe;
-
-  .wrapper {
-    background:#f8f7fc;
-
-    &.modal-closed {
-      height:100vh;
-      overflow: hidden;
-      filter: blur(8px);
-      -ms-filter: blur(8px);
-      -moz-filter: blur(8px);
-      -webkit-filter: blur(8px);
-      -o-filter: blur(8px);
-    }
-  }
-  .is-one-fifth {
-    flex: none;
-    width: 15%;
-  }
-  .mr-15 {
-    margin-right: 1.5rem !important;
-  }
-  .flex-center-text {
-    align-self: center;
-  }
-  .flex-item-right {
-    align-items: flex-end;
-  }
-
-  .title-wrapper {
-    padding: 4rem 4rem 7.5rem 4rem;
-    background-color: $main-color;
-
-    .title {
-      color: white;
-
-      .is-bold {
-        font-weight: 400;
-      }
-    }
-
-    .print-btn {
-      width: 120px;
-      height: 40px;
-      box-shadow: 1px 2.8px 0 0 rgba(116, 134, 225, 0.5);
-      background-color: $main-color;
-      border: solid 1px #eeeeee;
-      color:white;
-    }
-  }
-  .level.user-info {
-    background: white;
-    margin: 0 4rem;
-    position: relative;
-    border-radius: 3px;
-    box-shadow: 0px 1px 2.1px 0.9px rgba(0, 0, 0, 0.05);
-    top: -4.5rem;
-    .level-left {
-      align-items: stretch;
-    }
-
-    .level-item {
-      padding: 3rem;
-      margin-right: 0;
-      &.user-name {
-        display:block;
-        background: $background-grey;
-        .subtitle {
-          line-height:1.15;
-          padding: 0 0.5rem 1.15rem 0.5rem;
-        }
-        hr {
-          height: 4px;
-          background-color: #9dadff;
-          margin: 0;
-        }
-      }
-    }
-  }
-
-  .contents {
-    .title {
-      font-weight: normal;
-      color: #000000;
-    }
-    .table {
-      border: solid 1px #e1e1e1;
-      tr {
-        &:hover {
-          background-color: $table-hover-color;
-        }
-        border: solid 1px #e1e1e1;
-      }
-
-      td, th {
-        padding: 0.8rem;
-      }
-
-      thead {
-        background: #b5b5be;
-        border: none;
-        tr {
-          &:hover {
-            background-color: inherit;
-          }
-          th {
-            color: white;
-            border: none;
-            &.has-text-right {
-              text-align: right;
-            }
-          }
-          border-bottom: none;
-        }
-      }
-      tbody {
-        tr {
-          &:first-child {
-            border-top: none;
-          }
-          &.is-summary {
-            td {
-              font-weight: bold;
-            }
-          }
-          td {
-            color: #000000;
-            .resource-code {
-              display:block;
-              font-size:0.8rem;
-              color: #777777;
-            }
-          }
-        }
-      }
-    }
-    .space-base-info {
-      padding: 0 4rem 2rem 4rem;
-    }
-    .detail-info {
-      background: $background-grey;
-      padding: 3rem 4rem 1.5rem 4rem;
-      .title {
-        margin-bottom: 1.8rem;
-        font-size:1.7rem;
-      }
-      .column {
-        padding-top: 0rem;
-        &:first-child {
-          padding-right: 1.75rem;
-        }
-        &:last-child {
-          padding-left: 1.75rem;
-        }
-      }
-    }
-    .more-data {
-      height: 50px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0px 1px 2.1px 0.9px rgba(0, 0, 0, 0.05);
-      margin: 3rem 0 0 0;
-      background: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      i {
-        font-size: 2rem;
-        opacity: 0.7;
-      }
-
-      span {
-        padding: 1rem;
-        font-size: 20px;
-      }
-    }
-
-    .summary-info {
-      position:relative;
-      z-index: 1;
-      /*top: calc((14px * 2.2 * 1.15) + (14px * 4));*/
-      margin: 0 4rem;
-      padding: 2rem 0;
-      background: white;
-      border-radius: 3px;
-      box-shadow: 0px 1px 2.1px 0.9px rgba(0, 0, 0, 0.05);
-
-      .level {
-        align-items: flex-start;
-        margin: 0 2rem;
-        line-height:1.15;
-        &:first-child {
-          border-bottom: 1px solid #000000;
-          padding: 0 0 2rem 0;
-        }
-        &:last-child {
-          padding: 2rem 0 0 0;
-        }
-
-        .level-left {
-          .subtitle {
-            font-size: 1.7rem;
-            font-weight: normal;
-            color: #000000;
-          }
-        }
-
-        .level-right {
-          .level-item {
-            flex-direction: column;
-            &:first-child {
-              align-items: baseline;
-            }
-
-            &.summary {
-              > p {
-                font-size:2.2rem;
-              }
-            }
-            p {
-              font-size: 1.2rem;
-              font-weight: normal;
-              color: #000000;
-              padding: 0.25rem;
-              &:first-child {
-                padding: 0 0.25rem 0.25rem;
-              }
-              &:last-child {
-                padding: 0.25rem 0.25rem 0;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  .footer {
-    padding: calc((14px * 2.2 * 1.15) + (14px * 4));
-    background: #666a86;
-    margin-left: 0;
-    z-index: 0;
-    margin-top: calc(-1* ((14px * 2.2 * 1.15) + (14px * 4) + (14px * 0.25)))
-  }
-  .position-base-table {
-    margin: 1rem 0 3rem 0
-  }
-  .is-rounded {
-    border-radius: 20px;
-  }
-</style>
+<style scoped lang="scss" src="./estimate.scss"></style>
+<style scoped lang="scss" src="./estimate-mediaquery.scss"></style>
