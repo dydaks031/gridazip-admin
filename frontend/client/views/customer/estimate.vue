@@ -113,7 +113,7 @@
                     <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
                     <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
                     <td>{{resource.resource_amount}} {{resource.ru_name}}</td>
-                    <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                    <td class="has-text-right">{{resource.is_summary ? '' : addCommas(resource.rs_price)}}</td>
                     <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
                   </tr>
                   </tbody>
