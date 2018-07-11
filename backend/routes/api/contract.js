@@ -200,8 +200,9 @@ router.post('/', (req, res) => {
           ...insertObj,
           pc_recency: cur.raw('UNIX_TIMESTAMP() * -1')
         })
-        .then(() => {
+        .then((response) => {
           insertObj.pc_phone = cryptoHelper.decrypt(insertObj.pc_phone);
+          insertObj.pc_pk = response[0];
           delete insertObj.pc_recency;
           res.json(resHelper.getJson({
             msg: '진행 계약건이 정상적으로 추가되었습니다.',
