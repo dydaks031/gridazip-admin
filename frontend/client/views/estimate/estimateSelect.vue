@@ -160,7 +160,7 @@
           } else {
             convertData.push({
               id: item[keyList.id],
-              text: `${item[keyList.name]}(${item.rs_code})`
+              text: item.rs_code !== '' ? `${item[keyList.name]}(${item.rs_code})` : `${item[keyList.name]}`
             })
           }
         })
