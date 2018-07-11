@@ -1,5 +1,5 @@
 <template>
-  <modal name="estimateAuthView" :width="450" :height="320" :clickToClose="false" @before-close="beforeCloseEvent">
+  <modal name="estimateAuthView" :classes="['estimate-auth-view']" :width="450" :height="'auto'" :clickToClose="false" @before-close="beforeCloseEvent">
     <div class="modal-card-head">
       <h1 class="modal-card-title">비밀번호 입력</h1>
     </div>
@@ -68,6 +68,20 @@
     }
   }
 </script>
+<style lang="scss">
+  @media screen and (max-width: 768px) {
+    .modal-card-body {
+      .input-wrapper {
+        padding: 0 2rem !important;
+      }
+    }
+    .estimate-auth-view {
+      width:300px !important;
+      left: calc(50% - (150px)) !important;
+    }
+  }
+</style>
+
 <style lang="scss" scoped>
   .modal-card-head {
     background-image: linear-gradient(330deg, #9daeff, #82befd);
@@ -101,6 +115,6 @@
     }
   }
   .v--modal-overlay {
-    width: calc(100% + 90px);
+    width: calc(100%);
   }
 </style>
