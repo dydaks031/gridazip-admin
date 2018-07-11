@@ -98,12 +98,33 @@
     methods: {
       registerContract () {
         this.$http.post(`${queryApi}`, this.data)
-          .then((data) => {
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '계약 등록에 실패하였습니다. 관리자에게 문의 바랍니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
+            const insertResult = response.data.data.data
+            return this.$http.post(`${queryApi}/${insertResult.pc_pk}/estimate/tabs`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '계약 등록에 실패하였습니다. 관리자에게 문의 바랍니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
             openNotification({
               message: '등록되었습니다.',
               type: 'success',
               duration: 1500
             })
+            console.log(response)
             router.back()
           })
           .catch((error) => {
