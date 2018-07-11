@@ -39,7 +39,7 @@
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
         <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
         </select2>
-        <span class="resource-code" v-show="data.isModify === false">{{data.selectedData.rs_code}}</span>
+        <span class="resource-code" v-show="data.isModify === false && data.selectedData.rs_code">{{data.selectedData.rs_code}}</span>
       </td>
       <td>
         <span v-show="data.isModify === false">{{data.selectedData.ed_alias || '-'}}</span>
@@ -222,7 +222,7 @@
           } else {
             convertData.push({
               id: item[keyList.id],
-              text: `${item[keyList.name]}(${item.rs_code})`
+              text: item.rs_code !== '' ? `${item[keyList.name]}(${item.rs_code})` : `${item[keyList.name]}`
             })
           }
         })
