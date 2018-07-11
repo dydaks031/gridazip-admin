@@ -1,0 +1,94 @@
+/*
+  ##Device = Most of the Smartphones Mobiles (Portrait)
+  ##Screen = B/w 320px to 479px
+*/
+@media screen and (max-width: 768px) {
+  $horizontal-padding: 1rem;
+  .title-wrapper {
+    padding-right: $horizontal-padding;
+    padding-left: $horizontal-padding;
+    .title {
+      font-size: 1.8rem;
+      text-align: center;
+    }
+    .print-btn {
+      display: none;
+    }
+  }
+  .level {
+    &.user-info {
+      margin: 0 $horizontal-padding;
+
+      .level-item {
+        &:not(:first-child) {
+          padding: 0.5rem;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .contents {
+    .space-base-info {
+      padding: 0 $horizontal-padding 2rem;
+    }
+
+    .detail-info {
+      padding: 3rem $horizontal-padding 1.5rem;
+      margin: 0;
+      .column {
+        &:first-child {
+          padding: 0 0 4rem 0;
+        }
+        &:last-child {
+          padding: 0;
+        }
+      }
+    }
+
+    .summary-info {
+      margin: 0 $horizontal-padding;
+      .level {
+        &:first-child {
+          padding: 0 0 1rem 0;
+          .level-right {
+            display: flex;
+            justify-content: inherit;
+            .level-item {
+              &:first-child {
+                align-items: flex-start;
+                margin: 0;
+              }
+
+              &:last-child {
+                align-items: flex-end;
+              }
+            }
+            p {
+              font-size: 1rem;
+            }
+          }
+        }
+        &:last-child {
+          padding: 1rem 0 0 0;
+          .level-left {
+            h3 {
+              text-align: right;
+              font-size: 1.3rem;
+            }
+          }
+          .level-right {
+            margin-top: 0.5rem;
+            .level-item {
+              align-items: flex-end;
+              p {
+                font-size:1.5rem;
+                font-weight: bold;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
