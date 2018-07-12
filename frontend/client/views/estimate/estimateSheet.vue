@@ -564,7 +564,7 @@
         this.$forceUpdate()
       },
       sendToSmS () {
-        if (window.confirm('고객에게 상세견적서 안내 문자를 발송하시겠습니까? (실제 휴대폰 번호로 전송되므로 유의해 주십시오.)')) {
+        if (window.confirm('고객에게 상세견적서 안내 문자를 발송하시겠습니까?\n(실제 휴대폰 번호로 전송되므로 유의해 주십시오.)')) {
           this.$http.post(`${queryApi}/${this.param.id}/sms`)
             .then((response) => {
               if (response.data.code !== 200) {
