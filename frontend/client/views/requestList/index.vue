@@ -33,8 +33,9 @@
               <th>별칭</th>
               <th>전화번호</th>
               <th>신청일자</th>
-              <th>유효여부</th>
-              <th>방문상담여부</th>
+              <th>진행상태</th>
+              <th>실패사유</th>
+              <!--<th>방문상담여부</th>-->
               <th>삭제</th>
             </tr>
             </thead>
@@ -44,15 +45,17 @@
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
               <td>{{getComputedDate(item.rq_reg_dt)}}</td>
-              <td>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="1" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >X</label>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="3" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >&#9651;</label>
-                <input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="2" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >O</label>
-              </td>
-              <td>
-                <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="1" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >X</label>
-                <input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="2" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >O</label>
-              </td>
+              <td>{{item.rq_process_status}}</td>
+              <td>{{item.rq_fail_reason}}</td>
+              <!--<td>-->
+                <!--<input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="1" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >X</label>-->
+                <!--<input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="3" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >&#9651;</label>-->
+                <!--<input type="radio" :name="'rq_is_valuable_' + item.rq_pk" value="2" v-model="item.rq_is_valuable" v-on:click.stop="doThis" v-on:change="updateRowValuable(item, 'rq_is_valuable')"/><label >O</label>-->
+              <!--</td>-->
+              <!--<td>-->
+                <!--<input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="1" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >X</label>-->
+                <!--<input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="2" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >O</label>-->
+              <!--</td>-->
               <td>
                 <button class="button" v-on:click.stop="deleteRow(item)">삭제</button>
               </td>

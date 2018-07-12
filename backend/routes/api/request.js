@@ -180,13 +180,23 @@ router.post('/', (req, res) => {
     insertObj.rq_is_valuable = req.body.rq_is_valuable || 0;
     insertObj.rq_is_contracted = req.body.rq_is_contracted || 0;
 
+    if (req.body.hasOwnProperty('rq_process_status')) {
+      insertObj.rq_process_status = req.body.rq_process_status;
+    }
+
+    if (req.body.hasOwnProperty('rq_fail_reason')) {
+      insertObj.rq_fail_reason = req.body.rq_fail_reason || '';
+    }
+
     knexBuilder.getConnection().then(cur => {
       insertObj.rq_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
-          const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
-          httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
+          if (process.env.NODE_ENV !== 'development') {
+            const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
+            httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
+          }
 
           res.json(resHelper.getJson({
             msg: '상담내역이 정상적으로 추가되었습니다.'
@@ -292,6 +302,8 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
       updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
       updateObj.rq_is_valuable = rq_is_valuable;
       updateObj.rq_is_contracted = rq_is_contracted;
+      updateObj.rq_process_status = req.body.rq_process_status;
+      updateObj.rq_fail_reason = req.body.rq_fail_reason || '';
     }
     else {
       if (isExistValuable) {

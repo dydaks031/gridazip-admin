@@ -4,32 +4,19 @@
       <article class="tile is-child box">
         <h4 class="title">상담신청내역 상세</h4>
         <div class="block">
-          <label class="label">유효여부</label>
-          <p class="control">
-            <label class="radio">
-              <input type="radio" value="1" id="rq_is_not_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
-              X
-            </label>
-            <label class="radio">
-              <input type="radio" value="3" id="rq_is_not_used" name="request_is_valuable" v-model="data.rq_is_valuable">
-              &#9651;
-            </label>
-            <label class="radio">
-              <input type="radio" value="2" id="rq_is_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
-              O
-            </label>
-          </p>
-          <label class="label">방문상담여부</label>
-          <p class="control">
-            <label class="radio">
-              <input type="radio" value="1" name="request_is_contracted" v-model="data.rq_is_contracted">
-              X
-            </label>
-            <label class="radio">
-              <input type="radio" value="2"  name="request_is_contracted" v-model="data.rq_is_contracted">
-              O
-            </label>
-          </p>
+          <label class="label">상담 진행상태</label>
+          <div class="select">
+            <select v-model="data.rq_process_status" v-on:change="changeProcessStatus">
+              <option v-for="status in requestStatusConfig.statusList">{{status.label}}</option>
+            </select>
+          </div>
+          <label class="label" v-if="hasStatusChildren">상담 실패사유</label>
+          <div class="select" v-if="hasStatusChildren">
+            <select v-model="data.rq_fail_reason">
+              <option value="" selected="selected">선택</option>
+              <option v-for="failStatus in failStatusList" :value="failStatus.label">{{failStatus.label}}</option>
+            </select>
+          </div>
           <label class="label">신청일자</label>
           <p class="control">
             {{ (data.rq_reg_dt === '0000-00-00' || !data.rq_reg_dt) ? '' : moment(data.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD') }}
@@ -160,6 +147,8 @@
   import moment from 'moment'
   import Cleave from 'vue-cleave'
   import 'cleave.js/dist/addons/cleave-phone.kr.js'
+  import requestStatusConfig from '../../config/request-status-config'
+  import _ from 'underscore'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
 
@@ -190,9 +179,13 @@
     data () {
       return {
         data: {
-          rq_phone: ''
+          rq_phone: '',
+          rq_fail_reason: ''
         },
         id: '',
+        hasStatusChildren: false,
+        failStatusList: [],
+        requestStatusConfig,
         moment
       }
     },
@@ -214,6 +207,12 @@
             return
           }
           this.data = response.data.data.data
+          if (this.data.rq_fail_reason) {
+            this.failStatusList = _.find(this.requestStatusConfig.statusList, (item) => {
+              return item.label === this.data.rq_process_status
+            }).children
+            this.hasStatusChildren = true
+          }
           Vue.set(this.data, 'rq_phone', this.data.rq_phone)
         }).catch((error) => {
           console.log(error)
@@ -261,6 +260,20 @@
               console.log(error)
             })
         }
+      },
+      changeProcessStatus () {
+        const selectedData = _.find(this.requestStatusConfig.statusList, (item) => {
+          return item.label === this.data.rq_process_status
+        })
+        this.data.rq_fail_reason = ''
+        if (selectedData.hasOwnProperty('children')) {
+          this.failStatusList = selectedData.children
+          this.hasStatusChildren = true
+        } else {
+          this.failStatusList = []
+          this.hasStatusChildren = false
+        }
+        this.$forceUpdate()
       }
     }
   }
