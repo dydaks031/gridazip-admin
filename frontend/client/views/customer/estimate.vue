@@ -462,6 +462,9 @@
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
             return item.rs_price.toString() !== '0'
           })
+          if (resourceCategoryItem.length === 0) {
+            continue
+          }
           const resourceCategoryPk = resourceCategoryItem[0].rc_pk
           mergeCount[resourceCategoryPk] = {
             count: resourceCategoryItem.length
@@ -533,13 +536,15 @@
           const constructionItem = _.filter(constructionByData[i], (item) => {
             return item.labor_costs.toString() !== '0'
           })
+          if (constructionItem.length === 0) {
+            continue
+          }
           const constructionPk = constructionItem[0].ct_pk
           mergeCount[constructionPk] = {
             count: constructionItem.length,
             constructionProcess: {
             }
           }
-          console.log(constructionItem)
           // 위의 위치의 해당하는 데이터 중 동일한 공사의 데이터가 몇건인지 확인한다.
           const constructionProcessByData = _.groupBy(constructionItem, 'cp_pk')
           for (let j in constructionProcessByData) {
@@ -567,15 +572,11 @@
 
           }
         }
-        console.log(mergeCount)
         let item
         const resultCount = resultData.length
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 labor_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-          console.log(`ct_pk : ${item.ct_pk}`)
-          console.log(`cp_pk : ${item.cp_pk}`)
-          console.log(`cpd_pk : ${item.cpd_pk}`)
           if (item.labor_costs.toString() === '0') {
             continue
           }
@@ -596,7 +597,6 @@
             firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk] = true
           }
         }
-        console.log(resultData)
         this.viewerData.labor = resultData
       },
       openSubResource (item) {
@@ -695,7 +695,6 @@
     },
     mounted () {
       if (window.hasOwnProperty('sessionStorage')) {
-        console.log(window.sessionStorage)
         const pcPk = window.sessionStorage.getItem('pc_pk')
         if (pcPk) {
           this.changeCloseModalStatus({
@@ -712,7 +711,6 @@
     watch: {
       estimateData: {
         handler (newValue, oldValue) {
-          console.log(newValue)
           if (!newValue) {
             return false
           }

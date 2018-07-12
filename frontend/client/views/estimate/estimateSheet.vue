@@ -417,6 +417,9 @@
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
             return item.rs_price.toString() !== '0'
           })
+          if (resourceCategoryItem.length === 0) {
+            continue
+          }
           const resourceCategoryPk = resourceCategoryItem[0].rc_pk
           mergeCount[resourceCategoryPk] = {
             count: resourceCategoryItem.length
@@ -488,6 +491,9 @@
           const constructionItem = _.filter(constructionByData[i], (item) => {
             return item.labor_costs.toString() !== '0'
           })
+          if (constructionItem.length === 0) {
+            continue
+          }
           const constructionPk = constructionItem[0].ct_pk
           mergeCount[constructionPk] = {
             count: constructionItem.length,
@@ -558,17 +564,19 @@
         this.$forceUpdate()
       },
       sendToSmS () {
-        this.$http.post(`${queryApi}/${this.param.id}/sms`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-            openNotification({
-              message: '고객님 휴대폰으로 메세지가 발송 되었습니다.',
-              type: 'success',
-              duration: 1500
+        if (window.confirm('고객에게 상세견적서 안내 문자를 발송하시겠습니까?\n(실제 휴대폰 번호로 전송되므로 유의해 주십시오.)')) {
+          this.$http.post(`${queryApi}/${this.param.id}/sms`)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return false
+              }
+              openNotification({
+                message: '고객님 휴대폰으로 메세지가 발송 되었습니다.',
+                type: 'success',
+                duration: 1500
+              })
             })
-          })
+        }
       }
     },
     mounted () {
