@@ -417,6 +417,9 @@
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
             return item.rs_price.toString() !== '0'
           })
+          if (resourceCategoryItem.length === 0) {
+            continue
+          }
           const resourceCategoryPk = resourceCategoryItem[0].rc_pk
           mergeCount[resourceCategoryPk] = {
             count: resourceCategoryItem.length
@@ -488,6 +491,9 @@
           const constructionItem = _.filter(constructionByData[i], (item) => {
             return item.labor_costs.toString() !== '0'
           })
+          if (constructionItem.length === 0) {
+            continue
+          }
           const constructionPk = constructionItem[0].ct_pk
           mergeCount[constructionPk] = {
             count: constructionItem.length,
