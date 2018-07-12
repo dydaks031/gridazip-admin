@@ -488,6 +488,9 @@
           const constructionItem = _.filter(constructionByData[i], (item) => {
             return item.labor_costs.toString() !== '0'
           })
+          if (constructionItem.length === 0) {
+            continue
+          }
           const constructionPk = constructionItem[0].ct_pk
           mergeCount[constructionPk] = {
             count: constructionItem.length,
