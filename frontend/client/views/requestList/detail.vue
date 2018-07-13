@@ -5,13 +5,13 @@
         <h4 class="title">상담신청내역 상세</h4>
         <div class="block">
           <label class="label">상담 진행상태</label>
-          <div class="select">
+          <div class="select is-fullwidth">
             <select v-model="data.rq_process_status" v-on:change="changeProcessStatus">
               <option v-for="status in requestStatusConfig.statusList">{{status.label}}</option>
             </select>
           </div>
           <label class="label" v-if="hasStatusChildren">상담 실패사유</label>
-          <div class="select" v-if="hasStatusChildren">
+          <div class="select is-fullwidth" v-if="hasStatusChildren">
             <select v-model="data.rq_fail_reason">
               <option value="" selected="selected">선택</option>
               <option v-for="failStatus in failStatusList" :value="failStatus.label">{{failStatus.label}}</option>
@@ -25,16 +25,29 @@
           <p class="control">
             {{ data.rq_name }}
           </p>
-          <label class="label">별칭</label>
-          <p class="control">
-            <input type="text" class="input" v-model="data.rq_nickname" />
-          </p>
           <label class="label">연락처</label>
           <p class="control">
             <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr'}" v-model="data.rq_phone" v-on:change="updateValue">
 
             </cleave>
           </p>
+          <label class="label">담당자</label>
+          <p class="control">
+            <input class="input" type="text" v-model="data.rq_manager" />
+          </p>
+          <label class="label">별칭</label>
+          <p class="control">
+            <input type="text" class="input" v-model="data.rq_nickname" />
+          </p>
+          <label class="label">현장 구분</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select v-model="data.rq_site_type">
+                <option value="">선택</option>
+                <option v-for="siteType in requestStatusConfig.siteTypeList" :value="siteType.label">{{siteType.label}}</option>
+              </select>
+            </div>
+          </div>
           <label class="label">평수</label>
           <div class="control">
             <div class="select is-fullwidth">
@@ -180,7 +193,8 @@
       return {
         data: {
           rq_phone: '',
-          rq_fail_reason: ''
+          rq_fail_reason: '',
+          rq_site_type: ''
         },
         id: '',
         hasStatusChildren: false,

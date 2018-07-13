@@ -10,7 +10,7 @@ export default {
   }, {
     label: '상담실패',
     children: [{
-      label: '잘못된 번호'
+      label: '잘못된번호'
     }, {
       label: '거리문제'
     }, {
@@ -21,9 +21,9 @@ export default {
   }, {
     label: '상담예약완료'
   }, {
-    label: '1차제안서 완료'
+    label: '1차제안서완료'
   }, {
-    label: '1차제안서 수정'
+    label: '1차제안서수정'
   }, {
     label: '1차제안부재중'
   }, {
@@ -39,5 +39,10 @@ export default {
     }]
   }, {
     label: '계약완료'
+  }],
+  siteTypeList: [{
+    label: '주거'
+  }, {
+    label: '상업'
   }]
 }

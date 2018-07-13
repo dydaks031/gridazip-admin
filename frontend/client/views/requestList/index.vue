@@ -1,15 +1,35 @@
 <template>
   <div>
-    <div class="tile is-ancestor">
-      <div class="tile is-parent">
-        <article class="tile is-child box">
-          <div class="block">
-            <p class="control">
-              <input class="checkbox" type="checkbox" id="showAllCheckbox" v-model="isShowAllRow">
-              <label for="showAllCheckbox">숨김내역 전체보기</label>
-            </p>
+    <div class="search box">
+      <div class="block">
+        <div class="is-clearfix">
+          <div class="is-pulled-left is-horizontal searchbox">
+            <div class="control is-inline-block">
+              <label class="label">담당자</label>
+              <input class="input" type="text" placeholder="검색 내용 입력" v-model="searchData.rq_manager">
+            </div>
+            <div class="control is-inline-block">
+              <label class="label">진행상태</label>
+              <div class="select">
+                <select v-model="searchData.rq_process_status">
+                  <option value="" selected="selected">선택</option>
+                  <option v-for="status in requestStatusConfig.statusList" :value="status.label">{{status.label}}</option>
+                </select>
+              </div>
+            </div>
+            <div class="control is-inline-block">
+              <label class="label">신청일자</label>
+              <p class="control">
+                <datepicker v-model="searchData.rq_start_dt" />
+                ~
+                <datepicker v-model="searchData.rq_end_dt" />
+              </p>
+            </div>
           </div>
-        </article>
+          <div class="is-pulled-right search-btn">
+            <a class="button is-info" @click="loadQueryData">검색</a>
+          </div>
+        </div>
       </div>
     </div>
     <div class="tile is-ancestor">
@@ -29,22 +49,25 @@
             </colgroup>
             <thead>
             <tr>
+              <th>현장구분</th>
               <th>이름</th>
               <th>별칭</th>
               <th>전화번호</th>
-              <th>신청일자</th>
+              <th>담당자</th>
               <th>진행상태</th>
               <th>실패사유</th>
               <!--<th>방문상담여부</th>-->
+              <th>신청일자</th>
               <th>삭제</th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" v-show="(item.rq_is_valuable.toString() !== '1' || item.rq_is_contracted.toString() !== '1') || isShowAllRow">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" :class="getStatusType(item)">
+              <td>{{item.rq_site_type}}</td>
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
-              <td>{{getComputedDate(item.rq_reg_dt)}}</td>
+              <td>{{item.rq_manager}}</td>
               <td>{{item.rq_process_status}}</td>
               <td>{{item.rq_fail_reason}}</td>
               <!--<td>-->
@@ -56,6 +79,7 @@
                 <!--<input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="1" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >X</label>-->
                 <!--<input type="radio" :name="'rq_is_contracted_' + item.rq_pk" value="2" v-model="item.rq_is_contracted" v-on:click.stop="doThis" v-on:change="updateRowContracted(item, 'rq_is_contracted')"/><label >O</label>-->
               <!--</td>-->
+              <td>{{getComputedDate(item.rq_reg_dt)}}</td>
               <td>
                 <button class="button" v-on:click.stop="deleteRow(item)">삭제</button>
               </td>
@@ -81,6 +105,9 @@
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
   import PrivateWrapper from '../components/PrivateWrapper'
+  import requestStatusConfig from '../../config/request-status-config'
+  import Datepicker from 'vue-bulma-datepicker'
+  import Utils from '../../services/utils'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -105,7 +132,8 @@
     components: {
       PrivateWrapper,
       PaginationVue,
-      Notification
+      Notification,
+      Datepicker
     },
     mixins: [mixin],
     data () {
@@ -114,7 +142,13 @@
         filter: new Filter(),
         data: [],
         isLoading: false,
-        isShowAllRow: false,
+        searchData: {
+          rq_manager: '',
+          rq_start_dt: '',
+          rq_end_dt: '',
+          rq_process_status: ''
+        },
+        requestStatusConfig,
         moment
       }
     },
@@ -122,7 +156,8 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
+        const queryString = Utils.getQueryString(this.searchData)
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}&${queryString}`, {
           page: this.page.get(),
           filter: this.filter.get()
         }).then((response) => {
@@ -196,16 +231,52 @@
 
       },
       moveToPagination (index) {
-        console.log('curIndex' + index)
         this.page.setIndex(index)
-        console.log(this.page)
-        console.log(this.filter)
         this.loadData()
       },
       moveToRegister () {
         router.push({
           path: '/private/request-list/register'
         })
+      },
+      loadQueryData () {
+        this.page.setPoint(0)
+        this.page.setPage(0)
+        this.loadData()
+      },
+      getStatusType (item) {
+        const isGreenStatus = [
+          '신규신청',
+          '상담예약완료',
+          '1차제안서완료',
+          '1차제안서수정',
+          '1차통화부재중',
+          '2차통화부재중',
+          '1차제안부재중',
+          '2차제안부재중'
+        ]
+        const parentStatus = ['상담실패', '계약실패']
+        const isRedStatus = [
+          '3차제안부재중',
+          '3차통화부재중',
+          '거리문제',
+          '실수',
+          '부분인테리어',
+          '견적초과',
+          '고객변심',
+          '잘못된번호'
+        ]
+        const isBlueStatus = [
+          '계약완료'
+        ]
+        if (isGreenStatus.indexOf(item.rq_process_status) > -1) {
+          return 'is-green'
+        } else if (isRedStatus.indexOf(item.rq_process_status) > -1 || (parentStatus.indexOf(item.rq_process_status) > -1 && isRedStatus.indexOf(item.rq_fail_reason) > -1)) {
+          return 'is-red'
+        } else if (isBlueStatus.indexOf(item.rq_process_status) > -1) {
+          return 'is-blue'
+        }
+        return ''
       }
     },
     beforeRouteUpdate (to, from, next) {
@@ -221,11 +292,40 @@
   }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
   article {
     overflow: auto;
   }
   #addBtn {
     margin: 1rem 0;
+  }
+  .search {
+    input {
+      width: auto;
+    }
+
+    select {
+      width: auto;
+    }
+  }
+  .search-btn {
+    line-height: 60px;
+    a {
+      vertical-align: bottom;
+    }
+  }
+  .searchbox {
+    div.control {
+      margin-right: 3rem;
+    }
+  }
+  .is-green {
+    color:rgba(52, 168, 83, 1.00)
+  }
+  .is-red {
+    color:rgba(234, 67, 53, 1.00)
+  }
+  .is-blue {
+    color:rgba(66, 133, 244, 1.00)
   }
 </style>
