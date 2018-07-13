@@ -319,13 +319,13 @@
       margin-right: 3rem;
     }
   }
-  .is-green {
-    color:rgba(52, 168, 83, 1.00)
-  }
-  .is-red {
-    color:rgba(234, 67, 53, 1.00)
-  }
-  .is-blue {
-    color:rgba(66, 133, 244, 1.00)
-  }
+  /*.is-green {*/
+    /*color:rgba(52, 168, 83, 1.00)*/
+  /*}*/
+  /*.is-red {*/
+    /*color:rgba(234, 67, 53, 1.00)*/
+  /*}*/
+  /*.is-blue {*/
+    /*color:rgba(66, 133, 244, 1.00)*/
+  /*}*/
 </style>
