@@ -2,7 +2,7 @@
   <footer class="footer">
     <div class="container">
       <div class="content has-text-centered">
-        (주) 그리다집
+        Copyright(c) 2018 by (주) 그리다집.<br />All Page content is property of (주) 그리다집
       </div>
     </div>
   </footer>

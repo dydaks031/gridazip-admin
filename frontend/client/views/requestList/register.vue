@@ -3,39 +3,22 @@
     <div class="tile is-parent">
       <article class="tile is-child box">
         <div class="block">
-          <label class="label">유효여부</label>
-          <p class="control">
-            <label class="radio">
-              <input type="radio" value="1" id="rq_is_not_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
-              X
-            </label>
-            <label class="radio">
-              <input type="radio" value="3" id="rq_is_not_used" name="request_is_valuable" v-model="data.rq_is_valuable">
-              &#9651;
-            </label>
-            <label class="radio">
-              <input type="radio" value="2" id="rq_is_valuable" name="request_is_valuable" v-model="data.rq_is_valuable">
-              O
-            </label>
-          </p>
-          <label class="label">방문상담여부</label>
-          <p class="control">
-            <label class="radio">
-              <input type="radio" value="1" name="request_is_contracted" v-model="data.rq_is_contracted">
-              X
-            </label>
-            <label class="radio">
-              <input type="radio" value="2"  name="request_is_contracted" v-model="data.rq_is_contracted">
-              O
-            </label>
-          </p>
+          <label class="label">상담 진행상태</label>
+          <div class="select is-fullwidth">
+            <select v-model="data.rq_process_status" v-on:change="changeProcessStatus">
+              <option v-for="status in requestStatusConfig.statusList">{{status.label}}</option>
+            </select>
+          </div>
+          <label class="label" v-if="hasStatusChildren">상담 실패사유</label>
+          <div class="select is-fullwidth" v-if="hasStatusChildren">
+            <select v-model="data.rq_fail_reason">
+              <option value="" selected="selected">선택</option>
+              <option v-for="failStatus in failStatusList" :value="failStatus.label">{{failStatus.label}}</option>
+            </select>
+          </div>
           <label class="label" for="rqName">이름</label>
           <p class="control">
             <input class="input" type="text" v-model="data.rq_name" id="rqName"/>
-          </p>
-          <label class="label" for="rqNickname">별칭</label>
-          <p class="control">
-            <input class="input" type="text" v-model="data.rq_nickname" id="rqNickname"/>
           </p>
           <label class="label">연락처</label>
           <p class="control">
@@ -43,6 +26,23 @@
 
             </cleave>
           </p>
+          <label class="label" for="rqNickname">별칭</label>
+          <p class="control">
+            <input class="input" type="text" v-model="data.rq_nickname" id="rqNickname"/>
+          </p>
+          <label class="label" for="rqManager">담당자</label>
+          <p class="control">
+            <input class="input" type="text" v-model="data.rq_manager" id="rqManager"/>
+          </p>
+          <label class="label">현장 구분</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select v-model="data.rq_site_type">
+                <option value="">선택</option>
+                <option v-for="siteType in requestStatusConfig.siteTypeList" :value="siteType.label">{{siteType.label}}</option>
+              </select>
+            </div>
+          </div>
           <label class="label">평수</label>
           <div class="control">
             <div class="select is-fullwidth">
@@ -157,6 +157,8 @@
   import 'cleave.js/dist/addons/cleave-phone.kr.js'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
+  import requestStatusConfig from '../../config/request-status-config'
+  import _ from 'underscore'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -198,8 +200,14 @@
           rq_date: '',
           rq_time: '',
           rq_memo: '',
-          rq_phone: ''
+          rq_phone: '',
+          rq_fail_reason: '',
+          rq_process_status: '신규신청',
+          rq_site_type: ''
         },
+        hasStatusChildren: false,
+        failStatusList: [],
+        requestStatusConfig,
         id: '',
         moment
       }
@@ -246,6 +254,20 @@
               console.log(error)
             })
         }
+      },
+      changeProcessStatus () {
+        const selectedData = _.find(this.requestStatusConfig.statusList, (item) => {
+          return item.label === this.data.rq_process_status
+        })
+        this.data.rq_fail_reason = ''
+        if (selectedData.hasOwnProperty('children')) {
+          this.failStatusList = selectedData.children
+          this.hasStatusChildren = true
+        } else {
+          this.failStatusList = []
+          this.hasStatusChildren = false
+        }
+        this.$forceUpdate()
       },
       openModalCard () {
         openNotification({

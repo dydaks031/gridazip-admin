@@ -6,6 +6,7 @@ const cryptoHelper = require('../../services/crypto/helper');
 const filterService = require('../../services/filter/main');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const moment = require('moment');
 const httpClient = require('request');
 
 const request_size_map = {
@@ -58,8 +59,6 @@ router.get('/', (req, res) => {
   let pageInst = new paginationService(page);
   let filterInst = new filterService(filter);
   let pageData = pageInst.get();
-  let filterIsValuableValue = filterInst.getFilter('isValuable');
-  let filterIsContractedValue = filterInst.getFilter('isContracted');
   if (pageInst.isEnd() === true) {
     res.json(
       resHelper.getJson({
@@ -78,35 +77,43 @@ router.get('/', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     let query = cur('request_tbl')
-      .select('*');
-
-    if (filterIsValuableValue !== null) {
-      query = query.where('rq_is_valuable', filterIsValuableValue);
-    }
-    if (filterIsContractedValue !== null) {
-      query = query.where('rq_is_contracted', filterIsContractedValue);
-    }
 
     query = query.orderBy('request_tbl.rq_recency');
-
-    query = query
-      .limit(pageData.limit)
-      .offset(pageData.page);
 
     if (pageData.point !== null) {
       query = query.where('rq_pk', '<=', pageData.point);
     }
+    console.log(req.query.rq_manager)
+    if (req.query.rq_manager.trim()) {
+      query = query.where('rq_manager', 'like', `%${req.query.rq_manager}%`)
+    }
+    if (req.query.rq_process_status.trim()) {
+      query = query.where('rq_process_status', `%${req.query.rq_process_status}%`)
+    }
+    if (req.query.rq_start_dt.trim() && req.query.rq_end_dt.trim()) {
+      const rqStartDt = moment(req.query.rq_start_dt, 'YYYY-MM-DD').add(-1, 'days').format('YYYY-MM-DD')
+      const rqEndDt = moment(req.query.rq_end_dt, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD')
+      query = query.whereBetween('rq_reg_dt', [rqStartDt, rqEndDt])
+    }
 
     let list = [];
-
-    query
+    return query
+      .clone()
+      .count('* as count')
+      .then(response => {
+        console.log(response)
+        pageInst.setCount(response[0].count);
+        return query
+          .select('*')
+          .limit(pageData.limit)
+          .offset(pageData.page);
+      })
       .then(response => {
         if (response.length > 0) {
           if (pageData.point === null) {
             pageInst.setPoint(response[0]['rq_pk']);
           }
         }
-
         list = response;
         list.map(item => {
           item.rq_size_str = request_size_map[item.rq_size];
@@ -114,6 +121,7 @@ router.get('/', (req, res) => {
           item.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.rq_phone));
           return item;
         });
+
         pageInst.setPage(pageData.page += list.length);
         pageInst.setLimit(pageData.limit);
 
@@ -121,17 +129,7 @@ router.get('/', (req, res) => {
           pageInst.setEnd(true);
         }
 
-        let countQuery = cur('request_tbl').count('* as count');
-        if (filterIsValuableValue !== null) {
-          countQuery = countQuery.where('rq_is_valuable', filterIsValuableValue);
-        }
-        if (filterIsContractedValue !== null) {
-          countQuery = countQuery.where('rq_is_contracted', filterIsContractedValue);
-        }
-        return countQuery
-      })
-      .then(response => {
-        pageInst.setCount(response[0].count);
+        // return cur('request_tbl').count('* as count');
 
         res.json(
           resHelper.getJson({
@@ -177,16 +175,26 @@ router.post('/', (req, res) => {
     insertObj.rq_memo = req.body.rq_memo || '';
     insertObj.rq_construction_type = req.body.rq_construction_type || '';
     insertObj.rq_consulting_result = req.body.rq_consulting_result || '';
-    insertObj.rq_is_valuable = req.body.rq_is_valuable || 0;
-    insertObj.rq_is_contracted = req.body.rq_is_contracted || 0;
+    insertObj.rq_manager = req.body.rq_manager || '';
+    insertObj.rq_site_type = req.body.rq_site_type || '';
+
+    if (req.body.hasOwnProperty('rq_process_status')) {
+      insertObj.rq_process_status = req.body.rq_process_status;
+    }
+
+    if (req.body.hasOwnProperty('rq_fail_reason')) {
+      insertObj.rq_fail_reason = req.body.rq_fail_reason || '';
+    }
 
     knexBuilder.getConnection().then(cur => {
       insertObj.rq_recency = cur.raw('UNIX_TIMESTAMP() * -1');
       cur('request_tbl')
         .insert(insertObj)
         .then(() => {
-          const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
-          httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
+          if (process.env.NODE_ENV !== 'development') {
+            const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
+            httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
+          }
 
           res.json(resHelper.getJson({
             msg: '상담내역이 정상적으로 추가되었습니다.'
@@ -236,31 +244,14 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
   let errorMsg = null;
   let updateObj = {};
 
-  const rq_is_valuable = req.body.rq_is_valuable || '0';
-  const rq_is_contracted = req.body.rq_is_contracted || '0';
-
-  const isExistValuable = req.body.hasOwnProperty('rq_is_valuable');
-  const isExistContracted = req.body.hasOwnProperty('rq_is_contracted');
-  if (isExistValuable && isExistContracted) {
-    if (req.body.rq_name === '') {
-      errorMsg = '이름은 반드시 입력해야 합니다.';
-    }
-    else if (req.body.rq_phone === '') {
-      errorMsg = '휴대폰 번호는 반드시 입력해야 합니다.';
-    }
-    else if (regexPhone.test(req.body.rq_phone) === false) {
-      errorMsg = '휴대폰 번호 형식이 올바르지 않습니다.';
-    }
+  if (req.body.rq_name === '') {
+    errorMsg = '이름은 반드시 입력해야 합니다.';
   }
-  if (isExistValuable) {
-    if (['0','1','2','3'].indexOf(rq_is_valuable.toString()) < 0) {
-      errorMsg = '[rq_is_valuable] 값이 올바르지 않습니다.'
-    }
+  else if (req.body.rq_phone === '') {
+    errorMsg = '휴대폰 번호는 반드시 입력해야 합니다.';
   }
-  if (isExistContracted) {
-    if (['0','1','2'].indexOf(rq_is_contracted.toString()) < 0) {
-      errorMsg = '[rq_is_contracted] 값이 올바르지 않습니다.'
-    }
+  else if (regexPhone.test(req.body.rq_phone) === false) {
+    errorMsg = '휴대폰 번호 형식이 올바르지 않습니다.';
   }
 
   if (errorMsg !== null) {
@@ -269,38 +260,31 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
     );
   }
   else {
-    if (isExistValuable && isExistContracted) {
-      updateObj.rq_name = req.body.rq_name || '';
-      updateObj.rq_nickname = req.body.rq_nickname
-      updateObj.rq_family = req.body.rq_family || '';
-      updateObj.rq_phone = cryptoHelper.encrypt(req.body.rq_phone) || '';
-      updateObj.rq_size = req.body.rq_size || '';
-      updateObj.rq_address_brief = req.body.rq_address_brief || '';
-      updateObj.rq_address_detail = req.body.rq_address_detail || '';
-      updateObj.rq_move_date = req.body.rq_move_date || '';
-      updateObj.rq_style_likes = req.body.rq_style_likes || '';
-      updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
-      updateObj.rq_color_likes = req.body.rq_color_likes || '';
-      updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
-      updateObj.rq_budget = req.body.rq_budget || '';
-      updateObj.rq_place = req.body.rq_place || '';
-      updateObj.rq_date = req.body.rq_date || '';
-      updateObj.rq_time = req.body.rq_time || '';
-      updateObj.rq_request = req.body.rq_request || '';
-      updateObj.rq_memo = req.body.rq_memo || '';
-      updateObj.rq_construction_type = req.body.rq_construction_type || '';
-      updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
-      updateObj.rq_is_valuable = rq_is_valuable;
-      updateObj.rq_is_contracted = rq_is_contracted;
-    }
-    else {
-      if (isExistValuable) {
-        updateObj.rq_is_valuable = rq_is_valuable;
-      }
-      if (isExistContracted) {
-        updateObj.rq_is_contracted = rq_is_contracted;
-      }
-    }
+    updateObj.rq_name = req.body.rq_name || '';
+    updateObj.rq_nickname = req.body.rq_nickname
+    updateObj.rq_family = req.body.rq_family || '';
+    updateObj.rq_phone = cryptoHelper.encrypt(req.body.rq_phone) || '';
+    updateObj.rq_size = req.body.rq_size || '';
+    updateObj.rq_address_brief = req.body.rq_address_brief || '';
+    updateObj.rq_address_detail = req.body.rq_address_detail || '';
+    updateObj.rq_move_date = req.body.rq_move_date || '';
+    updateObj.rq_style_likes = req.body.rq_style_likes || '';
+    updateObj.rq_style_dislikes = req.body.rq_style_dislikes || '';
+    updateObj.rq_color_likes = req.body.rq_color_likes || '';
+    updateObj.rq_color_dislikes = req.body.rq_color_dislikes || '';
+    updateObj.rq_budget = req.body.rq_budget || '';
+    updateObj.rq_place = req.body.rq_place || '';
+    updateObj.rq_date = req.body.rq_date || '';
+    updateObj.rq_time = req.body.rq_time || '';
+    updateObj.rq_request = req.body.rq_request || '';
+    updateObj.rq_memo = req.body.rq_memo || '';
+    updateObj.rq_construction_type = req.body.rq_construction_type || '';
+    updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
+    updateObj.rq_process_status = req.body.rq_process_status;
+    updateObj.rq_fail_reason = req.body.rq_fail_reason || '';
+    updateObj.rq_manager = req.body.rq_manager || '';
+    updateObj.rq_site_type = req.body.rq_site_type || '';
+
     knexBuilder.getConnection().then(cur => {
       cur('request_tbl')
         .where({
