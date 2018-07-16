@@ -287,9 +287,6 @@
       }
     },
     beforeRouteUpdate (to, from, next) {
-      // just use `this`
-      console.log(`to: ${to}`)
-      console.log(`from: ${from}`)
       this.loadData()
       next()
     },
