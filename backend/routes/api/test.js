@@ -403,5 +403,11 @@ router.get('/https', (req,res) => {
   //   );
   // });
 });
+router.get('/:n([0-9]+)/:pk(([0-9]+|master){1})', (req,res) => {
+    console.log(req.params.pk);
+    res.json(
+      resHelper.getJson(req.params.pk)
+    );
+});
 
 module.exports = router;
