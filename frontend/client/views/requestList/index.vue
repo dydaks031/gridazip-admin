@@ -20,9 +20,10 @@
             <div class="control is-inline-block">
               <label class="label">신청일자</label>
               <p class="control">
-                <datepicker v-model="searchData.rq_start_dt" />
+                <datepicker v-model="searchData.rq_start_dt" :ref="'start_datepicker'"/>
                 ~
-                <datepicker v-model="searchData.rq_end_dt" />
+                <datepicker v-model="searchData.rq_end_dt" :ref="'end_datepicker'"/>
+                <button class="button" @click="resetDate">초기화</button>
               </p>
             </div>
           </div>
@@ -277,6 +278,12 @@
           return 'is-blue'
         }
         return ''
+      },
+      resetDate () {
+        this.searchData.rq_start_dt = ''
+        this.searchData.rq_end_dt = ''
+        this.$refs.end_datepicker.selectedDates = null
+        this.$refs.start_datepicker.selectedDates = null
       }
     },
     beforeRouteUpdate (to, from, next) {

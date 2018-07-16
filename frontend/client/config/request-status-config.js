@@ -6,8 +6,6 @@ export default {
   }, {
     label: '2차통화부재중'
   }, {
-    label: '3차통화부재중'
-  }, {
     label: '상담실패',
     children: [{
       label: '잘못된번호'
@@ -17,6 +15,8 @@ export default {
       label: '실수'
     }, {
       label: '부분인테리어'
+    }, {
+      label: '3차통화부재중'
     }]
   }, {
     label: '상담예약완료'
@@ -29,13 +29,13 @@ export default {
   }, {
     label: '2차제안부재중'
   }, {
-    label: '3차제안부재중'
-  }, {
     label: '계약실패',
     children: [{
       label: '견적초과'
     }, {
       label: '고객변심'
+    }, {
+      label: '3차제안부재중'
     }]
   }, {
     label: '계약완료'
