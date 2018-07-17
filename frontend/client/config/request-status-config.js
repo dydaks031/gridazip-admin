@@ -2,6 +2,8 @@ export default {
   statusList: [{
     label: '신규신청'
   }, {
+    label: '통화완료'
+  }, {
     label: '1차통화부재중'
   }, {
     label: '2차통화부재중'
