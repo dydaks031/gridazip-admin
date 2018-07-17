@@ -57,6 +57,10 @@
             <p class="control">
               <input class="input" v-model="detailData.pc_supervision_costs_ratio" />
             </p>
+            <label class="label">할인금액</label>
+            <p class="control">
+              <input class="input" v-model="detailData.pc_discount_amount" />
+            </p>
             <p class="control">
               <button class="button is-primary" @click="updateContract">등록</button>
               <button class="button is-link" @click="router.back()">Cancel</button>

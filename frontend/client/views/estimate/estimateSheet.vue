@@ -128,6 +128,9 @@
                 <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
               </p>
               <p class="has-text-right">
+                <span>할인금액: {{addCommas(viewerData.total.discount_amount)}}원</span>
+              </p>
+              <p class="has-text-right">
                 <span>합계(VAT 포함, 천단위 절삭): {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
               </p>
             </div>

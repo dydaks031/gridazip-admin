@@ -243,6 +243,8 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_etc_costs_ratio = req.body.pc_etc_costs_ratio / 100 || 0.05;
     updateObj.pc_design_costs_ratio = req.body.pc_design_costs_ratio / 100 || 0.10;
     updateObj.pc_supervision_costs_ratio = req.body.pc_supervision_costs_ratio / 100 || 0.10;
+    updateObj.pc_discount_amount = req.body.pc_discount_amount || '';
+
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
         .update(updateObj)
@@ -1006,7 +1008,7 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
-        .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio')
+        .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
         .where('pc_pk', reqPcPk)
         .then(row => {
           cur.raw(`
@@ -1014,7 +1016,8 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
                  labor_costs,
                  (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
                  (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs
+                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs,
+                 ${row.pc_discount_amount} as discount_amount
             FROM (
               SELECT sum(resource_costs) resource_costs
                 FROM (
@@ -1045,7 +1048,9 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
         `, [reqPcPk, reqPcPk])
           .then(response => {
             let totalCosts = response[0][0];
-            totalCosts.total_costs = totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+            totalCosts.total_costs = totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs - totalCosts.discount_amount;
+            console.log(totalCosts)
+            console.log(totalCosts.discount_amount)
             totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
             totalCosts.total_costs_including_vat = Math.floor((totalCosts.total_costs + totalCosts.vat_costs) * 0.001) * 1000;
             res.json(
