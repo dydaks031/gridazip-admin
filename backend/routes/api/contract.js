@@ -459,8 +459,73 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
   })
 });
 
-router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
+router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
+  const reqEstimateList = req.body.estimateList;
+
+  knexBuilder.getConnection().then(cur => {
+    let es_pk;
+    let es_version;
+
+    cur('estimate_tbl')
+      .max({es_pk: 'es_pk'})
+      .first('es_version')
+      .where('es_pcpk', reqPcPk)
+      .groupBy('es_pcpk')
+      .then(row => {
+        es_pk = row.es_pk;
+        es_version = row.es_version;
+
+        reqEstimateList.map(obj => {
+          delete obj.rc_pk;
+          obj.ed_espk = es_pk;
+
+          cur('resource_tbl')
+            .first('rs_rupk', 'rs_price')
+            .where({
+              rs_pk: obj.ed_rspk
+            })
+            .then(row => {
+
+              return cur('resource_unit_tbl')
+                .first('ru_name', 'ru_calc_expression')
+                .where({
+                  ru_pk: row.rs_rupk
+                })
+            })
+            .then(row => {
+              let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
+              let resourceAmount = fn(obj.ed_input_value);
+              obj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
+              obj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
+              obj.ed_recency = cur.raw('UNIX_TIMESTAMP() * -1');
+            })
+        });
+
+        return reqEstimateList;
+
+      })
+      .then(list => {
+        cur.transaction(function(trx) {
+          return cur.batchInsert('estimate_detail_hst', list, 50)
+            .transacting(trx)
+        })
+          .then(response => {
+            console.log(response);
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
+          })
+          .catch(error => {
+            console.error('catch catch');
+            console.error(error);
+          });
+      })
+  })
+
+});
+
+router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
   const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
@@ -705,7 +770,7 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
 
 // estimate detail row's selectbox info :start
 
-router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+router.get('/:pcpk([0-9]+)/estimate/:espk(([0-9]+|master){1})/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
 
   let constructionPk;
@@ -1048,11 +1113,9 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
         `, [reqPcPk, reqPcPk])
           .then(response => {
             let totalCosts = response[0][0];
-            totalCosts.total_costs = totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs - totalCosts.discount_amount;
-            console.log(totalCosts)
-            console.log(totalCosts.discount_amount)
+            totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
             totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
-            totalCosts.total_costs_including_vat = Math.floor((totalCosts.total_costs + totalCosts.vat_costs) * 0.001) * 1000;
+            totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(
               resHelper.getJson({
                 totalCosts
@@ -1297,7 +1360,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
         `, [reqEsPk, reqEsPk])
           .then(response => {
             let totalCosts = response[0][0];
-            totalCosts.total_costs = totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+            totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
             totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
             totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(
