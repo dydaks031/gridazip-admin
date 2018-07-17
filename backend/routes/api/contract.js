@@ -1110,9 +1110,9 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
         `, [reqPcPk, reqPcPk])
           .then(response => {
             let totalCosts = response[0][0];
-            totalCosts.total_costs = totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+            totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
             totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
-            totalCosts.total_costs_including_vat = Math.floor((totalCosts.total_costs + totalCosts.vat_costs) * 0.001) * 1000;
+            totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(
               resHelper.getJson({
                 totalCosts
@@ -1357,7 +1357,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
         `, [reqEsPk, reqEsPk])
           .then(response => {
             let totalCosts = response[0][0];
-            totalCosts.total_costs = totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs;
+            totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
             totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
             totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
             res.json(

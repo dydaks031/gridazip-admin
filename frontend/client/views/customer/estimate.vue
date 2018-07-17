@@ -183,11 +183,11 @@
           <nav class="level">
             <!-- Left side -->
             <div class="level-left flex-center-text">
-              <h3 class="subtitle">합계(VAT 포함)</h3>
+              <h3 class="subtitle">합계(VAT 별도)</h3>
             </div>
             <div class="level-right flex-center-text">
               <div class="level-item summary">
-                <p>{{addCommas(viewerData.total.total_costs_including_vat)}}원</p>
+                <p>{{addCommas(viewerData.total.total_costs)}}원</p>
               </div>
             </div>
           </nav>
