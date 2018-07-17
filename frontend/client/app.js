@@ -27,6 +27,7 @@ Vue.use(VueAuth, {
       return res.data.token
     }
   },
+  authRedirect: { path: '/private/login' },
   http: require('@websanova/vue-auth/drivers/http/axios.1.x.js'),
   router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js'),
   loginData: { url: '/api/authentication/login', fetchUser: true },
@@ -46,6 +47,10 @@ const nprogress = new NProgress({ parent: '.nprogress-container' })
 const { state } = store
 
 router.beforeEach((route, redirect, next) => {
+  console.log(`beforeEach route:`)
+  console.log(route)
+  console.log(`beforeEach redirect:`)
+  console.log(redirect)
   if (state.app.device.isMobile && state.app.sidebar.opened) {
     store.commit(TOGGLE_SIDEBAR, {
       opened: false
