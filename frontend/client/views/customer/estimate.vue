@@ -171,12 +171,14 @@
                 <p>인건비</p>
                 <p>설계비 및 감리비</p>
                 <p>공과잡비</p>
+                <p v-if="viewerData.total.discount_amount">할인금액</p>
               </div>
               <div class="level-item flex-item-right">
                 <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
                 <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
                 <p>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</p>
                 <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
+                <p class="discount-amount" v-if="viewerData.total.discount_amount">-{{addCommas(viewerData.total.discount_amount)}}원</p>
               </div>
             </div>
           </nav>
@@ -187,7 +189,7 @@
             </div>
             <div class="level-right flex-center-text">
               <div class="level-item summary">
-                <p>{{addCommas(viewerData.total.total_costs)}}원</p>
+                <p>{{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</p>
               </div>
             </div>
           </nav>

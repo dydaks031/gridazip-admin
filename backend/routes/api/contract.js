@@ -243,7 +243,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_etc_costs_ratio = req.body.pc_etc_costs_ratio / 100 || 0.05;
     updateObj.pc_design_costs_ratio = req.body.pc_design_costs_ratio / 100 || 0.10;
     updateObj.pc_supervision_costs_ratio = req.body.pc_supervision_costs_ratio / 100 || 0.10;
-    updateObj.pc_discount_amount = req.body.pc_discount_amount || '';
+    updateObj.pc_discount_amount = req.body.pc_discount_amount || null;
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')

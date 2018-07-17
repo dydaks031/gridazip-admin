@@ -127,11 +127,11 @@
               <p class="has-text-right">
                 <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
               </p>
-              <p class="has-text-right">
-                <span>할인금액: {{addCommas(viewerData.total.discount_amount)}}원</span>
+              <p class="has-text-right" v-if="viewerData.total.discount_amount">
+                <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
               </p>
               <p class="has-text-right">
-                <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs_including_vat)}}원</span>
+                <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
               </p>
             </div>
           </div>
@@ -610,6 +610,9 @@
   }
 </script>
 <style scoped lang="scss">
+  .discount-amount {
+    color: red;
+  }
   .title-wrapper {
     padding: 1rem;
     margin: 1rem 0 0.5rem 0;
