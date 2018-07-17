@@ -21,6 +21,9 @@
               <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
               <p class="help is-danger" v-if="!$v.detailData.pc_phone.required">전화번호를 입력해 주십시오.</p>
             </div>
+            <label class="label">접속코드</label>
+            <p class="control" v-text="detailData.pc_password">
+            </p>
             <label class="label">평수</label>
             <p class="control">
               <input class="input" type="text" v-model="detailData.pc_size" />
