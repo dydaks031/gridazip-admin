@@ -83,7 +83,7 @@
             </tbody>
           </table>
           <div class="more-data" @click="toggleMoreData('general')">
-            <i class="fa fa-angle-down" /><span>더보기</span>
+            <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['general'], 'fa-angle-up': isMoreBtnStatus['general']}"></i><span>더보기</span>
           </div>
         </section>
         <section  class="detail-info columns is-desktop">
@@ -120,7 +120,7 @@
                   </tbody>
                 </table>
                 <div class="more-data" @click="toggleMoreData('resource')">
-                  <i class="fa fa-angle-down" /><span>더보기</span>
+                  <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['resource'], 'fa-angle-up': isMoreBtnStatus['resource']}"></i><span>더보기</span>
                 </div>
               </div>
             </article>
@@ -153,7 +153,7 @@
                   </tbody>
                 </table>
                 <div class="more-data" @click="toggleMoreData('labor')">
-                  <i class="fa fa-angle-down" /><span>더보기</span>
+                  <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['labor'], 'fa-angle-up': isMoreBtnStatus['labor']}"></i><span>더보기</span>
                 </div>
               </div>
             </article>

@@ -26,6 +26,10 @@
                 <button class="button" @click="resetDate">초기화</button>
               </p>
             </div>
+            <div class="control is-inline-block">
+              <label class="label">상담&계약 실패 내역 표시</label>
+              <input type="checkbox" class="checkbox" v-model="isShowAllRow"/>
+            </div>
           </div>
           <div class="is-pulled-right search-btn">
             <a class="button is-info" @click="loadQueryData">검색</a>
@@ -63,7 +67,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" :class="getStatusType(item)">
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)" :class="getStatusType(item)" v-show="isFailedStatus(item) || isShowAllRow">
               <td>{{item.rq_site_type}}</td>
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
@@ -149,6 +153,7 @@
           rq_end_dt: '',
           rq_process_status: ''
         },
+        isShowAllRow: false,
         requestStatusConfig,
         moment
       }
@@ -284,12 +289,16 @@
         this.searchData.rq_end_dt = ''
         this.$refs.end_datepicker.selectedDates = null
         this.$refs.start_datepicker.selectedDates = null
+      },
+      isFailedStatus (item) {
+        const failedStatus = ['상담실패', '계약실패']
+        if (failedStatus.indexOf(item.rq_process_status) < 0) {
+          return true
+        }
+        return false
       }
     },
     beforeRouteUpdate (to, from, next) {
-      // just use `this`
-      console.log(`to: ${to}`)
-      console.log(`from: ${from}`)
       this.loadData()
       next()
     },

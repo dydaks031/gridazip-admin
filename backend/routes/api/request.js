@@ -88,13 +88,15 @@ router.get('/', (req, res) => {
       query = query.where('rq_manager', 'like', `%${req.query.rq_manager}%`)
     }
     if (req.query.rq_process_status.trim()) {
-      query = query.where('rq_process_status', `%${req.query.rq_process_status}%`)
+      query = query.where('rq_process_status', `${req.query.rq_process_status}`)
     }
     if (req.query.rq_start_dt.trim() && req.query.rq_end_dt.trim()) {
       const rqStartDt = moment(req.query.rq_start_dt, 'YYYY-MM-DD').add(-1, 'days').format('YYYY-MM-DD')
       const rqEndDt = moment(req.query.rq_end_dt, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD')
       query = query.whereBetween('rq_reg_dt', [rqStartDt, rqEndDt])
     }
+
+    console.log(query.toSQL().toNative())
 
     let list = [];
     return query
