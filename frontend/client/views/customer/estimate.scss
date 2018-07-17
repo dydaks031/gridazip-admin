@@ -216,11 +216,16 @@ $table-hover-color: #fcfbfe;
             align-items: baseline;
           }
 
+          .discount-amount {
+            color: red;
+          }
+
           &.summary {
             > p {
               font-size:2.2rem;
             }
           }
+
           p {
             font-size: 1.2rem;
             font-weight: normal;
