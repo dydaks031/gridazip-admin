@@ -329,6 +329,31 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
 });
 
 
+/* images */
+router.get('/:pcpk([0-9]+)/image', (req, res) => {
+  const reqPcPk = req.params.pcpk ;
+  knexBuilder.getConnection().then(cur => {
+    cur('site_image_tbl')
+      .select('si_pk', 'si_pcpk', 'si_url')
+      .where('si_pcpk', reqPcPk)
+      .orderBy('si_recency')
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            siteImageList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('진행중인 계약의 현장사진을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  });
+});
+
+
 /* estimate */
 
 
