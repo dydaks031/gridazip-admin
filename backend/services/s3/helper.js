@@ -5,7 +5,7 @@ const s3 = new AWS.S3({
 
 const protocol = 'https';
 const endpoint = 's3.ap-northeast-2.amazonaws.com';
-const cloudFront = 'static.gridazip.com';
+const cloudFront = 'static.gridazip.co.kr';
 const bucket = 'gridazip-site';
 
 const Helper = {
