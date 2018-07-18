@@ -420,12 +420,12 @@ router.delete('/:pcpk([0-9]+)/image/:sipk([0-9]+)', (req, res) => {
 
 router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
-  const reqisPre = req.params.es_is_pre !== undefined ? req.params.es_is_pre : false;
+  const reqEsIsPre = req.query.es_is_pre || '';
   knexBuilder.getConnection().then(cur => {
     cur('estimate_tbl')
-      .select('es_pk', 'es_version')
+      .select('es_pk', 'es_version', 'es_is_pre')
       .where('es_pcpk', reqPcPk)
-      .andWhere('es_is_pre', reqisPre)
+      .andWhere('es_is_pre', reqEsIsPre === 'true')
       .orderBy('es_version')
       .then(response => {
         res.json(
@@ -445,9 +445,13 @@ router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
 
 router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
+  const reqEsIsPre = req.query.es_is_pre || '';
 
   if (reqPcPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
+  }
+  else if (reqEsIsPre === '') {
+    res.json(resHelper.getError('가견적 여부는 필수입니다.'));
   }
   else {
     knexBuilder.getConnection().then(cur => {
@@ -460,6 +464,8 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
           else obj.es_version = 1;
 
           obj.es_pcpk = reqPcPk;
+          obj.es_is_pre = reqEsIsPre;
+
           cur('estimate_tbl')
             .insert(obj)
             .then(response => {
@@ -972,37 +978,45 @@ router.get('/:pcpk([0-9]+)/estimate/:espk(([0-9]+|master){1})/:edpk([0-9]+)', (r
 // total tab view query  :start
 
 router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
-    const reqPcPk = req.params.pcpk || '';
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsIsPre = req.query.es_is_pre || '';
 
+  if (reqEsIsPre === '') {
+    res.json(resHelper.getError('가견적 여부는 필수입니다.'));
+  }
+  else {
     let resourceList;
     const cf = 1000;
 
     knexBuilder.getConnection().then(cur => {
 
-    cur.raw(`
-      select rs.rs_pk,
-             count(rs.rs_pk) as count,
-             rs.rs_price,
-             ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
-             sum(ed.ed_resource_amount) as resource_amount
-        from estimate_detail_hst ed
-       inner join estimate_tbl es on ed.ed_espk = es.es_pk
-        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-       where es.es_pcpk = ?
-       group by ed.ed_rspk, ed.ed_alias
-       order by rs.rs_name
-    `, reqPcPk)
-      .then(response => {
-        resourceList = response[0].filter(resource => {
-          if (resource.ceil_resource_amount !== resource.resource_amount) return true;
-        });
+      const query = cur.raw(`
+        select rs.rs_pk,
+               count(rs.rs_pk) as count,
+               rs.rs_price,
+               ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
+               sum(ed.ed_resource_amount) as resource_amount
+          from estimate_detail_hst ed
+         inner join estimate_tbl es on ed.ed_espk = es.es_pk
+          left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+         where es.es_pcpk = ?
+           and es.es_is_pre = ?
+         group by ed.ed_rspk, ed.ed_alias
+         order by rs.rs_name`, [reqPcPk, reqEsIsPre === 'true']);
 
-        resourceList.map(resource => {
-          resource.plus_value = Math.ceil((resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf);
-          return resource;
-        });
+        console.log(query.toString());
+        query
+        .then(response => {
+          resourceList = response[0].filter(resource => {
+            if (resource.ceil_resource_amount !== resource.resource_amount) return true;
+          });
 
-        return cur.raw(`
+          resourceList.map(resource => {
+            resource.plus_value = Math.ceil((resource.ceil_resource_amount * cf - resource.resource_amount * cf) * resource.rs_price / resource.count / cf);
+            return resource;
+          });
+
+          return cur.raw(`
           select pl.cp_name as place_name,
                  pl.cp_pk as place_pk,
                  ed.ed_detail_place as detail_place,
@@ -1035,10 +1049,9 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
             left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
             left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
            where es.es_pcpk = ?
+             and es.es_is_pre = ?
            group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
-           order by pl.cp_pk, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_sub desc, rt.rt_name, rs.rs_name
-          `, reqPcPk)
-
+           order by pl.cp_pk, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_sub desc, rt.rt_name, rs.rs_name`, [reqPcPk, reqEsIsPre === 'true'])
         })
         .then(response => {
           return response[0];
@@ -1063,14 +1076,19 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
           );
         })
     })
-  });
+  }
+});
 
 router.get('/:pcpk([0-9]+)/estimate/labor', (req, res) => {
-    const reqPcPk = req.params.pcpk || '';
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsIsPre = req.query.es_is_pre || '';
 
+  if (reqEsIsPre === '') {
+    res.json(resHelper.getError('가견적 여부는 필수입니다.'));
+  }
+  else {
     knexBuilder.getConnection().then(cur => {
-
-    cur.raw(`
+      cur.raw(`
       select ct.ct_name,
              ct.ct_pk,
              cp.cp_name,
@@ -1093,31 +1111,37 @@ router.get('/:pcpk([0-9]+)/estimate/labor', (req, res) => {
         left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
         left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
        where es.es_pcpk = ?
+         and es.es_is_pre = ?
        group by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
-       order by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk
-    `, reqPcPk)
-      .then(response => {
-        res.json(
-          resHelper.getJson({
-            estimateList: response[0]
-          })
-        );
-      })
-      .catch(err => {
-        console.log(err);
-        res.json(
-          resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
-        );
-      })
+       order by ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk`, [reqPcPk, reqEsIsPre === 'true'])
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              estimateList: response[0]
+            })
+          );
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
     })
-  });
+  }
+});
 
 router.get('/:pcpk([0-9]+)/estimate/resource', (req, res) => {
-    const reqPcPk = req.params.pcpk || '';
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsIsPre = req.query.es_is_pre || '';
 
+  if (reqEsIsPre === '') {
+    res.json(resHelper.getError('가견적 여부는 필수입니다.'));
+  }
+  else {
     knexBuilder.getConnection().then(cur => {
 
-    cur.raw(`
+      cur.raw(`
       select rs.rs_name,
              rs.rs_code,
              rs.rs_price,
@@ -1134,9 +1158,10 @@ router.get('/:pcpk([0-9]+)/estimate/resource', (req, res) => {
         left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
         left join resource_category_tbl rc on rt.rt_rcpk = rc.rc_pk 
        where es.es_pcpk = ?
+         and es.es_is_pre = ?
        group by ed.ed_rspk, ed.ed_alias
        order by rc.rc_pk, rs.rs_name
-    `, reqPcPk)
+    `, [reqPcPk, reqEsIsPre === 'true'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -1151,11 +1176,17 @@ router.get('/:pcpk([0-9]+)/estimate/resource', (req, res) => {
         );
       })
     })
-  });
+  }
+});
 
 router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
-    const reqPcPk = req.params.pcpk || '';
+  const reqPcPk = req.params.pcpk || '';
+  const reqEsIsPre = req.query.es_is_pre || '';
 
+  if (reqEsIsPre === '') {
+    res.json(resHelper.getError('가견적 여부는 필수입니다.'));
+  }
+  else {
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
         .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
@@ -1176,6 +1207,7 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
                    INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
                     LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
                   WHERE es.es_pcpk = ?
+                    AND es.es_is_pre = ?
                   GROUP BY ed.ed_rspk
                   ORDER BY rs.rs_name
                 ) resource
@@ -1192,35 +1224,36 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
               LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
               LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
              WHERE es.es_pcpk = ?
+               AND es.es_is_pre = ?
              GROUP BY ed.ed_cpdpk, ed.ed_rtpk
             ) labor
-          ) l
-        `, [reqPcPk, reqPcPk])
-          .then(response => {
-            let totalCosts = response[0][0];
-            totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
-            totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
-            totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
-            res.json(
-              resHelper.getJson({
-                totalCosts
-              })
-            );
-          })
-          .catch(err => {
-            console.log(err);
-            res.json(
-              resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
-            );
-          })
-      })
-      .catch(err => {
-        console.log(err);
-        res.json(
-          resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
-        );
-      })
-  })
+          ) l`, [reqPcPk, reqEsIsPre === 'true', reqPcPk, reqEsIsPre === 'true'])
+            .then(response => {
+              let totalCosts = response[0][0];
+              totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
+              totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
+              totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
+              res.json(
+                resHelper.getJson({
+                  totalCosts
+                })
+              );
+            })
+            .catch(err => {
+              console.log(err);
+              res.json(
+                resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
+              );
+            })
+        })
+        .catch(err => {
+          console.log(err);
+          res.json(
+            resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
+          );
+        })
+    })
+  }
 });
 
 // total tab view query  :end
