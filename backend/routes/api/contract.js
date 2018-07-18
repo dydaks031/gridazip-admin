@@ -329,6 +329,89 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
 });
 
 
+/* images */
+router.get('/:pcpk([0-9]+)/image', (req, res) => {
+  const reqPcPk = req.params.pcpk ;
+  knexBuilder.getConnection().then(cur => {
+    cur('site_image_tbl')
+      .select('si_pk', 'si_pcpk', 'si_description', 'si_url', 'si_reg_dt')
+      .where('si_pcpk', reqPcPk)
+      .orderBy('si_recency')
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            siteImageList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('진행중인 계약의 현장사진을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  });
+});
+
+router.post('/:pcpk([0-9]+)/image', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  const siImageList = req.body.si_image_list;
+
+  let promises = [];
+
+  knexBuilder.getConnection().then(cur => {
+    siImageList.map((element, idx) => {
+      // let target = portfolio_after.filter(target => {
+      //     return target.index === element.index;
+      // });
+      // target = target.length > 0? target[0]:null;
+      // if (target !== null) {
+      promises.push(cur('site_image_tbl')
+        .insert({
+          ...element,
+          si_pcpk: reqPcPk,
+          si_recency: cur.raw('UNIX_TIMESTAMP() * -1')
+        })
+      );
+      // }
+    });
+
+    Promise.all(promises)
+      .then(response => {
+        console.log(response)
+        res.json({
+          msg: '등록됨!'
+        })
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('진행중인 계약의 현장사진을 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  });
+});
+
+router.delete('/:pcpk([0-9]+)/image/:sipk([0-9]+)', (req, res) => {
+  const reqSiPk = req.params.sipk;
+
+  knexBuilder.getConnection().then(cur => {
+    cur('site_image_tbl')
+      .del()
+      .where('si_pk', reqSiPk)
+      .then(() => {
+        res.json(resHelper.getJson({
+          msg: '이미지가 정상적으로 삭제되었습니다.'
+        }));
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(resHelper.getError('[0001] 이미지를 삭제하는 중 오류가 발생하였습니다.'));
+      })
+  })
+});
+
+
 /* estimate */
 
 

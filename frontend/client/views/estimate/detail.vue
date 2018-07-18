@@ -6,6 +6,7 @@
         <li @click="activeView(tabType.preEstimateView)" :class="{'is-active': currentTab === tabType.preEstimateView}"><a>가견적서</a></li>
         <li @click="activeView(tabType.estimateView)" :class="{'is-active': currentTab === tabType.estimateView}"><a>상세견적서</a></li>
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
+        <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -155,6 +156,41 @@
             </tbody>
           </table>
         </article>
+        <article class="tile is-child box" v-show="currentTab === tabType.siteImage">
+          <p class="subtitle is-3 is-pulled-left">현장사진</p>
+          <a class="button is-primary is-pulled-right is-medium" id="addSiteImageBtn" @click="openAddSiteImageModal()">등록</a>
+          <table class="table">
+            <colgroup>
+              <col width="50%;"/>
+              <col width="auto;"/>
+              <col width="10%;"/>
+              <col width="10%;" />
+            </colgroup>
+            <thead>
+            <tr>
+              <th>이미지</th>
+              <th>설명</th>
+              <th>등록일</th>
+              <th>설정</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(item) in siteImageList">
+              <td>
+                <a :href="item.si_url">
+                  <img :src="item.si_url" />
+                </a>
+              </td>
+              <td>{{item.si_description}}</td>
+              <td>{{getComputedDate(item.si_reg_dt)}}</td>
+              <td><button class="button" v-on:click.stop="deleteImageRow(item)">삭제</button></td>
+            </tr>
+            <tr v-if="siteImageList.length === 0">
+              <td colspan="5" class="has-text-centered">검색 결과가 없습니다.</td>
+            </tr>
+            </tbody>
+          </table>
+        </article>
       </div>
     </div>
     <add-partners-modal
@@ -163,7 +199,11 @@
       :id="param.id"
       :constructionList="partners.construction"
       :resourceCategoryList="partners.resourceCategory"
-      :beforeClose="loadPartner"/>
+      :beforeClose="loadPartner" />
+
+    <add-site-image-modal
+      :id="param.id"
+      :beforeClose="loadSiteImage" />
   </div>
 </template>
 
@@ -174,9 +214,11 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import addPartnersModal from './addPartnersModal'
+  import addSiteImageModal from './addSiteImageModal'
   import StarRating from 'vue-star-rating'
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -198,9 +240,11 @@
 
   export default {
     name: 'estimateDetail',
+    mixins: [mixin],
     components: {
       estimateSheet,
       addPartnersModal,
+      addSiteImageModal,
       StarRating,
       Datepicker
     },
@@ -211,7 +255,8 @@
           info: 'info',
           estimateView: 'estimateView',
           managerAndShop: 'managerAndShop',
-          preEstimateView: 'preEstimateView'
+          preEstimateView: 'preEstimateView',
+          siteImage: 'siteImage'
         },
         currentTab: '',
         param: {},
@@ -232,7 +277,8 @@
           construction: [],
           resourceCategory: []
         },
-        estimateTabList: []
+        estimateTabList: [],
+        siteImageList: []
       }
     },
     validations: {
@@ -270,6 +316,9 @@
             break
           case this.tabType.managerAndShop:
             this.loadPartner()
+            break
+          case this.tabType.siteImage:
+            this.loadSiteImage()
             break
         }
       },
@@ -449,6 +498,41 @@
         this.addPartnersModalData.type = type
 
         this.$modal.show('addPartnersModal')
+      },
+      openAddSiteImageModal () {
+        this.$modal.show('addSiteImageModal')
+      },
+      loadSiteImage () {
+        const id = this.param.id
+        this.$http.get(`${queryApi}/${id}/image`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            console.log(response.data.data)
+            this.siteImageList = response.data.data.siteImageList
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+      },
+      deleteImageRow (item) {
+        const id = this.param.id
+        this.$http.delete(`${queryApi}/${id}/image/${item.si_pk}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            openNotification({
+              message: '삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadSiteImage()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
       }
     }
   }

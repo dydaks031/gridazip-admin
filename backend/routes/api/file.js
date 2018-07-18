@@ -19,7 +19,7 @@ const MAX_FILE_SIZE = 1024 * 1024 * 500;
 const MAX_IMAGE_WIDTH = 1600;
 const MAX_IMAGE_HEIGHT = 1000;
 
-router.post('/upload', upload, (req, res, next) => {
+router.post('/upload', upload, (req, res) => {
   const fileUploadPath = req.body.file_upload_path;
   if (!fileUploadPath || fileUploadPath === 'null') {
     return res.json(
