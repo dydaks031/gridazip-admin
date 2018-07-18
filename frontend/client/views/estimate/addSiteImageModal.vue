@@ -1,5 +1,5 @@
 <template>
-  <modal name="addSiteImageModal" height="auto" width="60%">
+  <modal name="addSiteImageModal" height="auto" width="60%" @before-close="beforeClose">
     <div class="add-site-image-modal">
       <div class="modal-card-head">
         <h1 class="modal-card-title">현장사진 등록</h1>
@@ -7,17 +7,29 @@
       </div>
       <div class="modal-card-body">
         <div class="partner-wrapper">
-          <textarea title="description" name="si_description" v-model="siteImage.si_description"></textarea>
+          <div class="control">
+            <span class="input-group" v-for="(siteImage, index) in siteImageList">
+              <img :src=siteImage.si_url v-on:click="callFileUpload('file_upload_' + index)" class="site-image"/>
+              <button class="button delete-btn" @click="deletedImage(index)">삭제</button>
+              <input type="file" :name='"portfolio_after[" + index + "]"' placeholder="After" style="display:none;" :ref='"file_upload_" + index' v-on:change="onFileChanged($event, index)" />
+              <input type="text" class="input" v-model="siteImage.si_description" placeholder="설명 입력" />
+            </span>
+            <span class="input-group">
+              <button v-on:click="callFileUpload('file_upload_new')">신규 이미지 업로드</button>
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" />
+            </span>
+          </div>
         </div>
+        <button class="button is-info" @click="uploadSiteImages">등록</button>
       </div>
     </div>
   </modal>
 </template>
 
 <script>
-  import StarRating from 'vue-star-rating'
-  import Vue from 'vue'
+  import FormData from 'form-data'
   import Notification from 'vue-bulma-notification'
+  import Vue from 'vue'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -35,40 +47,82 @@
     })
   }
 
-  const contractQueryApi = '/api/contract'
+  const fileUploadApi = '/api/file/upload'
+  const queryApi = '/api/contract'
+
   export default {
     name: 'add-site-image-modal',
-    components: {
-      StarRating
-    },
     props: {
       id: String,
       beforeClose: Function
     },
     data () {
       return {
-        siteImage: {
-          si_url: '',
-          si_description: ''
-        }
+        siteImageList: [],
+        newDescription: ''
       }
     },
     methods: {
-      addPartner (image) {
-        console.log(`${contractQueryApi}/${this.id}/${this.type}`)
-        this.$http.post(`${contractQueryApi}/${this.id}/image`, image)
+      callFileUpload (index) {
+        const currentTarget = this.$refs[index]
+        if (currentTarget.length > 0) {
+          currentTarget[0].click()
+        } else {
+          currentTarget.click()
+        }
+      },
+      onFileChanged (event, index) {
+        const formData = new FormData()
+        formData.append('file_upload_path', 'portfolio')
+        formData.append('filedata', event.target.files[0])
+
+        this.$http.post(fileUploadApi, formData)
           .then((response) => {
-            console.log(response.data.data)
-            if (response.data.code !== 200) {
-              return false
+            // if ()
+            var responseData = response.data
+
+            if (responseData.code === 200) {
+              const imageData = responseData.data
+              if (index === 'new') {
+                index = this.siteImageList.length
+              }
+              this.siteImageList[index] = {
+                si_description: '',
+                si_url: imageData.value
+              }
+              this.$forceUpdate()
             }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      },
+      deletedImage (index) {
+        this.siteImageList.splice(index, 1)
+      },
+      uploadSiteImages () {
+        this.$http.post(`${queryApi}/${this.id}/image`, {
+          si_image_list: this.siteImageList
+        })
+        .then((response) => {
+          if (response.data.code !== 200) {
             openNotification({
-              message: '등록 되었습니다.',
-              type: 'success',
+              message: '등록 도중 이상이 발생하였습니다.',
+              type: 'danger',
               duration: 1500
             })
-            this.$modal.hide('addPartnersModal')
+            return false
+          }
+          openNotification({
+            message: '등록되었습니다.',
+            type: 'success',
+            duration: 1500
           })
+          this.$modal.hide('addSiteImageModal')
+        })
+        .catch((e) => {
+          console.log(e)
+        })
       }
     }
   }
@@ -87,5 +141,8 @@
   .partner-wrapper {
     overflow: auto;
     max-height: 350px;
+  }
+  .site-image {
+    width:250px;
   }
 </style>
