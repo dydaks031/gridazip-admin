@@ -157,23 +157,21 @@
           <a class="button is-primary is-pulled-right is-medium" id="addSiteImageBtn" @click="openAddSiteImageModal()">등록</a>
           <table class="table">
             <colgroup>
-              <col />
-              <col width="150px;"/>
-              <col />
-              <col />
-              <col />
+              <col width="50%;"/>
+              <col width="auto;"/>
+              <col width="10%;"/>
+              <col width="10%;" />
             </colgroup>
             <thead>
             <tr>
-              <th colspan="2">번호</th>
+              <th>이미지</th>
               <th>설명</th>
               <th>등록일</th>
               <th>설정</th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
-              <td>{{item.pf_pk}}</td>
+            <tr v-for="(item) in siteImageList">
               <td>
                 <a :href="item.si_url">
                   <img :src="item.si_url" />
@@ -181,7 +179,10 @@
               </td>
               <td>{{item.si_description}}</td>
               <td>{{getComputedDate(item.si_reg_dt)}}</td>
-              <td><button class="button" v-on:click.stop="deleteRow(item)">삭제</button></td>
+              <td><button class="button" v-on:click.stop="deleteImageRow(item)">삭제</button></td>
+            </tr>
+            <tr v-if="siteImageList.length === 0">
+              <td colspan="5" class="has-text-centered">검색 결과가 없습니다.</td>
             </tr>
             </tbody>
           </table>
@@ -194,9 +195,11 @@
       :id="param.id"
       :constructionList="partners.construction"
       :resourceCategoryList="partners.resourceCategory"
-      :beforeClose="loadPartner"/>
+      :beforeClose="loadPartner" />
 
-    <add-site-image-modal />
+    <add-site-image-modal
+      :id="param.id"
+      :beforeClose="loadSiteImage" />
   </div>
 </template>
 
@@ -211,6 +214,7 @@
   import StarRating from 'vue-star-rating'
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -232,6 +236,7 @@
 
   export default {
     name: 'estimateDetail',
+    mixins: [mixin],
     components: {
       estimateSheet,
       addPartnersModal,
@@ -267,7 +272,8 @@
           construction: [],
           resourceCategory: []
         },
-        estimateTabList: []
+        estimateTabList: [],
+        siteImageList: []
       }
     },
     validations: {
@@ -302,6 +308,9 @@
             break
           case this.tabType.managerAndShop:
             this.loadPartner()
+            break
+          case this.tabType.siteImage:
+            this.loadSiteImage()
             break
         }
       },
@@ -484,6 +493,38 @@
       },
       openAddSiteImageModal () {
         this.$modal.show('addSiteImageModal')
+      },
+      loadSiteImage () {
+        const id = this.param.id
+        this.$http.get(`${queryApi}/${id}/image`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            console.log(response.data.data)
+            this.siteImageList = response.data.data.siteImageList
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+      },
+      deleteImageRow (item) {
+        const id = this.param.id
+        this.$http.delete(`${queryApi}/${id}/image/${item.si_pk}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            openNotification({
+              message: '삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadSiteImage()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
       }
     }
   }
