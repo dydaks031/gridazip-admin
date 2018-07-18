@@ -3,6 +3,7 @@
     <div class="tabs is-boxed">
       <ul>
         <li @click="activeView(tabType.info)" :class="{'is-active': currentTab === tabType.info}"><a>정보</a></li>
+        <li @click="activeView(tabType.preEstimateView)" :class="{'is-active': currentTab === tabType.preEstimateView}"><a>가견적서</a></li>
         <li @click="activeView(tabType.estimateView)" :class="{'is-active': currentTab === tabType.estimateView}"><a>상세견적서</a></li>
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
       </ul>
@@ -71,8 +72,11 @@
             </p>
           </div>
         </article>
+        <article class="tile is-child box" v-show = "currentTab === tabType.preEstimateView">
+          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList" :estimateIsPre="true"/>
+        </article>
         <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
-          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList"/>
+          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList" :estimateIsPre="false"/>
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
@@ -206,7 +210,8 @@
         tabType: {
           info: 'info',
           estimateView: 'estimateView',
-          managerAndShop: 'managerAndShop'
+          managerAndShop: 'managerAndShop',
+          preEstimateView: 'preEstimateView'
         },
         currentTab: '',
         param: {},
@@ -257,8 +262,11 @@
           case this.tabType.info:
             this.loadDetail()
             break
+          case this.tabType.preEstimateView:
+            this.loadEstimateView(true)
+            break
           case this.tabType.estimateView:
-            this.loadEstimateView()
+            this.loadEstimateView(false)
             break
           case this.tabType.managerAndShop:
             this.loadPartner()
@@ -280,7 +288,7 @@
             console.log(error)
           })
       },
-      loadEstimateView () {
+      loadEstimateView (isPre) {
         const id = this.param.id
         let general
         let labor
@@ -289,41 +297,41 @@
         if (!id) {
           return false
         }
-        this.$http.get(`${queryApi}/${id}/estimate/general`)
+        this.$http.get(`${queryApi}/${id}/estimate/tabs?es_is_pre=${isPre}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.estimateTabList = response.data.data.tabs
+            return this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=${isPre}`)
+          })
           .then((response) => {
             if (response.data.code !== 200) {
               return false
             }
             general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
+            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
+            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total`)
+            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             total = response.data.data.totalCosts
-            return this.$http.get(`${queryApi}/${id}/estimate/tabs`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response)
-            this.estimateTabList = response.data.data.tabs
+
             this.estimateData = {
               general,
               labor,

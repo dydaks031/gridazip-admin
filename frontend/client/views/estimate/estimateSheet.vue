@@ -6,19 +6,20 @@
       <a class="button is-info is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
-    <table class="table position-base-table">
-      <colgroup>
-        <col width="8%" />
-        <col width="5%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="auto" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="10%" />
-      </colgroup>
-      <thead>
+    <div v-if="estimateCurrentTabs.length !== 0">
+      <table class="table position-base-table">
+        <colgroup>
+          <col width="8%" />
+          <col width="5%" />
+          <col width="10%" />
+          <col width="10%" />
+          <col width="10%" />
+          <col width="auto" />
+          <col width="10%" />
+          <col width="10%" />
+          <col width="10%" />
+        </colgroup>
+        <thead>
         <tr>
           <th>위치</th>
           <th>공사</th>
@@ -29,8 +30,8 @@
           <th class="has-text-right">인건비</th>
           <th class="has-text-right">자재비</th>
         </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
         <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
           <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
           <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
@@ -41,101 +42,102 @@
           <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
           <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
         </tr>
-      </tbody>
-    </table>
-    <div class="tile is-ancestor">
-      <div class="tile is-parent is-6">
-        <article class="tile is-child box">
-          <h4 class="title">자재비</h4>
-          <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
-          <div class="content">
-            <table class="table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>자재분류</th>
-                <th>자재</th>
-                <th>물량</th>
-                <th>자재단위</th>
-                <th class="has-text-right">단가</th>
-                <th class="has-text-right">금액</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
-                <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
-                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                <td>{{resource.resource_amount}}</td>
-                <td>{{resource.ru_name}}</td>
-                <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
-                <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-      </div>
-
-      <div class="tile is-parent is-6">
-        <article class="tile is-child box">
-          <h4 class="title">인건비</h4>
-          <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
-          <div class="content">
-            <table class="table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>공사</th>
-                <th>공정</th>
-                <th>상세공정</th>
-                <th>자재군</th>
-                <th class="has-text-right">인건비</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
-                <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
-                <td>{{labor.rt_name}}</td>
-                <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-      </div>
-    </div>
-    <div class="tile is-ancestor summary">
-      <div class="tile is-parent">
-        <article class="tile is-child box">
-          <div class="is-clearfix">
-            <div class="is-pulled-right">
-              <p class="has-text-right">
-                <span>자재비: {{addCommas(viewerData.total.resource_costs)}}원</span>
-              </p>
-              <p class="has-text-right">
-                <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
-              </p>
-              <p class="has-text-right">
-                <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
-              </p>
-              <p class="has-text-right">
-                <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
-              </p>
-              <p class="has-text-right" v-if="viewerData.total.discount_amount">
-                <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
-              </p>
-              <p class="has-text-right">
-                <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
-              </p>
+        </tbody>
+      </table>
+      <div class="tile is-ancestor">
+        <div class="tile is-parent is-6">
+          <article class="tile is-child box">
+            <h4 class="title">자재비</h4>
+            <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
+            <div class="content">
+              <table class="table">
+                <colgroup>
+                  <col width="auto"/>
+                </colgroup>
+                <thead>
+                <tr>
+                  <th>자재분류</th>
+                  <th>자재</th>
+                  <th>물량</th>
+                  <th>자재단위</th>
+                  <th class="has-text-right">단가</th>
+                  <th class="has-text-right">금액</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
+                  <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
+                  <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
+                  <td>{{resource.resource_amount}}</td>
+                  <td>{{resource.ru_name}}</td>
+                  <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                  <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
-        </article>
+          </article>
+        </div>
+
+        <div class="tile is-parent is-6">
+          <article class="tile is-child box">
+            <h4 class="title">인건비</h4>
+            <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
+            <div class="content">
+              <table class="table">
+                <colgroup>
+                  <col width="auto"/>
+                </colgroup>
+                <thead>
+                <tr>
+                  <th>공사</th>
+                  <th>공정</th>
+                  <th>상세공정</th>
+                  <th>자재군</th>
+                  <th class="has-text-right">인건비</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
+                  <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                  <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                  <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
+                  <td>{{labor.rt_name}}</td>
+                  <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="tile is-ancestor summary">
+        <div class="tile is-parent">
+          <article class="tile is-child box">
+            <div class="is-clearfix">
+              <div class="is-pulled-right">
+                <p class="has-text-right">
+                  <span>자재비: {{addCommas(viewerData.total.resource_costs)}}원</span>
+                </p>
+                <p class="has-text-right">
+                  <span>인건비: {{addCommas(viewerData.total.labor_costs)}}원</span>
+                </p>
+                <p class="has-text-right">
+                  <span>공과잡비: {{addCommas(viewerData.total.etc_costs)}}원</span>
+                </p>
+                <p class="has-text-right">
+                  <span>설계비 및 감리비: {{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</span>
+                </p>
+                <p class="has-text-right" v-if="viewerData.total.discount_amount">
+                  <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
+                </p>
+                <p class="has-text-right">
+                  <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </div>
   </div>
@@ -182,6 +184,10 @@
       },
       estimateCurrentTabs: {
         type: Array
+      },
+      estimateIsPre: {
+        type: Boolean,
+        default: false
       },
       deleteRegisterBtn: {
         type: Boolean,

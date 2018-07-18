@@ -337,10 +337,12 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
 
 router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
+  const reqisPre = req.params.es_is_pre !== undefined ? req.params.es_is_pre : false;
   knexBuilder.getConnection().then(cur => {
     cur('estimate_tbl')
       .select('es_pk', 'es_version')
       .where('es_pcpk', reqPcPk)
+      .andWhere('es_is_pre', reqisPre)
       .orderBy('es_version')
       .then(response => {
         res.json(
