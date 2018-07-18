@@ -5,6 +5,7 @@
         <li @click="activeView(tabType.info)" :class="{'is-active': currentTab === tabType.info}"><a>정보</a></li>
         <li @click="activeView(tabType.estimateView)" :class="{'is-active': currentTab === tabType.estimateView}"><a>상세견적서</a></li>
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
+        <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -151,6 +152,40 @@
             </tbody>
           </table>
         </article>
+        <article class="tile is-child box" v-show="currentTab === tabType.siteImage">
+          <p class="subtitle is-3 is-pulled-left">현장사진</p>
+          <a class="button is-primary is-pulled-right is-medium" id="addSiteImageBtn" @click="openAddSiteImageModal()">등록</a>
+          <table class="table">
+            <colgroup>
+              <col />
+              <col width="150px;"/>
+              <col />
+              <col />
+              <col />
+            </colgroup>
+            <thead>
+            <tr>
+              <th colspan="2">번호</th>
+              <th>설명</th>
+              <th>등록일</th>
+              <th>설정</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
+              <td>{{item.pf_pk}}</td>
+              <td>
+                <a :href="item.si_url">
+                  <img :src="item.si_url" />
+                </a>
+              </td>
+              <td>{{item.si_description}}</td>
+              <td>{{getComputedDate(item.si_reg_dt)}}</td>
+              <td><button class="button" v-on:click.stop="deleteRow(item)">삭제</button></td>
+            </tr>
+            </tbody>
+          </table>
+        </article>
       </div>
     </div>
     <add-partners-modal
@@ -160,6 +195,8 @@
       :constructionList="partners.construction"
       :resourceCategoryList="partners.resourceCategory"
       :beforeClose="loadPartner"/>
+
+    <add-site-image-modal />
   </div>
 </template>
 
@@ -170,6 +207,7 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import addPartnersModal from './addPartnersModal'
+  import addSiteImageModal from './addSiteImageModal'
   import StarRating from 'vue-star-rating'
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
@@ -197,6 +235,7 @@
     components: {
       estimateSheet,
       addPartnersModal,
+      addSiteImageModal,
       StarRating,
       Datepicker
     },
@@ -206,7 +245,8 @@
         tabType: {
           info: 'info',
           estimateView: 'estimateView',
-          managerAndShop: 'managerAndShop'
+          managerAndShop: 'managerAndShop',
+          siteImage: 'siteImage'
         },
         currentTab: '',
         param: {},
@@ -441,6 +481,9 @@
         this.addPartnersModalData.type = type
 
         this.$modal.show('addPartnersModal')
+      },
+      openAddSiteImageModal () {
+        this.$modal.show('addSiteImageModal')
       }
     }
   }
