@@ -74,10 +74,10 @@
           </div>
         </article>
         <article class="tile is-child box" v-show = "currentTab === tabType.preEstimateView">
-          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList" :estimateIsPre="true"/>
+          <estimate-sheet :estimateIsPre="true"/>
         </article>
         <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
-          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList" :estimateIsPre="false"/>
+          <estimate-sheet :estimateIsPre="false"/>
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
@@ -219,6 +219,7 @@
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
   import mixin from '../../services/mixin'
+  import EventBus from '../../services/eventBus'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -309,10 +310,10 @@
             this.loadDetail()
             break
           case this.tabType.preEstimateView:
-            this.loadEstimateView(true)
+            EventBus.$emit('loadPreEstimateView')
             break
           case this.tabType.estimateView:
-            this.loadEstimateView(false)
+            EventBus.$emit('loadEstimateView')
             break
           case this.tabType.managerAndShop:
             this.loadPartner()
@@ -334,67 +335,6 @@
             }
             this.detailData = response.data.data.contract
           }).catch((error) => {
-            console.log(error)
-          })
-      },
-      loadEstimateView (isPre) {
-        const id = this.param.id
-        let general
-        let labor
-        let resource
-        let total
-        if (!id) {
-          return false
-        }
-        this.$http.get(`${queryApi}/${id}/estimate/tabs?es_is_pre=${isPre}`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-            this.estimateTabList = response.data.data.tabs
-            return this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=${isPre}`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-            general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=${isPre}`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=${isPre}`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=${isPre}`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            total = response.data.data.totalCosts
-
-            this.estimateData = {
-              general,
-              labor,
-              resource,
-              total
-            }
-          })
-          .catch((error) => {
-            this.estimateData = {
-              general: [],
-              labor: [],
-              resource: [],
-              total: {}
-            }
             console.log(error)
           })
       },

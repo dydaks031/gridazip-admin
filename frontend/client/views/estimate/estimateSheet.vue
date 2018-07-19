@@ -2,9 +2,38 @@
   <div>
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
-      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">등록/수정</a>
-      <a class="button is-info is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true">SMS 발송</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab">복제</a>
+      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab">채택</a>
+      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">
+        <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
+          등록
+        </span>
+        <span v-else>
+          수정
+        </span>
+      </a>
+      <a class="button is-danger is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true ">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
+    </div>
+    <div class="tabs is-boxed is-medium">
+      <ul>
+        <li v-if="!estimateIsPre" :class="{'is-active': selectedTab === ''}">
+          <a @click="moveTab">
+            <span>총계</span>
+          </a>
+        </li>
+        <li v-for="(tab, index) in estimateCurrentTabs" :class="{'is-active': selectedTab === tab.es_pk}">
+          <a @click="moveTab(tab)">
+            <span class="icon is-small"><i class="fa fa-image" aria-hidden="true"></i></span>
+            <span>v.{{tab.es_version}}</span>
+          </a>
+        </li>
+        <li v-if="!estimateIsPre">
+          <a @click="createNewTab">
+            <span class="icon is-small"><i class="fa fa-plus" aria-hidden="true"></i></span>
+          </a>
+        </li>
+      </ul>
     </div>
     <div v-if="estimateCurrentTabs.length !== 0">
       <table class="table position-base-table">
@@ -140,6 +169,9 @@
         </div>
       </div>
     </div>
+    <div v-else>
+      <h3 class="has-text-centered">등록된 견적서가 없습니다. <br />등록 버튼을 선택하여 견적서를 등록 해 주세요.</h3>
+    </div>
   </div>
 </template>
 <script>
@@ -173,18 +205,6 @@
     name: 'estimate-sheet',
     mixins: [mixin],
     props: {
-      estimateData: {
-        type: Object,
-        default: {
-          general: [],
-          labor: [],
-          resource: [],
-          total: {}
-        }
-      },
-      estimateCurrentTabs: {
-        type: Array
-      },
       estimateIsPre: {
         type: Boolean,
         default: false
@@ -196,6 +216,7 @@
     },
     data () {
       return {
+        router,
         param: {},
         mergeRestTime: false,
         viewerData: {
@@ -206,15 +227,69 @@
         },
         isOpenSubResource: {
 
-        }
+        },
+        estimateData: {
+          general: [],
+          labor: [],
+          resource: [],
+          total: {}
+        },
+        estimateCurrentTabs: [],
+        selectedTab: ''
       }
     },
     methods: {
-      moveToRegister () {
-        const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
-        router.push({
-          path: `/private/estimate/${this.param.id}/register/${tab.es_pk}`
+      createNewTab () {
+      },
+      duplicateTab () {
+        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+          es_is_pre: true,
+          es_pk: this.selectedTab
         })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.estimateCurrentTabs.push(response.data.data.tab)
+          })
+      },
+      moveTab (tab = {}) {
+        this.selectedTab = tab.es_pk || ''
+        this.loadEstimateView()
+      },
+      selectionTab () {
+        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+          es_is_pre: false,
+          es_pk: this.selectedTab
+        })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+          })
+      },
+      moveToRegister () {
+        if (this.estimateCurrentTabs.length === 0) {
+          this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+            es_is_pre: true
+          })
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return false
+              }
+              this.estimateCurrentTabs.push(response.data.data.tab)
+
+              const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
+              router.push({
+                path: `/private/estimate/${this.param.id}/register/${tab.es_pk}?es_is_pre=${this.estimateIsPre}`
+              })
+            })
+        } else {
+          const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
+          router.push({
+            path: `/private/estimate/${this.param.id}/register/${tab.es_pk}?es_is_pre=${this.estimateIsPre}`
+          })
+        }
       },
       printPage () {
         EventBus.$emit('togglePrintMode')
@@ -586,10 +661,100 @@
               })
             })
         }
+      },
+      loadEstimateView () {
+        const id = this.$route.params.id
+        const isPre = this.estimateIsPre
+        const esPk = this.selectedTab
+        let general
+        let labor
+        let resource
+        let total
+        if (!id) {
+          return false
+        }
+
+        this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=${isPre}&es_pk=${esPk}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            general = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=${isPre}&es_pk=${esPk}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            labor = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=${isPre}&es_pk=${esPk}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            resource = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=${isPre}&es_pk=${esPk}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            total = response.data.data.totalCosts
+
+            this.estimateData = {
+              general,
+              labor,
+              resource,
+              total
+            }
+          })
+          .catch((error) => {
+            this.estimateData = {
+              general: [],
+              labor: [],
+              resource: [],
+              total: {}
+            }
+            console.log(error)
+          })
+      },
+      getTabList () {
+        const id = this.$route.params.id
+        return this.$http.get(`${queryApi}/${id}/estimate/tabs?es_is_pre=${this.estimateIsPre}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.estimateCurrentTabs = response.data.data.tabs
+            if (!this.selectedTab && this.estimateIsPre) {
+              if (!this.estimateCurrentTabs[0]) {
+                router.back()
+              }
+              this.selectedTab = this.estimateCurrentTabs[0].es_pk
+            }
+          })
       }
     },
     mounted () {
       this.param = this.$route.params
+      EventBus.$on('loadEstimateView', () => {
+        if (!this.estimateIsPre) {
+          this.getTabList()
+            .then(() => {
+              this.loadEstimateView()
+            })
+        }
+      })
+
+      EventBus.$on('loadPreEstimateView', () => {
+        if (this.estimateIsPre) {
+          this.getTabList()
+            .then(() => {
+              this.loadEstimateView()
+            })
+        }
+      })
     },
     created () {
     },

@@ -107,8 +107,6 @@
               })
               return false
             }
-            const insertResult = response.data.data.data
-            return this.$http.post(`${queryApi}/${insertResult.pc_pk}/estimate/tabs`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
