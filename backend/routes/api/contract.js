@@ -448,10 +448,6 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqEsPk = req.body.es_pk || '';
   const reqEsIsPre = req.body.es_is_pre !== undefined ? req.body.es_is_pre : '';
 
-  console.log(req.body.es_is_pre);
-  console.log(reqEsIsPre);
-
-
   if (reqPcPk === '') {
     res.json(resHelper.getError('파라메터가 올바르지 않습니다.'));
   }
@@ -461,6 +457,7 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       const obj = {};
+
       cur('estimate_tbl')
         .max('es_version as version')
         .where('es_pcpk', reqPcPk)
@@ -472,33 +469,51 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
           obj.es_pcpk = reqPcPk;
           obj.es_is_pre = reqEsIsPre;
 
-          cur('estimate_tbl')
-            .insert(obj)
-            .then(response => {
-              obj.es_pk = response[0];
+          cur.transaction(function(trx) {
 
-              if (reqEsPk !== '') {
-                cur(cur.raw('?? (??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??)',
-                  ['estimate_detail_hst', 'ed_espk', 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', 'ed_recency']))
-                  .insert(function() {
-                    this.from('estimate_detail_hst as ed')
-                      .where('ed.ed_espk', reqEsPk)
-                      .select(obj.es_pk, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
-                  })
-                  .then(() => {
-                    res.json(
-                      resHelper.getJson({
-                        tab: obj
-                      })
-                    );
-                  });
-              }
+            cur('estimate_tbl')
+              .insert(obj)
+              .transacting(trx)
+              .then(response => {
+                obj.es_pk = response[0];
+
+                if (reqEsPk !== '') {
+                  cur(cur.raw('?? (??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??)',
+                    ['estimate_detail_hst', 'ed_espk', 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', 'ed_recency']))
+                    .insert(function() {
+                      this.from('estimate_detail_hst as ed')
+                        .where('ed.ed_espk', reqEsPk)
+                        .select(obj.es_pk, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
+                    })
+                    .transacting(trx)
+                    .then(trx.commit)
+                    .catch(trx.rollback);
+                }
+
+                return null;
+              })
+              .catch(trx.rollback)
+          })
+            .then(() => {
+              res.json(
+                resHelper.getJson({
+                  tab: obj
+                })
+              );
+            })
+            .catch(err => {
+              console.log(err);
+              res.json(
+                resHelper.getError('[0001]고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
+              );
             });
+
+          return null;
         })
         .catch(err => {
           console.log(err);
           res.json(
-            resHelper.getError('고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
+            resHelper.getError('[0002]고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
           );
         })
     })
