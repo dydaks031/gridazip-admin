@@ -240,6 +240,9 @@
     },
     methods: {
       createNewTab () {
+        router.push({
+          path: `/private/estimate/${this.param.id}/register/tabs`
+        })
       },
       duplicateTab () {
         this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {

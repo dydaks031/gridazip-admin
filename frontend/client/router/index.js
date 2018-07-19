@@ -100,6 +100,15 @@ export default new Router({
           }
         },
         {
+          name: '상세견적서 신규 버전 추가',
+          path: 'estimate/:id([0-9]+)/register/tabs',
+          component: require('../views/estimate/estimateMaster'),
+          meta: {
+            auth: true,
+            authRedirect: 'login'
+          }
+        },
+        {
           name: '기술자 상세',
           path: 'manage-constructor/constructor/:id([0-9]+)',
           component: require('../views/manageConstructor/detail'),
