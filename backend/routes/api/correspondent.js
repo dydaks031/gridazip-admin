@@ -140,51 +140,46 @@ router.post('/', (req, res) => {
         res.json(resHelper.getError('[0002] 필수 파라메터가 누락되었습니다.'));
       }
     });
-
     knexBuilder.getConnection().then(cur => {
-      cur('correspondent_tbl')
-        .insert({
-          co_name: reqName,
-          co_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
-          co_manager_name: reqManagerName,
-          co_location: reqLocation || '',
-          co_memo: reqMemo || ''
-        })
-        .returning('co_pk')
-        .then(response => {
-          coPk = response[0];
-          cur.transaction(function(trx) {
-            const queries = [];
+      cur.transaction(trx => {
+        cur('correspondent_tbl')
+          .insert({
+            co_name: reqName,
+            co_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
+            co_manager_name: reqManagerName,
+            co_location: reqLocation || '',
+            co_memo: reqMemo || ''
+          })
+          .returning('co_pk')
+          .transacting(trx)
+          .then(response => {
+            coPk = response[0];
+            const query = [];
             reqItemList.forEach(obj => {
-              const query = cur.table('correspondent_item_tbl')
+              query.push(cur.table('correspondent_item_tbl')
                 .insert({
-                  ci_copk: coPk,
-                  ci_rcpk: obj.ci_rcpk,
-                  ci_brand: obj.ci_brand
+                  ...obj,
+                  ci_copk: coPk
                 })
-                .transacting(trx);
-              queries.push(query);
+                .transacting(trx));
             });
-            Promise.all(queries)
+
+            Promise.all(query)
               .then(trx.commit)
               .catch(trx.rollback);
           })
-          .then(() => {
-            res.json(resHelper.getJson({
-              msg: 'ok'
-            }));
-          })
-          .catch(err => {
-            console.error(err);
-            res.json(resHelper.getError('[0004] 거래처를 추가하는 중 오류가 발생하였습니다.'));
-          })
-
+          .catch(trx.rollback);
+      })
+        .then(() => {
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
         })
         .catch(err => {
           console.error(err);
-          res.json(resHelper.getError('[0005] 거래처를 추가하는 중 오류가 발생하였습니다.'));
+          res.json(resHelper.getError('[0003] 거래처를 추가하는 중 오류가 발생하였습니다.'));
         })
-    })
+    });
   }
 });
 
