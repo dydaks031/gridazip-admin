@@ -141,48 +141,43 @@ router.post('/', (req, res) => {
     });
 
     knexBuilder.getConnection().then(cur => {
-      cur('constructor_tbl')
-        .insert({
-          cr_name: reqName,
-          cr_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
-          cr_communication_score: reqCommunicationScore
-        })
-        .returning('cr_pk')
-        .then(response => {
-          crPk = response[0];
-          cur.transaction(function(trx) {
-            const queries = [];
+      cur.transaction(trx => {
+        cur('constructor_tbl')
+          .insert({
+            cr_name: reqName,
+            cr_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
+            cr_communication_score: reqCommunicationScore
+          })
+          .returning('cr_pk')
+          .transacting(trx)
+          .then(response => {
+            crPk = response[0];
+            const query = [];
             reqSkillList.forEach(obj => {
-              const query = cur.table('constructor_skill_tbl')
+              query.push(cur.table('constructor_skill_tbl')
                 .insert({
-                  cs_crpk: crPk,
-                  cs_ctpk: obj.cs_ctpk,
-                  cs_skill_score: obj.cs_skill_score,
-                  cs_memo: obj.cs_memo
+                  ...obj,
+                  cs_crpk: crPk
                 })
-                .transacting(trx);
-              queries.push(query);
+                .transacting(trx));
             });
-            Promise.all(queries)
+
+            Promise.all(query)
               .then(trx.commit)
               .catch(trx.rollback);
           })
-          .then(() => {
-            res.json(resHelper.getJson({
-              msg: 'ok'
-            }));
-          })
-          .catch(err => {
-            console.error(err);
-            res.json(resHelper.getError('[0004] 기술자를 추가하는 중 오류가 발생하였습니다.'));
-          })
-
+          .catch(trx.rollback);
+        })
+        .then(() => {
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
         })
         .catch(err => {
           console.error(err);
-          res.json(resHelper.getError('[0005] 기술자를 추가하는 중 오류가 발생하였습니다.'));
+          res.json(resHelper.getError('[0004] 기술자를 추가하는 중 오류가 발생하였습니다.'));
         })
-    })
+      });
   }
 });
 
