@@ -87,6 +87,12 @@
     components: {
       select2
     },
+    props: {
+      isNewTab: {
+        type: Boolean,
+        default: false
+      }
+    },
     data () {
       return {
         metaData: {},
@@ -113,7 +119,9 @@
           resource: []
         },
         cpdUnit: '',
-        cpdData: []
+        cpdData: [],
+        resourceTypeData: [],
+        resourceData: []
       }
     },
     methods: {
@@ -144,6 +152,14 @@
           })
           if (metaData.id === 'constructionProcessDetail') {
             this.cpdData = response.data.data[metaData.keyList.list]
+          }
+          if (metaData.id === 'resourceType' && this.isNewTab) {
+            // return this.$http.get(`/api/resource/unit`, )
+            this.resourceTypeData = response.data.data[metaData.keyList.list]
+          }
+          if (metaData.id === 'resource' && this.isNewTab) {
+            // return this.$http.get(`/api/resource/unit`, )
+            this.resourceData = response.data.data[metaData.keyList.list]
           }
         }).catch((error) => {
           console.error(error)
@@ -180,6 +196,27 @@
             return item[metaData.keyList.id].toString() === this.selected[key].toString()
           }) || {}
           this.cpdUnit = selectedData.cpd_unit
+          if (this.isNewTab) {
+            this.selected.cpd_labor_costs = selectedData.cpd_labor_costs
+          }
+        }
+
+        if (metaData.id === 'resourceType' && this.isNewTab) {
+          const selectedData = _.find(this.resourceTypeData, (item) => {
+            return item.rt_pk.toString() === this.selected.ed_rtpk.toString()
+          }) || {}
+          this.selected.rt_extra_labor_costs = selectedData.rt_extra_labor_costs
+        }
+
+        if (metaData.id === 'resource' && this.isNewTab) {
+          // return this.$http.get(`/api/resource/unit`, )
+          const selectedData = _.find(this.resourceData, (item) => {
+            return item.rs_pk.toString() === this.selected.ed_rspk.toString()
+          })
+          if (selectedData) {
+            this.selected.ru_calc_expression = selectedData.ru_calc_expression
+            this.selected.rs_price = selectedData.rs_price
+          }
         }
         this.removeChildData(type, metaData, curDepthTarget, metaData, key)
       },
@@ -241,26 +278,35 @@
         if (!id) {
           return false
         }
-        this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response.data.data)
-            var data = response.data.data.data
 
-            this.$emit('registerData', {
-              selectedData: data,
-              options: this.options
-            })
-          }).catch((error) => {
-            console.log(error)
+        if (this.isNewTab) {
+          this.$emit('registerData', {
+            selectedData: this.selected,
+            options: this.options
           })
+        } else {
+          this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return
+              }
+              console.log(response.data.data)
+              var data = response.data.data.data
+
+              this.$emit('registerData', {
+                selectedData: data,
+                options: this.options
+              })
+            }).catch((error) => {
+              console.log(error)
+            })
+        }
       }
     },
     mounted () {
       console.log(META_LODING_CONFIG)
       this.params = this.$route.params
+      console.log(this.isNewTab)
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)

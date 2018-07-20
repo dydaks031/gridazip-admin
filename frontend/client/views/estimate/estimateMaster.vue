@@ -1,7 +1,10 @@
 <template>
   <div>
     <div class="tile is-ancestor">
-      <estimate-select v-on:registerData="updateModifyView"/>
+      <estimate-select
+        v-on:registerData="updateModifyView"
+        :isNewTab="true"
+      />
     </div>
     <div class="tile is-ancestor box" style="margin-bottom:2.5rem;">
       <div class="tile is-parent">
@@ -86,7 +89,8 @@
               <th></th>
             </tr>
             </thead>
-            <estimate-master-modify :rowData="{}" />
+            <estimate-master-modify
+            :beforeDelete="createDeleteRow" />
           </table>
         </div>
       </div>
@@ -99,6 +103,8 @@
   import EstimateModify from './estimateModify'
   import EventBus from '../../services/eventBus'
   import EstimateMasterModify from './estimateMasterModify'
+  import deepClone from '../../services/deepClone'
+  import calculator from 'calculator'
 
   const queryApi = '/api/contract/'
 
@@ -115,7 +121,13 @@
       }
     },
     methods: {
-      updateModifyView () {
+      updateModifyView (data) {
+        const estimateData = deepClone(data.selectedData)
+        const func = calculator.func(`f(x) = ${estimateData.ru_calc_expression}`)
+        estimateData.ed_resource_amount = Math.ceil(func(estimateData.ed_input_value))
+        estimateData.resource_costs = estimateData.rs_price * estimateData.ed_resource_amount
+        console.log(estimateData)
+        // EventBus.$emit('updateModifyView', data.estimateList)
       },
       loadData () {
         const id = this.$route.params.id
@@ -130,6 +142,8 @@
           }).catch((error) => {
             console.log(error)
           })
+      },
+      createDeleteRow () {
       }
     },
     mounted () {
