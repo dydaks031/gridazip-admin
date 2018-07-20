@@ -1015,13 +1015,13 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
                  rs.rs_pk,
                  rs.rs_code,
                  ed.ed_alias,
-                 ed.ed_resource_amount resource_amount,
+                 sum(ed.ed_resource_amount) resource_amount,
                  ru.ru_name,
                  rs.rs_price,
-                 ed.ed_resource_amount * rs.rs_price resource_costs,
-                 ed.ed_input_value,
+                 sum(ed.ed_resource_amount * rs.rs_price) resource_costs,
+                 sum(ed.ed_input_value) ed_input_value,
                  cpd.cpd_min_amount,
-                 ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
+                 sum(ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)) labor_costs
           
             from estimate_detail_hst ed
            inner join estimate_tbl es on ed.ed_espk = es.es_pk
@@ -1033,7 +1033,7 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
             left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
             left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
            where es.es_pcpk = ?
-           group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
+           group by ed.ed_place_pk, ed.ed_detail_place, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk, ed_alias
            order by pl.cp_pk, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_sub desc, rt.rt_name, rs.rs_name
           `, reqPcPk)
 
