@@ -302,7 +302,7 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
       .first('pc_name', 'pc_phone', 'pc_password')
       .where('pc_pk', reqPcPk)
       .then(row => {
-        const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
+        const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/GzWG3H 에서 상세견적을 확인해보세요.`;
         console.log(smsMsg);
         console.log(cryptoHelper.decrypt(row.pc_phone));
         smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
