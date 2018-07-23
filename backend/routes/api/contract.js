@@ -1036,8 +1036,6 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
            and es.es_is_pre = ?
          group by ed.ed_rspk, ed.ed_alias
          order by rs.rs_name`, [reqPcPk, reqEsIsPre === 'true']);
-
-        console.log(query.toString());
         query
         .then(response => {
           resourceList = response[0].filter(resource => {
@@ -1296,6 +1294,64 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
 
 
 // view query per tabs :start
+router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+  console.log('master');
+  knexBuilder.getConnection().then(cur => {
+    const query = cur.raw(`
+      select pl.cp_name as place_name,
+             pl.cp_pk as place_pk,
+             ct.ct_pk,
+             ct.ct_name,
+             cp.cp_name,
+             cp.cp_pk,
+             cpd.cpd_name,
+             rt.rt_name,
+             rt.rt_sub,
+             rs.rs_name,
+             rs.rs_pk,
+             rs.rs_code,
+             ed.ed_alias,
+             ed.ed_resource_amount resource_amount,
+             ru.ru_name,
+             ru.ru_calc_expression,
+             rs.rs_price,
+             ed.ed_resource_amount * rs.rs_price resource_costs,
+             ed.ed_input_value,
+             cpd.cpd_min_amount,
+             ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
+      
+        from estimate_detail_hst ed
+       inner join estimate_tbl es on ed.ed_espk = es.es_pk
+        left join construction_place_tbl pl on ed.ed_place_pk = pl.cp_pk
+        left join construction_tbl ct on ed.ed_ctpk = ct.ct_pk
+        left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
+        left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+        left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+        left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
+       where es.es_pcpk = ?
+         and es.es_is_pre = false
+       group by ed.ed_place_pk, ed_detail_place, ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk, ed_alias
+       order by pl.cp_name, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_name, rs.rs_name, ed.ed_alias
+      `, reqPcPk);
+
+    query
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            estimateList: response
+          })
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        res.json(
+          resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
+});
 
 router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
   const reqEsPk = req.params.espk || '';
@@ -1304,19 +1360,43 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
   const cf = 1000;
 
   knexBuilder.getConnection().then(cur => {
+    const subQuery = cur('estimate_tbl').select('es_pcpk').where('es_pk', reqEsPk);
+    let arrEsPk = [];
 
-    cur.raw(`
-      select rs.rs_pk,
-             count(rs.rs_pk) as count,
-             rs.rs_price,
-             ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
-             sum(ed.ed_resource_amount) as resource_amount
-        from estimate_detail_hst ed
-        left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-       where ed.ed_espk = ?
-       group by ed.ed_rspk, ed.ed_alias
-       order by rs.rs_name
-    `, reqEsPk)
+    cur('estimate_tbl')
+      .select('es_pk', 'es_version')
+      .where('es_pcpk', subQuery)
+      .andWhere('es_is_pre', false)
+      .orderBy('es_is_pre', 'es_pk')
+      .then(response => {
+        console.log(response);
+        if (response.length < 2) {
+          arrEsPk.push(reqEsPk);
+        } else {
+          arrEsPk = response.filter(obj => obj.es_pk <= reqEsPk).map(obj => `'${obj.es_pk}'`);
+        }
+        console.log('@@@@@@@@@111@@@@@@@@@@');
+        return arrEsPk;
+      })
+      .then(arrEsPk => {
+        console.log('@@@@@@@@@222@@@@@@@@@');
+        console.log(arrEsPk);
+
+        const query = cur.raw(`
+          select rs.rs_pk,
+                 count(rs.rs_pk) as count,
+                 rs.rs_price,
+                 ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
+                 sum(ed.ed_resource_amount) as resource_amount
+            from estimate_detail_hst ed
+            left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+           where ed.ed_espk in (${arrEsPk.join(',')})
+           group by ed.ed_rspk, ed.ed_alias
+           order by rs.rs_name
+        `);
+        console.log(query.toString());
+        return query;
+      })
       .then(response => {
         resourceList = response[0].filter(resource => {
           if (resource.ceil_resource_amount !== resource.resource_amount) return true;
@@ -1327,7 +1407,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
           return resource;
         });
 
-        return cur.raw(`
+        const query = cur.raw(`
           select pl.cp_name as place_name,
                  pl.cp_pk as place_pk,
                  ct.ct_pk,
@@ -1357,10 +1437,12 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
             left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
             left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
             left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
-           where ed.ed_espk = ?
+           where ed.ed_espk in (${arrEsPk.join(',')})
            group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
            order by 1,2,3,4,5,6
-          `, reqEsPk)
+          `);
+        console.log(query.toString());
+        return query;
 
       })
       .then(response => {
