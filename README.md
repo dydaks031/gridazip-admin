@@ -4,6 +4,7 @@
 
 - MUST INSTALL NPM
 - Node.js v9.7.1 (ES6)
+- Python 2.7
 
 ### Installaztion
 
