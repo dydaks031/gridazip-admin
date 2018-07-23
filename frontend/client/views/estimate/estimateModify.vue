@@ -88,6 +88,9 @@
     props: {
       rowData: {
         type: Object
+      },
+      estimateAmountCalculation: {
+        type: Function
       }
     },
     data () {
@@ -163,19 +166,24 @@
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
-        this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response.data.data)
-            data.isModify = false
-            data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
-            data.selectedData.labor_costs = response.data.data.data.labor_costs
-            data.selectedData.resource_costs = response.data.data.data.resource_costs
-          }).catch((error) => {
-            console.log(error)
-          })
+        if (!esPk || !sendData.ed_pk) {
+          data.selectedData = this.estimateAmountCalculation(sendData)
+          data.isModify = false
+        } else {
+          this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return
+              }
+              console.log(response.data.data)
+              data.isModify = false
+              data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
+              data.selectedData.labor_costs = response.data.data.data.labor_costs
+              data.selectedData.resource_costs = response.data.data.data.resource_costs
+            }).catch((error) => {
+              console.log(error)
+            })
+        }
       },
       changedModifyView (data) {
         data.isModify = !data.isModify
@@ -184,6 +192,9 @@
         }
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
+        if (!data.selectedData.ed_pk || !esPk) {
+          return
+        }
         this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`)
           .then((response) => {
             if (response.data.code !== 200) {

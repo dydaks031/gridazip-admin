@@ -2,13 +2,13 @@
   <tbody class="estimate-modify">
   <tr v-for="data in dataGroup">
     <td>
-      <input type="checkbox" class="checkbox" />
+      <input type="checkbox" class="checkbox" v-model="data.isChecked" @change="updateMasterView(data)"/>
     </td>
     <td>
       <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
     </td>
     <td>
-      <span v-show="data.isModify === false">{{data.selectedData.ed_detail_place}}</span>
+      <span v-show="data.isModify === false">{{data.selectedData.detail_place}}</span>
     </td>
     <td>
       <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
@@ -36,7 +36,7 @@
       <span v-show="data.isModify === false">{{data.selectedData.ed_input_value}}</span>
     </td>
     <td>
-      <span v-show="data.isModify === false">{{data.selectedData.ed_resource_amount}}</span>
+      <span v-show="data.isModify === false">{{data.selectedData.resource_amount}}</span>
     </td>
     <td>
       {{addCommas(data.selectedData.labor_costs)}}
@@ -106,6 +106,7 @@
             }
             specificationData.isModify = false
             specificationData.selectedData = item
+            specificationData.isChecked = false
             this.dataGroup.unshift(deepClone(specificationData))
           })
         } else {
@@ -140,6 +141,14 @@
           }).catch((error) => {
             console.log(error)
           })
+      },
+      updateMasterView (data) {
+        console.log(data.isChecked)
+        if (data.isChecked) {
+          data.selectedData.ed_resource_amount = data.selectedData.resource_amount
+          data.selectedData.ed_detail_place = data.selectedData.detail_place
+          this.$emit('checked', data)
+        }
       },
       loadData (currentData, data = {}) {
         const metaData = data.metaData

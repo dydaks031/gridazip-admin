@@ -44,7 +44,7 @@
           <th></th>
         </tr>
         </thead>
-        <estimate-modify :rowData="{}"/>
+        <estimate-modify :rowData="{}" :estimateAmountCalculation="getEstimateAmount"/>
       </table>
         </div>
       </div>
@@ -90,7 +90,8 @@
             </tr>
             </thead>
             <estimate-master-modify
-            :beforeDelete="createDeleteRow" />
+            :beforeDelete="createDeleteRow"
+            v-on:checked="updateModifyView"/>
           </table>
         </div>
       </div>
@@ -122,12 +123,20 @@
     },
     methods: {
       updateModifyView (data) {
-        const estimateData = deepClone(data.selectedData)
+        console.log(data)
+        const _data = deepClone(data)
+        const estimateData = this.getEstimateAmount(_data.selectedData)
+        EventBus.$emit('updateModifyView', {
+          selectedData: estimateData,
+          options: _data.options
+        })
+      },
+      getEstimateAmount (estimateData) {
         const func = calculator.func(`f(x) = ${estimateData.ru_calc_expression}`)
-        estimateData.ed_resource_amount = Math.ceil(func(estimateData.ed_input_value))
+        estimateData.ed_resource_amount = parseFloat(func(estimateData.ed_input_value)).toFixed(2)
         estimateData.resource_costs = estimateData.rs_price * estimateData.ed_resource_amount
-        console.log(estimateData)
-        // EventBus.$emit('updateModifyView', data.estimateList)
+        estimateData.labor_costs = estimateData.ed_input_value * (estimateData.cpd_labor_costs + estimateData.rt_extra_labor_costs)
+        return estimateData
       },
       loadData () {
         const id = this.$route.params.id
