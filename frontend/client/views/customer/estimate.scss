@@ -193,12 +193,17 @@ $table-hover-color: #fcfbfe;
       align-items: flex-start;
       margin: 0 2rem;
       line-height:1.15;
+      hr {
+        width:100%;
+      }
+
       &:first-child {
-        border-bottom: 1px solid #000000;
+        border-bottom: 1px solid #dddddd;
         padding: 0 0 2rem 0;
       }
       &:last-child {
-        padding: 2rem 0 0 0;
+        padding: 2rem 0 2.5rem 0;
+        //border-bottom: 1px solid #000000;
       }
 
       .level-left {
@@ -210,10 +215,27 @@ $table-hover-color: #fcfbfe;
       }
 
       .level-right {
+        &.flex-direction-column {
+          flex-direction:column;
+          justify-content: inherit;
+          align-items: initial;
+
+          hr {
+            margin: 1rem 0;
+          }
+        }
+
+        >.level-right {
+          justify-content: inherit;
+        }
+
         .level-item {
           flex-direction: column;
           &:first-child {
             align-items: baseline;
+          }
+          &.flex-item-right {
+            align-items: flex-end;
           }
 
           .discount-amount {
@@ -223,6 +245,11 @@ $table-hover-color: #fcfbfe;
           &.summary {
             > p {
               font-size:2.2rem;
+              font-weight: bold;
+            }
+            .unit {
+              font-weight: normal;
+              font-size:1.7rem;
             }
           }
 
@@ -244,11 +271,11 @@ $table-hover-color: #fcfbfe;
   }
 }
 .footer {
-  padding: calc((14px * 2.2 * 1.15) + (14px * 4));
+  padding: calc((14px * 2.2 * 1.15) + (14px * 2.5 * 1.15) + (14px * 4));
   background: #666a86;
   margin-left: 0;
   z-index: 0;
-  margin-top: calc(-1* ((14px * 2.2 * 1.15) + (14px * 4) + (14px * 0.25)))
+  margin-top: calc(-1* ((14px * 2.2 * 1.15) + (14px * 2.5 * 1.15) + (14px * 4) + (14px * 0.25)))
 }
 .position-base-table {
   margin: 1rem 0 3rem 0
