@@ -136,6 +136,7 @@
     },
     methods: {
       getSelectedText (selectList, id) {
+        console.log(selectList, id)
         const target = _.find(selectList, (item) => {
           return item.id.toString() === id.toString()
         })
@@ -192,10 +193,23 @@
         }
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
-        if (!data.selectedData.ed_pk || !esPk) {
+        console.log(this.estimateAmountCalculation)
+        console.log(data.isAddedBySelf, this.estimateAmountCalculation)
+        let apiUrl = `${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`
+
+        if (data.isAddedBySelf) {
           return
+        } else if (!data.isAddedBySelf && this.estimateAmountCalculation) {
+          const param = {
+            ct_pk: data.selectedData.ed_ctpk,
+            cp_pk: data.selectedData.ed_cppk,
+            rc_pk: data.selectedData.ed_rcpk,
+            rt_pk: data.selectedData.ed_rtpk
+          }
+          apiUrl = `${queryApi}/${id}/estimate/master/row?${utils.getQueryString(param)}`
         }
-        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`)
+
+        this.$http.get(apiUrl)
           .then((response) => {
             if (response.data.code !== 200) {
               return

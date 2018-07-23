@@ -295,7 +295,8 @@
 
               this.$emit('registerData', {
                 selectedData: data,
-                options: this.options
+                options: this.options,
+                isAddedBySelf: true
               })
             }).catch((error) => {
               console.log(error)

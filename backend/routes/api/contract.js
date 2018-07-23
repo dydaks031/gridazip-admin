@@ -887,7 +887,7 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
 
 // estimate detail row's selectbox info :start
 
-router.get('/:pcpk([0-9]+)/estimate/:espk(([0-9]+|master){1})/:edpk([0-9]+)', (req, res) => {
+router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
 
   let constructionPk;
@@ -921,6 +921,104 @@ router.get('/:pcpk([0-9]+)/estimate/:espk(([0-9]+|master){1})/:edpk([0-9]+)', (r
           .where('cp_deleted', false)
           .orderBy('cp_order')
       })
+      .then(response => {
+        constructionPlaceList = response;
+
+        return cur('construction_tbl')
+          .select('ct_pk', 'ct_name', 'ct_order')
+          .where('ct_deleted', false)
+          .orderBy('ct_order')
+      })
+      .then(response => {
+        constructionList = response;
+
+        return cur('construction_process_tbl')
+          .select('cp_pk', 'cp_name')
+          .where('cp_ctpk',constructionPk)
+          .andWhere('cp_deleted', false)
+          .orderBy('cp_name')
+      })
+      .then(response => {
+        constructionProcessList = response;
+
+        return cur('construction_process_detail_tbl')
+          .select('cpd_pk', 'cpd_name', 'cpd_labor_costs', 'cpd_min_amount', 'cpd_unit')
+          .where('cpd_cppk',constructionProcessPk)
+          .andWhere('cpd_deleted', false)
+          .orderBy('cpd_name')
+      })
+      .then(response => {
+        constructionProcessDetailList = response;
+
+        return cur('resource_type_tbl')
+          .first('rt_rcpk')
+          .where('rt_pk',resourceTypePk)
+      })
+      .then(row => {
+        resourceCategoryPk = row.rt_rcpk;
+
+        return cur('resource_category_tbl')
+          .select('rc_pk', 'rc_name', 'rc_order')
+          .where('rc_deleted', false)
+          .orderBy('rc_order')
+      })
+      .then(response => {
+        resourceCategoryList = response;
+
+        return cur('resource_type_tbl')
+          .select('rt_pk', 'rt_name', 'rt_extra_labor_costs')
+          .where('rt_rcpk',resourceCategoryPk)
+          .andWhere('rt_deleted', false)
+          .orderBy('rt_order')
+      })
+      .then(response => {
+        resourceTypeList = response;
+
+        return cur('resource_tbl')
+          .select('rs_pk', 'rs_name', 'rs_code', 'rs_price', 'rs_rupk')
+          .where('rs_rtpk',resourceTypePk)
+          .andWhere('rs_deleted', false)
+          .orderBy('rs_name')
+      })
+      .then(response => {
+        resourceList = response;
+
+        res.json(
+          resHelper.getJson({
+            constructionPlaceList,
+            constructionList,
+            constructionProcessList,
+            constructionProcessDetailList,
+            resourceCategoryList,
+            resourceTypeList,
+            resourceList,
+          })
+        );
+      })
+  });
+});
+
+router.get('/:pcpk([0-9]+)/estimate/master/row', (req, res) => {
+  const reqEdPk = req.params.edpk || '';
+
+  let constructionPk = req.query.ct_pk;
+  let constructionProcessPk = req.query.cp_pk;
+  let resourceCategoryPk = req.query.rc_pk;
+  let resourceTypePk = req.query.rt_pk;
+
+  let constructionPlaceList;
+  let constructionList;
+  let constructionProcessList;
+  let constructionProcessDetailList;
+  let resourceCategoryList;
+  let resourceTypeList;
+  let resourceList;
+
+  knexBuilder.getConnection().then(cur => {
+    cur('construction_place_tbl')
+      .select('cp_pk', 'cp_name', 'cp_order')
+      .where('cp_deleted', false)
+      .orderBy('cp_order')
       .then(response => {
         constructionPlaceList = response;
 
@@ -1292,20 +1390,23 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     const query = cur.raw(`
       select pl.cp_name as place_name,
-             pl.cp_pk as place_pk,
-             ct.ct_pk,
+             ed.ed_detail_place,
+             pl.cp_pk as ed_place_pk,
+             ct.ct_pk as ed_ctpk,
              ct.ct_name,
              cp.cp_name,
-             cp.cp_pk,
+             cp.cp_pk as ed_cppk,
+             cpd.cpd_pk as ed_cpdpk,
              cpd.cpd_name,
              cpd.cpd_labor_costs,
              rc.rc_pk,
              rc.rc_name,
+             rt.rt_pk as ed_rtpk,
              rt.rt_name,
              rt.rt_extra_labor_costs,
              rt.rt_sub,
              rs.rs_name,
-             rs.rs_pk,
+             rs.rs_pk as ed_rspk,
              rs.rs_code,
              ed.ed_alias,
              ed.ed_resource_amount resource_amount,
@@ -1314,6 +1415,7 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
              rs.rs_price,
              ed.ed_resource_amount * rs.rs_price resource_costs,
              ed.ed_input_value,
+             ed.ed_alias,
              cpd.cpd_min_amount,
              ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
       

@@ -8,7 +8,7 @@
       <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
     </td>
     <td>
-      <span v-show="data.isModify === false">{{data.selectedData.detail_place}}</span>
+      <span v-show="data.isModify === false">{{data.selectedData.ed_detail_place}}</span>
     </td>
     <td>
       <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
