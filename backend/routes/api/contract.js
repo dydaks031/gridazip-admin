@@ -1307,6 +1307,8 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
              cp.cp_pk,
              cpd.cpd_name,
              cpd.cpd_labor_costs,
+             rc.rc_pk,
+             rc.rc_name,
              rt.rt_name,
              rt.rt_extra_labor_costs,
              rt.rt_sub,
@@ -1330,6 +1332,7 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
         left join construction_process_tbl cp on ed.ed_cppk = cp.cp_pk
         left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
         left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+        left join resource_category_tbl rc on rt.rt_rcpk = rc.rc_pk
         left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
         left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk
        where es.es_pcpk = ?
