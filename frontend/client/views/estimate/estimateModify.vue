@@ -12,32 +12,32 @@
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
-        <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'construction', 'ed_ctpk', ...arguments)">
+        <select2 :options="data.options.construction" v-if="data.options.construction.length > 0" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'construction', 'ed_ctpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk) || data.selectedData.cp_name}}</span>
-        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcess', 'ed_cppk', ...arguments)">
+        <select2 :options="data.options.constructionProcess" v-if="data.options.constructionProcess.length > 0" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcess', 'ed_cppk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk) || data.selectedData.cpd_name}}</span>
-        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcessDetail', 'ed_cpdpk', ...arguments)">
+        <select2 :options="data.options.constructionProcessDetail" v-if="data.options.constructionProcessDetail.length > 0" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcessDetail', 'ed_cpdpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.rc_pk) || data.selectedData.rc_name}}</span>
-        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceCategory', 'rc_pk', ...arguments)">
+        <select2 :options="data.options.resourceCategory" v-if="data.options.resourceCategory.length > 0" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceCategory', 'rc_pk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk) || data.selectedData.rt_name}}</span>
-        <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
+        <select2 :options="data.options.resourceType" v-if="data.options.resourceType.length > 0" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
         </select2>
       </td>
       <td class="resource-view">
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
-        <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
+        <select2 :options="data.options.resource" v-if="data.options.resource.length > 0" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
         </select2>
         <span class="resource-code" v-show="data.isModify === false && data.selectedData.rs_code">{{data.selectedData.rs_code}}</span>
       </td>
@@ -133,10 +133,17 @@
           this.dataGroup.unshift(deepClone(data))
         }
       })
+
+      EventBus.$on('removeModifyView', (index) => {
+        const target = _.filter(this.dataGroup, (item) => {
+          return item.selectedData.index === index
+        })
+        console.log(target)
+        this.dataGroup = _.without(this.dataGroup, target)
+      })
     },
     methods: {
       getSelectedText (selectList, id) {
-        console.log(selectList, id)
         const target = _.find(selectList, (item) => {
           return item.id.toString() === id.toString()
         })
@@ -193,19 +200,17 @@
         }
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
-        console.log(this.estimateAmountCalculation)
-        console.log(data.isAddedBySelf, this.estimateAmountCalculation)
         let apiUrl = `${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`
-
         if (data.isAddedBySelf) {
           return
         } else if (!data.isAddedBySelf && this.estimateAmountCalculation) {
           const param = {
             ct_pk: data.selectedData.ed_ctpk,
             cp_pk: data.selectedData.ed_cppk,
-            rc_pk: data.selectedData.ed_rcpk,
+            rc_pk: data.selectedData.rc_pk,
             rt_pk: data.selectedData.ed_rtpk
           }
+          console.log(data.selectedData)
           apiUrl = `${queryApi}/${id}/estimate/master/row?${utils.getQueryString(param)}`
         }
 

@@ -1,8 +1,8 @@
 <template>
   <tbody class="estimate-modify">
-  <tr v-for="data in dataGroup">
+  <tr v-for="(data, index) in dataGroup">
     <td>
-      <input type="checkbox" class="checkbox" v-model="data.isChecked" @change="updateMasterView(data)"/>
+      <input type="checkbox" class="checkbox" v-model="data.isChecked" @change="updateMasterView(data, index)"/>
     </td>
     <td>
       <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
@@ -142,12 +142,14 @@
             console.log(error)
           })
       },
-      updateMasterView (data) {
+      updateMasterView (data, index) {
         console.log(data.isChecked)
         if (data.isChecked) {
           data.selectedData.ed_resource_amount = data.selectedData.resource_amount
-          data.selectedData.ed_detail_place = data.selectedData.detail_place
+          data.selectedData.index = index
           this.$emit('checked', data)
+        } else {
+          this.$emit('unchecked', index)
         }
       },
       loadData (currentData, data = {}) {

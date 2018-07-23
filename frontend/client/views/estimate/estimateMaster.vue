@@ -91,7 +91,8 @@
             </thead>
             <estimate-master-modify
             :beforeDelete="createDeleteRow"
-            v-on:checked="updateModifyView"/>
+            v-on:checked="updateModifyView"
+            v-on:unchecked="removeModifyView"/>
           </table>
         </div>
       </div>
@@ -123,13 +124,18 @@
     },
     methods: {
       updateModifyView (data) {
+        console.log('updateModifyView')
         console.log(data)
         const _data = deepClone(data)
         const estimateData = this.getEstimateAmount(_data.selectedData)
         EventBus.$emit('updateModifyView', {
           selectedData: estimateData,
-          options: _data.options
+          options: _data.options,
+          isAddedBySelf: _data.isAddedBySelf
         })
+      },
+      removeModifyView (index) {
+        EventBus.$emit('removeModifyView', index)
       },
       getEstimateAmount (estimateData) {
         const func = calculator.func(`f(x) = ${estimateData.ru_calc_expression}`)

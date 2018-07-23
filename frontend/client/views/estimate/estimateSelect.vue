@@ -281,8 +281,9 @@
 
         if (this.isNewTab) {
           this.$emit('registerData', {
-            selectedData: this.selected,
-            options: this.options
+            selectedData: deepClone(this.selected),
+            options: deepClone(this.options),
+            isAddedBySelf: true
           })
         } else {
           this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
@@ -295,8 +296,7 @@
 
               this.$emit('registerData', {
                 selectedData: data,
-                options: this.options,
-                isAddedBySelf: true
+                options: this.options
               })
             }).catch((error) => {
               console.log(error)
