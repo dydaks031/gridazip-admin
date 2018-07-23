@@ -37,7 +37,7 @@ router.post('/pk', (req, res) => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         res.json(resHelper.getError('오류가 발생하였습니다.'));
       })
   });
@@ -119,7 +119,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('진행계약 목록을 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
         )
@@ -139,7 +139,6 @@ router.get('/:pcpk([0-9]+)', (req, res) => {
         pc_deleted: false
       })
       .then(response => {
-        console.log(response);
         if (!response) {
           res.json(resHelper.getError('[0001] 존재하지 않는 고객입니다.'));
         }
@@ -303,11 +302,8 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
       .where('pc_pk', reqPcPk)
       .then(row => {
         const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
-        console.log(smsMsg);
-        console.log(cryptoHelper.decrypt(row.pc_phone));
         smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
           .then(response => {
-            console.log(response);
             res.json(
               resHelper.getJson(response)
             );
@@ -345,7 +341,7 @@ router.get('/:pcpk([0-9]+)/image', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('진행중인 계약의 현장사진을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -378,13 +374,12 @@ router.post('/:pcpk([0-9]+)/image', (req, res) => {
 
     Promise.all(promises)
       .then(response => {
-        console.log(response)
         res.json({
           msg: '등록됨!'
         })
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('진행중인 계약의 현장사진을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -435,7 +430,7 @@ router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -502,7 +497,7 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
               );
             })
             .catch(err => {
-              console.log(err);
+              console.error(err);
               res.json(
                 resHelper.getError('[0001]고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
               );
@@ -511,7 +506,7 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
           return null;
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('[0002]고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
           );
@@ -575,7 +570,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상세견적 목록을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -635,13 +630,11 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             .transacting(trx)
         })
           .then(response => {
-            console.log(response);
             res.json(resHelper.getJson({
               msg: 'ok'
             }));
           })
           .catch(error => {
-            console.error('catch catch');
             console.error(error);
           });
       })
@@ -750,8 +743,8 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
             })
           );
         })
-        .catch(reason => {
-          console.log(reason);
+        .catch(err => {
+          console.error(err);
           res.json(
             resHelper.getError('상세 견적을 추가하는 중 문제가 발생했습니다.')
           );
@@ -856,8 +849,8 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
             })
           );
         })
-        .catch(reason => {
-          console.log(reason);
+        .catch(err => {
+          console.error(err);
           res.json(
             resHelper.getError('상세 견적을 변경하는 중 문제가 발생했습니다.')
           );
@@ -1103,7 +1096,7 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('상세견적서(공간별)를 조회하는 중 오류가 발생하였습니다.')
           );
@@ -1155,7 +1148,7 @@ router.get('/:pcpk([0-9]+)/estimate/labor', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
           );
@@ -1203,7 +1196,7 @@ router.get('/:pcpk([0-9]+)/estimate/resource', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상세견적서(자재)를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1273,14 +1266,14 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
               );
             })
             .catch(err => {
-              console.log(err);
+              console.error(err);
               res.json(
                 resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
               );
             })
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
           );
@@ -1296,7 +1289,6 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
 // view query per tabs :start
 router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
-  console.log('master');
   knexBuilder.getConnection().then(cur => {
     const query = cur.raw(`
       select pl.cp_name as place_name,
@@ -1350,9 +1342,9 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
-          resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
+          resHelper.getError('상세견적서(master)를 조회하는 중 오류가 발생하였습니다.')
         );
       })
   })
@@ -1374,18 +1366,14 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
       .andWhere('es_is_pre', false)
       .orderBy('es_is_pre', 'es_pk')
       .then(response => {
-        console.log(response);
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
         } else {
           arrEsPk = response.filter(obj => obj.es_pk <= reqEsPk).map(obj => `'${obj.es_pk}'`);
         }
-        console.log('@@@@@@@@@111@@@@@@@@@@');
         return arrEsPk;
       })
       .then(arrEsPk => {
-        console.log('@@@@@@@@@222@@@@@@@@@');
-        console.log(arrEsPk);
 
         const query = cur.raw(`
           select rs.rs_pk,
@@ -1399,7 +1387,6 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
            group by ed.ed_rspk, ed.ed_alias
            order by rs.rs_name
         `);
-        console.log(query.toString());
         return query;
       })
       .then(response => {
@@ -1446,7 +1433,6 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
            group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
            order by 1,2,3,4,5,6
           `);
-        console.log(query.toString());
         return query;
 
       })
@@ -1467,7 +1453,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1510,7 +1496,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상세견적서(인건비)를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1549,7 +1535,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/resource', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상세견적서(자재)를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1610,14 +1596,14 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
             );
           })
           .catch(err => {
-            console.log(err);
+            console.error(err);
             res.json(
               resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
             );
           })
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1668,7 +1654,7 @@ router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('해당 진행계약의 기술자 목록을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -1770,7 +1756,7 @@ router.get('/:pcpk([0-9]+)/correspondent', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('해당 진행계약의 거래처 목록을 조회하는 중 오류가 발생하였습니다.')
         );
