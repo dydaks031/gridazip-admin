@@ -1340,7 +1340,7 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
       .then(response => {
         res.json(
           resHelper.getJson({
-            estimateList: response
+            estimateList: response[0]
           })
         );
       })
