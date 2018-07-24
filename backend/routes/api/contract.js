@@ -471,13 +471,13 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
               .transacting(trx)
               .then(response => {
                 obj.es_pk = response[0];
-
-                if (reqEsPk !== '') {
+                console.log(response)
+                if (obj.es_pk !== '') {
                   cur(cur.raw('?? (??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??)',
                     ['estimate_detail_hst', 'ed_espk', 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', 'ed_recency']))
                     .insert(function() {
                       this.from('estimate_detail_hst as ed')
-                        .where('ed.ed_espk', reqEsPk)
+                        .where('ed.ed_espk', obj.es_pk)
                         .select(obj.es_pk, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
                     })
                     .transacting(trx)
@@ -597,6 +597,28 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
 
         reqEstimateList.map(obj => {
           delete obj.rc_pk;
+          delete obj.cp_name;
+          delete obj.cpd_name;
+          delete obj.ct_name;
+          delete obj.place_name;
+          delete obj.rc_name;
+          delete obj.rs_name;
+          delete obj.rt_name;
+          delete obj.ru_name;
+          delete obj.cpd_labor_costs
+          delete obj.cpd_min_amount
+          delete obj.ed_espk
+          delete obj.ed_resource_amount
+          delete obj.index
+          delete obj.labor_costs
+          delete obj.resource_amount
+          delete obj.resource_costs
+          delete obj.rs_code
+          delete obj.rs_price
+          delete obj.rt_extra_labor_costs
+          delete obj.rt_sub
+          delete obj.ru_calc_expression
+
           obj.ed_espk = es_pk;
 
           cur('resource_tbl')

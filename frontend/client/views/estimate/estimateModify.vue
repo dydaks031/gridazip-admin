@@ -60,7 +60,7 @@
         {{addCommas(data.selectedData.resource_costs)}}
       </td>
       <td>
-        <button class="button" @click="changedModifyView(data)">{{data.isModify ? '취소': '수정'}}</button>
+        <button class="button" @click="changedModifyRowView(data)">{{data.isModify ? '취소': '수정'}}</button>
         <button class="button" :class="{hide: data.isModify}" @click="deleteRow(data)">삭제</button>
         <button class="button" :class="{hide: !data.isModify}" @click="updateRow(data)">확인</button>
       </td>
@@ -87,7 +87,7 @@
     },
     props: {
       rowData: {
-        type: Object
+        type: Array
       },
       estimateAmountCalculation: {
         type: Function
@@ -104,7 +104,6 @@
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)
-      console.log(mixin)
       EventBus.$on('updateModifyView', (data) => {
         if (_.isArray(data)) {
           const target = data[0]
@@ -133,13 +132,31 @@
           this.dataGroup.unshift(deepClone(data))
         }
       })
-
       EventBus.$on('removeModifyView', (index) => {
         const target = _.filter(this.dataGroup, (item) => {
           return item.selectedData.index === index
         })
-        console.log(target)
         this.dataGroup = _.without(this.dataGroup, target)
+      })
+      EventBus.$on('updateTab', () => {
+        const id = this.$route.params.id
+        const selectedData = _.pluck(this.dataGroup, 'selectedData')
+        console.log(selectedData)
+        this.$http.post(`${queryApi}/${id}/estimate/tabs`, {
+          es_is_pre: false
+        })
+        .then((response) => {
+          if (response.data.code !== 200) {
+            return false
+          }
+
+          return this.$http.post(`${queryApi}/${id}/estimate/master`, {
+            estimateList: selectedData
+          })
+        })
+        .then((response) => {
+          console.log(response)
+        })
       })
     },
     methods: {
@@ -193,7 +210,7 @@
             })
         }
       },
-      changedModifyView (data) {
+      changedModifyRowView (data) {
         data.isModify = !data.isModify
         if (data.isFirstSelectDataLoaded) {
           return false
@@ -286,6 +303,7 @@
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
       },
+
       /**
        * recursive function
        * @param model model to removed

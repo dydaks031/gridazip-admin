@@ -84,7 +84,6 @@
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)
-      console.log(mixin)
       EventBus.$on('updateMasterModifyView', (data) => {
         if (_.isArray(data)) {
           const target = data[0]
