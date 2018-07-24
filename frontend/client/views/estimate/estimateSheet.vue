@@ -2,6 +2,7 @@
   <div>
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab">복제</a>
       <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab">채택</a>
       <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">
@@ -36,7 +37,7 @@
       </ul>
     </div>
     <div v-if="estimateCurrentTabs.length !== 0">
-      <table class="table position-base-table">
+      <table class="table position-base-table" id="general-table">
         <colgroup>
           <col width="8%" />
           <col width="5%" />
@@ -79,7 +80,7 @@
             <h4 class="title">자재비</h4>
             <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
             <div class="content">
-              <table class="table">
+              <table class="table" id="resource-table">
                 <colgroup>
                   <col width="auto"/>
                 </colgroup>
@@ -113,7 +114,7 @@
             <h4 class="title">인건비</h4>
             <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
             <div class="content">
-              <table class="table">
+              <table class="table" id="labor-table">
                 <colgroup>
                   <col width="auto"/>
                 </colgroup>
@@ -181,6 +182,7 @@
   import EventBus from '../../services/eventBus'
   import deepClone from '../../services/deepClone'
   import _ from 'underscore'
+  import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   const NotificationComponent = Vue.extend(Notification)
@@ -239,6 +241,45 @@
       }
     },
     methods: {
+      excelxport (type, fn) {
+        const generalEl = document.getElementById('general-table')
+        const resourceEl = document.getElementById('resource-table')
+        const laborEl = document.getElementById('labor-table')
+        const exportWb = XLSX.utils.book_new()
+        const generalWs = XLSX.utils.table_to_sheet(generalEl)
+        const resourceWs = XLSX.utils.table_to_sheet(resourceEl)
+        const laborWs = XLSX.utils.table_to_sheet(laborEl)
+
+        generalWs['!cols'] = [
+          {wch: 10},
+          {wch: 6},
+          {wch: 14},
+          {wch: 14},
+          {wch: 16},
+          {wch: 40},
+          {wch: 10},
+          {wch: 10}
+        ]
+        resourceWs['!cols'] = [
+          {wch: 14},
+          {wch: 40},
+          {wch: 4},
+          {wch: 20},
+          {wch: 10},
+          {wch: 10}
+        ]
+        laborWs['!cols'] = [
+          {wch: 8},
+          {wch: 14},
+          {wch: 14},
+          {wch: 14},
+          {wch: 10}
+        ]
+        XLSX.utils.book_append_sheet(exportWb, generalWs, '공간별 견적')
+        XLSX.utils.book_append_sheet(exportWb, resourceWs, '자재비')
+        XLSX.utils.book_append_sheet(exportWb, laborWs, '인건비')
+        return XLSX.writeFile(exportWb, fn || '상세견적서.xlsx')
+      },
       createNewTab () {
         router.push({
           path: `/private/estimate/${this.param.id}/register/tabs`

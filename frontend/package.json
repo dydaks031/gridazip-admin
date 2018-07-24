@@ -39,6 +39,7 @@
     "calculator": "^0.1.12",
     "font-awesome": "4.7.0",
     "form-data": "^2.3.2",
+    "fs": "0.0.1-security",
     "jquery": "^3.3.1",
     "mdi": "^1.8.36",
     "moment": "^2.22.1",
