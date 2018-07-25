@@ -718,27 +718,27 @@
           return false
         }
 
-        this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=${isPre}&es_pk=${esPk}`)
+        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/general?es_is_pre=${isPre}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
             }
             general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=${isPre}&es_pk=${esPk}`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/labor?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=${isPre}&es_pk=${esPk}`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=${isPre}&es_pk=${esPk}`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/total?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {

@@ -11,7 +11,7 @@
         <div class="tile is-child">
           <div class="title-view is-clearfix">
             <h1 class="title is-pulled-left">신규 등록 견적</h1>
-            <button class="button is-pulled-right is-info" @click="updateTab">등록</button>
+            <button class="button is-pulled-right is-info" @click.stop="updateTab">등록</button>
           </div>
           <table class="table">
             <colgroup>
@@ -49,7 +49,9 @@
             </thead>
             <estimate-modify
               :estimate-amount-calculation="getEstimateAmount"
-              :rowData="resultData" />
+              :rowData="resultData"
+              :bus="bus"
+              :updateTab="updateTab" />
           </table>
         </div>
       </div>
@@ -112,7 +114,7 @@
   import EstimateMasterModify from './estimateMasterModify'
   import deepClone from '../../services/deepClone'
   import calculator from 'calculator'
-
+  import Vue from 'vue'
   const queryApi = '/api/contract/'
 
   export default {
@@ -125,7 +127,8 @@
     data () {
       return {
         newInsertData: [],
-        resultData: []
+        resultData: [],
+        bus: new Vue()
       }
     },
     methods: {
@@ -167,7 +170,9 @@
       createDeleteRow () {
       },
       updateTab () {
-        EventBus.$emit('updateTab')
+        this.$nextTick(() => {
+          this.bus.$emit('updateTab')
+        })
       }
     },
     mounted () {

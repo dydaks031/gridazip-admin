@@ -137,6 +137,9 @@
       },
       estimateAmountCalculation: {
         type: Function
+      },
+      bus: {
+        type: Object
       }
     },
     data () {
@@ -192,26 +195,29 @@
           this.originDataGroup = _.without(this.originDataGroup, targetOrigin)
         })
       })
-      EventBus.$on('updateTab', () => {
-        const id = this.$route.params.id
-        const selectedData = _.pluck(this.dataGroup, 'selectedData')
-        console.log(selectedData)
-        this.$http.post(`${queryApi}/${id}/estimate/tabs`, {
-          es_is_pre: false
-        })
-        .then((response) => {
-          if (response.data.code !== 200) {
-            return false
-          }
-
-          return this.$http.post(`${queryApi}/${id}/estimate/master`, {
-            estimateList: selectedData
+      if (this.bus) {
+        this.bus.$on('updateTab', () => {
+          const id = this.$route.params.id
+          console.log(this.dataGroup)
+          console.log(this)
+          const selectedData = _.pluck(this.dataGroup, 'selectedData')
+          this.$http.post(`${queryApi}/${id}/estimate/tabs`, {
+            es_is_pre: false
           })
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return false
+              }
+
+              return this.$http.post(`${queryApi}/${id}/estimate/master`, {
+                estimateList: selectedData
+              })
+            })
+            .then((response) => {
+              console.log(response)
+            })
         })
-        .then((response) => {
-          console.log(response)
-        })
-      })
+      }
     },
     methods: {
       getSelectedText (selectList, id) {
