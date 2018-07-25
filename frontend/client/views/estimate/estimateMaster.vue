@@ -137,7 +137,8 @@
         EventBus.$emit('updateModifyView', {
           selectedData: estimateData,
           options: _data.options,
-          isAddedBySelf: _data.isAddedBySelf
+          isAddedBySelf: _data.isAddedBySelf,
+          isRemoved: _data.isRemoved
         })
       },
       removeModifyView (index) {

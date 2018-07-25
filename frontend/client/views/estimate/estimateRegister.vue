@@ -47,7 +47,7 @@
               <th></th>
             </tr>
             </thead>
-            <estimate-modify :rowData="{}"/>
+            <estimate-modify :rowData="[]"/>
           </table>
         </div>
       </div>

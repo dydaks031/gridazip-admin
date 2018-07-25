@@ -1,6 +1,7 @@
 <template>
   <tbody class="estimate-modify">
-    <tr v-for="data in dataGroup">
+    <template v-for="(data, index) in dataGroup">
+      <tr :class="{'is-removed': data.isRemoved}">
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
         <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" >
@@ -60,11 +61,56 @@
         {{addCommas(data.selectedData.resource_costs)}}
       </td>
       <td>
-        <button class="button" @click="changedModifyRowView(data)">{{data.isModify ? '취소': '수정'}}</button>
-        <button class="button" :class="{hide: data.isModify}" @click="deleteRow(data)">삭제</button>
-        <button class="button" :class="{hide: !data.isModify}" @click="updateRow(data)">확인</button>
+        <button class="button" @click="changedModifyRowView(data)" v-if="!data.isRemoved">{{data.isModify ? '취소': '수정'}}</button>
+        <button class="button" v-if="!data.isModify && data.hasOwnProperty('ed_pk')" @click="deleteRow(data)">삭제</button>
+        <button class="button" v-if="data.isModify && !data.isRemoved" @click="updateRow(data)">확인</button>
+        <button class="button" v-if="data.isRemoved" @click="cancelRemoveRow(data, index)">취소</button>
       </td>
     </tr>
+      <tr class="original-diff" :class="{'is-removed': data.isRemoved}" v-if="estimateAmountCalculation !== undefined && !data.isRemoved">
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionPlace,  originDataGroup[index].selectedData.ed_place_pk) || originDataGroup[index].selectedData.place_name}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_detail_place}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.construction, originDataGroup[index].selectedData.ed_ctpk) || originDataGroup[index].selectedData.ct_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionProcess, originDataGroup[index].selectedData.ed_cppk) || originDataGroup[index].selectedData.cp_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionProcessDetail, originDataGroup[index].selectedData.ed_cpdpk) || originDataGroup[index].selectedData.cpd_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.resourceCategory, originDataGroup[index].selectedData.rc_pk) || originDataGroup[index].selectedData.rc_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.resourceType, originDataGroup[index].selectedData.ed_rtpk) || originDataGroup[index].selectedData.rt_name}}</span>
+        </td>
+        <td class="resource-view">
+          <span>{{getSelectedText(originDataGroup[index].options.resource, originDataGroup[index].selectedData.ed_rspk) || originDataGroup[index].selectedData.rs_name}}</span>
+          <span class="resource-code" v-show="data.isModify === false && originDataGroup[index].selectedData.rs_code">{{originDataGroup[index].selectedData.rs_code}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_alias || '-'}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_input_value}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_resource_amount}}</span>
+        </td>
+        <td>
+          {{addCommas(originDataGroup[index].selectedData.labor_costs)}}
+        </td>
+        <td>
+          {{addCommas(originDataGroup[index].selectedData.resource_costs)}}
+        </td>
+        <td></td>
+      </tr>
+    </template>
   </tbody>
 </template>
 
@@ -96,6 +142,7 @@
     data () {
       return {
         dataGroup: [],
+        originDataGroup: [],
         options: {
 
         },
@@ -130,13 +177,20 @@
         } else {
           data.isModify = false
           this.dataGroup.unshift(deepClone(data))
+          this.originDataGroup.unshift(deepClone(data))
         }
       })
       EventBus.$on('removeModifyView', (index) => {
         const target = _.filter(this.dataGroup, (item) => {
           return item.selectedData.index === index
         })
-        this.dataGroup = _.without(this.dataGroup, target)
+        target.forEach((item) => {
+          this.dataGroup = _.without(this.dataGroup, item)
+          const targetOrigin = _.find(this.originDataGroup, (origin) => {
+            return origin.selectedData.index === item.selectedData.index
+          })
+          this.originDataGroup = _.without(this.originDataGroup, targetOrigin)
+        })
       })
       EventBus.$on('updateTab', () => {
         const id = this.$route.params.id
@@ -171,11 +225,15 @@
           return ''
         }
       },
-      deleteRow (data) {
+      deleteRow (data, index) {
         console.log(data)
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
+        if (!sendData.ed_pk) {
+          this.dataGroup = _.without(this.dataGroup, data)
+          return
+        }
         this.$http.delete(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
         .then((response) => {
           if (response.data.code !== 200) {
@@ -274,6 +332,12 @@
           }
         })
         return convertData
+      },
+      cancelRemoveRow (data, index) {
+        console.log(data)
+        data.isRemoved = false
+        this.dataGroup = _.without(this.dataGroup, data)
+        EventBus.$emit('cancelDeleteMasterModifyView', data)
       },
       getType (id) {
         const metaData = this.metaData
@@ -409,5 +473,19 @@
 <style lang="scss" scoped>
   .hide {
     display:none
+  }
+  .is-removed {
+    > td {
+      background-color: #dfdfdf;
+    }
+  }
+  .original-diff {
+    font-size: 0.9rem;
+
+    td {
+      background: #f0f0f0;
+      opacity: 0.8;
+      padding-left: 0.85rem;
+    }
   }
 </style>
