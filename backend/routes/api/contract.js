@@ -586,78 +586,79 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
     let es_version;
 
     cur('estimate_tbl')
-      .max({es_pk: 'es_pk'})
-      .first('es_version')
+      .max('es_version as version')
       .where('es_pcpk', reqPcPk)
-      .groupBy('es_pcpk')
-      .then(row => {
-        es_pk = row.es_pk;
-        es_version = row.es_version;
-
-        reqEstimateList.map(obj => {
-          delete obj.rc_pk;
-          delete obj.cp_name;
-          delete obj.cpd_name;
-          delete obj.ct_name;
-          delete obj.place_name;
-          delete obj.rc_name;
-          delete obj.rs_name;
-          delete obj.rt_name;
-          delete obj.ru_name;
-          delete obj.cpd_labor_costs;
-          delete obj.cpd_min_amount;
-          delete obj.ed_espk;
-          delete obj.ed_resource_amount;
-          delete obj.index;
-          delete obj.labor_costs;
-          delete obj.resource_amount;
-          delete obj.resource_costs;
-          delete obj.rs_code;
-          delete obj.rs_price;
-          delete obj.rt_extra_labor_costs;
-          delete obj.rt_sub;
-          delete obj.ru_calc_expression;
-
-          obj.ed_espk = es_pk;
-
-          cur('resource_tbl')
-            .first('rs_rupk', 'rs_price')
-            .where({
-              rs_pk: obj.ed_rspk
-            })
-            .then(row => {
-
-              return cur('resource_unit_tbl')
-                .first('ru_name', 'ru_calc_expression')
-                .where({
-                  ru_pk: row.rs_rupk
-                })
-            })
-            .then(row => {
-              let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
-              let resourceAmount = fn(obj.ed_input_value);
-              obj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
-              obj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
-              obj.ed_recency = cur.raw('UNIX_TIMESTAMP() * -1');
-            })
-        });
-
-        return reqEstimateList;
-
-      })
-      .then(list => {
+      .andWhere('es_is_pre', false)
+      .then(response => {
+        es_version = response[0].version + 1;
         cur.transaction(function(trx) {
-          return cur.batchInsert('estimate_detail_hst', list, 50)
+
+          cur('estimate_tbl')
+            .insert({
+              es_pcpk: reqPcPk,
+              es_version
+            })
             .transacting(trx)
+            .then(response => {
+              const insertList = [];
+              es_pk = response[0];
+
+              reqEstimateList.map(obj => {
+                let o = {};
+                o.ed_espk = es_pk;
+                o.ed_place_pk = obj.ed_place_pk;
+                o.ed_detail_place = obj.ed_detail_place;
+                o.ed_ctpk = obj.ed_ctpk;
+                o.ed_cppk = obj.ed_cppk;
+                o.ed_cpdpk = obj.ed_cpdpk;
+                o.ed_rtpk = obj.ed_rtpk;
+                o.ed_rspk = obj.ed_rspk;
+                o.ed_input_value = obj.ed_input_value;
+                o.ed_resource_amount = obj.ed_resource_amount;
+                o.ed_calculated_amount = obj.ed_calculated_amount;
+                o.ed_alias = obj.ed_alias;
+                o.ed_recency = cur.raw('UNIX_TIMESTAMP() * -1');
+
+                cur('resource_tbl')
+                  .first('rs_rupk', 'rs_price')
+                  .where({
+                    rs_pk: obj.ed_rspk
+                  })
+                  .then(row => {
+
+                    return cur('resource_unit_tbl')
+                      .first('ru_name', 'ru_calc_expression')
+                      .where({
+                        ru_pk: row.rs_rupk
+                      })
+                  })
+                  .then(row => {
+                    let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
+                    let resourceAmount = fn(obj.ed_input_value);
+                    o.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
+                    o.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
+                    insertList.push(o);
+                  })
+              });
+
+              return insertList;
+            })
+            .then(list => {
+              cur.batchInsert('estimate_detail_hst', list, 50)
+                .transacting(trx)
+            })
+            .then(trx.commit)
+            .catch(trx.rollback)
         })
-          .then(response => {
+          .then(() => {
             res.json(resHelper.getJson({
               msg: 'ok'
             }));
           })
-          .catch(error => {
-            console.error(error);
-          });
+          .catch(err => {
+            console.error(err);
+            res.json(resHelper.getError('[0001] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
+          })
       })
   })
 
