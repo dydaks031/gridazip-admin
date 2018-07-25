@@ -617,6 +617,7 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
           delete obj.rt_extra_labor_costs;
           delete obj.rt_sub;
           delete obj.ru_calc_expression;
+          delete obj.cpd_unit;
 
           obj.ed_espk = es_pk;
 

@@ -140,13 +140,15 @@
         this.$forceUpdate()
         const _data = deepClone(data)
         _data.selectedData.ed_input_value = -(Math.abs(_data.selectedData.ed_input_value))
-
+        _data.selectedData.ed_resource_amount = -(Math.abs(parseInt(_data.selectedData.resource_amount, 10)))
+        _data.selectedData.ed_calculated_amount = -(Math.abs(parseInt(_data.selectedData.resource_amount, 10)))
         this.$emit('checked', _data)
       },
       updateMasterView (data, index) {
         console.log(data.isChecked)
         if (data.isChecked) {
           data.selectedData.ed_resource_amount = data.selectedData.resource_amount
+          data.selectedData.ed_calculated_amount = data.selectedData.resource_amount
           data.selectedData.index = index
           this.$emit('checked', data)
         } else {
