@@ -165,20 +165,36 @@
             <div class="level-left">
               <h3 class="subtitle">총 견적금액</h3>
             </div>
-            <div class="level-right">
-              <div class="level-item mr-15">
-                <p>자재비</p>
-                <p>인건비</p>
-                <p>설계비 및 감리비</p>
-                <p>공과잡비</p>
-                <p v-if="viewerData.total.discount_amount">할인금액</p>
+            <div class="level-right flex-direction-column">
+              <div class="level-right">
+                <div class="level-item mr-15">
+                  <p>자재비</p>
+                  <p>인건비</p>
+                </div>
+                <div class="level-item flex-item-right">
+                  <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
+                  <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
+                </div>
               </div>
-              <div class="level-item flex-item-right">
-                <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
-                <p class="discount-amount" v-if="viewerData.total.discount_amount">-{{addCommas(viewerData.total.discount_amount)}}원</p>
+              <hr />
+              <div class="level-right">
+                <div class="level-item mr-15">
+                  <p>설계비 및 감리비</p>
+                  <p>공과잡비</p>
+                </div>
+                <div class="level-item flex-item-right">
+                  <p>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</p>
+                  <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
+                </div>
+              </div>
+              <hr />
+              <div class="level-right" v-if="viewerData.total.discount_amount">
+                <div class="level-item mr-15">
+                  <p class="discount-amount">D.C</p>
+                </div>
+                <div class="level-item flex-item-right">
+                  <p class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</p>
+                </div>
               </div>
             </div>
           </nav>
@@ -189,7 +205,7 @@
             </div>
             <div class="level-right flex-center-text">
               <div class="level-item summary">
-                <p>{{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</p>
+                <p>{{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}<span class="unit">원</span></p>
               </div>
             </div>
           </nav>
@@ -327,7 +343,7 @@
             cp_pk: '999',
             cpd_min_amount: '',
             cpd_name: '',
-            ct_name: '소계',
+            ct_name: '',
             ct_pk: '999',
             ed_alias: '',
             ed_input_value: '',
@@ -438,7 +454,7 @@
           const resourceCategoryItem = resourceCategoryByData[i]
           resourceCategoryByData[i].push({
             ed_alias: '',
-            rc_name: '소계',
+            rc_name: '',
             resource_amount: '',
             rc_pk: resourceCategoryItem[0].rc_pk,
             resource_costs: _.reduce(resourceCategoryItem, (memo, obj) => {
@@ -505,7 +521,7 @@
             ct_pk: constructionByData[i][0].ct_pk,
             cp_pk: '999',
             cpd_pk: '999',
-            cp_name: '소계',
+            cp_name: '',
             cpd_min_amount: '',
             cpd_name: '',
             ct_name: '',
