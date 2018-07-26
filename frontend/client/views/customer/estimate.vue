@@ -187,7 +187,7 @@
                   <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
                 </div>
               </div>
-              <hr />
+              <hr v-if="viewerData.total.discount_amount" />
               <div class="level-right" v-if="viewerData.total.discount_amount">
                 <div class="level-item mr-15">
                   <p class="discount-amount">D.C</p>
