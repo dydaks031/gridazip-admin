@@ -70,16 +70,16 @@
             </tr>
             </thead>
             <tbody>
-            <tr :class="{'is-summary': generalData.is_summary}" v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
-              <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-              <td class="is-hidden-mobile"v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-              <td class="is-hidden-mobile" v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-              <td>{{generalData.cpd_name}}</td>
-              <td class="is-hidden-mobile">{{generalData.detail_place}}</td>
-              <td class="is-hidden-mobile">{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-              <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
-              <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
-            </tr>
+              <tr :class="{'is-summary': generalData.is_summary}" v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
+                <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
+                <td class="is-hidden-mobile"v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+                <td class="is-hidden-mobile" v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+                <td>{{generalData.cpd_name}}</td>
+                <td class="is-hidden-mobile">{{generalData.detail_place}}</td>
+                <td class="is-hidden-mobile">{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+                <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
+                <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
+              </tr>
             </tbody>
           </table>
           <div class="more-data" @click="toggleMoreData('general')">

@@ -478,6 +478,11 @@
   }
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+  .tile.is-parent {
+    width: 100%;
+    .is-child {
+      width: 100%;
+    }
+  }
 </style>
