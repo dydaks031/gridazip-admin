@@ -600,7 +600,7 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             })
             .transacting(trx)
             .then(response => {
-              const insertList = [];
+              const queries = [];
               es_pk = response[0];
 
               reqEstimateList.map(obj => {
@@ -614,51 +614,66 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
                 o.ed_rtpk = obj.ed_rtpk;
                 o.ed_rspk = obj.ed_rspk;
                 o.ed_input_value = obj.ed_input_value;
-                o.ed_resource_amount = obj.ed_resource_amount;
-                o.ed_calculated_amount = obj.ed_calculated_amount;
                 o.ed_alias = obj.ed_alias;
                 o.ed_recency = cur.raw('UNIX_TIMESTAMP() * -1');
+                queries.push(
+                  cur('resource_tbl')
+                    .first('rs_rupk', 'rs_price')
+                    .where({
+                      rs_pk: obj.ed_rspk
+                    })
+                    .then(row => {
 
-                cur('resource_tbl')
-                  .first('rs_rupk', 'rs_price')
-                  .where({
-                    rs_pk: obj.ed_rspk
-                  })
-                  .then(row => {
+                      return cur('resource_unit_tbl')
+                        .first('ru_name', 'ru_calc_expression')
+                        .where({
+                          ru_pk: row.rs_rupk
+                        })
+                    })
+                    .then(row => {
+                      let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
+                      let resourceAmount = fn(obj.ed_input_value);
 
-                    return cur('resource_unit_tbl')
-                      .first('ru_name', 'ru_calc_expression')
-                      .where({
-                        ru_pk: row.rs_rupk
-                      })
-                  })
-                  .then(row => {
-                    let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
-                    let resourceAmount = fn(obj.ed_input_value);
-                    o.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
-                    o.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
-                    insertList.push(o);
-                  })
+                      if (resourceAmount !== obj.ed_calculated_amount) {
+                        throw Error('[1001]부적절한 데이터입니다. 다시 시도해주세요.')
+                      } else {
+                        o.ed_calculated_amount = obj.ed_calculated_amount;
+                        o.ed_resource_amount = obj.ed_resource_amount;
+                      }
+                      return o;
+                    })
+                    .then(obj => {
+                      return cur('estimate_detail_hst')
+                        .insert(obj)
+                        .transacting(trx)
+                    })
+                    .catch(err => {
+                      console.error(err);
+                    })
+                );
               });
 
-              return insertList;
+              return Promise.all(queries)
+                .then(trx.commit)
+                .catch(trx.rollback);
             })
-            .then(list => {
-              cur.batchInsert('estimate_detail_hst', list, 50)
-                .transacting(trx)
-            })
-            .then(trx.commit)
             .catch(trx.rollback)
         })
           .then(() => {
             res.json(resHelper.getJson({
-              msg: 'ok'
+              es_pk
             }));
           })
           .catch(err => {
             console.error(err);
             res.json(resHelper.getError('[0001] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
-          })
+          });
+
+        return null;
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(resHelper.getError('[0002] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
       })
   })
 
