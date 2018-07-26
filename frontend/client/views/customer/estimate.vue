@@ -190,7 +190,7 @@
               <hr />
               <div class="level-right" v-if="viewerData.total.discount_amount">
                 <div class="level-item mr-15">
-                  <p v-if="">D.C</p>
+                  <p class="discount-amount">D.C</p>
                 </div>
                 <div class="level-item flex-item-right">
                   <p class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</p>
