@@ -198,24 +198,17 @@
       if (this.bus) {
         this.bus.$on('updateTab', () => {
           const id = this.$route.params.id
-          console.log(this.dataGroup)
-          console.log(this)
           const selectedData = _.pluck(this.dataGroup, 'selectedData')
-          this.$http.post(`${queryApi}/${id}/estimate/tabs`, {
-            es_is_pre: false
-          })
-            .then((response) => {
-              if (response.data.code !== 200) {
-                return false
-              }
 
-              return this.$http.post(`${queryApi}/${id}/estimate/master`, {
-                estimateList: selectedData
-              })
-            })
-            .then((response) => {
-              console.log(response)
-            })
+          this.$http.post(`${queryApi}/${id}/estimate/master`, {
+            estimateList: selectedData
+          })
+          .then((response) => {
+            console.log(response)
+          })
+          .catch((e) => {
+            console.error(e)
+          })
         })
       }
     },
@@ -231,8 +224,7 @@
           return ''
         }
       },
-      deleteRow (data, index) {
-        console.log(data)
+      deleteRow (data) {
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
@@ -251,7 +243,6 @@
         })
       },
       updateRow (data) {
-        console.log(data)
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
@@ -264,7 +255,6 @@
               if (response.data.code !== 200) {
                 return
               }
-              console.log(response.data.data)
               data.isModify = false
               data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
               data.selectedData.labor_costs = response.data.data.data.labor_costs
@@ -291,7 +281,6 @@
             rc_pk: data.selectedData.rc_pk,
             rt_pk: data.selectedData.ed_rtpk
           }
-          console.log(data.selectedData)
           apiUrl = `${queryApi}/${id}/estimate/master/row?${utils.getQueryString(param)}`
         }
 
@@ -300,7 +289,6 @@
             if (response.data.code !== 200) {
               return
             }
-            console.log(response.data.data)
             const selectBoxData = response.data.data
             for (const key in selectBoxData) {
               if (selectBoxData.hasOwnProperty(key)) {
@@ -340,7 +328,6 @@
         return convertData
       },
       cancelRemoveRow (data, index) {
-        console.log(data)
         data.isRemoved = false
         this.dataGroup = _.without(this.dataGroup, data)
         EventBus.$emit('cancelDeleteMasterModifyView', data)
