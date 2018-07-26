@@ -647,9 +647,6 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
                         .insert(obj)
                         .transacting(trx)
                     })
-                    .catch(err => {
-                      console.error(err);
-                    })
                 );
               });
 
@@ -665,7 +662,6 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             }));
           })
           .catch(err => {
-            console.error(err);
             res.json(resHelper.getError('[0001] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
           });
 
