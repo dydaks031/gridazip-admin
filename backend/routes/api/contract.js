@@ -379,9 +379,11 @@ router.post('/:pcpk([0-9]+)/image', (req, res) => {
     Promise.all(promises)
       .then(response => {
         console.log(response)
-        res.json({
-          msg: '등록됨!'
-        })
+        res.json(
+          resHelper.getJson({
+            msg: '정상적으로 등록되었습니다.'
+          })
+        )
       })
       .catch(err => {
         console.log(err);
