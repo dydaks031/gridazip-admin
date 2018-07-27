@@ -107,22 +107,11 @@
               })
               return false
             }
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              openNotification({
-                message: '계약 등록에 실패하였습니다. 관리자에게 문의 바랍니다.',
-                type: 'danger',
-                duration: 1500
-              })
-              return false
-            }
             openNotification({
               message: '등록되었습니다.',
               type: 'success',
               duration: 1500
             })
-            console.log(response)
             router.back()
           })
           .catch((error) => {

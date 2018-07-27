@@ -3,8 +3,8 @@
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
-      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab">복제</a>
-      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab">채택</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre">복제</a>
+      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre">채택</a>
       <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">
         <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
           등록
@@ -309,11 +309,11 @@
           es_is_pre: false,
           es_pk: this.selectedTab
         })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-          })
+        .then((response) => {
+          if (response.data.code !== 200) {
+            return false
+          }
+        })
       },
       moveToRegister () {
         if (this.estimateCurrentTabs.length === 0) {
@@ -774,10 +774,7 @@
               return false
             }
             this.estimateCurrentTabs = response.data.data.tabs
-            if (!this.selectedTab && this.estimateIsPre) {
-              if (!this.estimateCurrentTabs[0]) {
-                router.back()
-              }
+            if (this.estimateCurrentTabs.length > 0) {
               this.selectedTab = this.estimateCurrentTabs[0].es_pk
             }
           })
