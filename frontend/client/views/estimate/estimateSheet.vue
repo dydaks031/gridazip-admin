@@ -162,7 +162,7 @@
                   <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
                 </p>
                 <p class="has-text-right">
-                  <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
+                  <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}원</span>
                 </p>
               </div>
             </div>

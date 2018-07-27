@@ -150,6 +150,7 @@
       getEstimateAmount (estimateData) {
         const func = calculator.func(`f(x) = ${estimateData.ru_calc_expression}`)
         estimateData.ed_resource_amount = parseFloat(func(estimateData.ed_input_value)).toFixed(2)
+        estimateData.ed_calculated_amount = parseFloat(func(estimateData.ed_input_value)).toFixed(2)
         estimateData.resource_costs = estimateData.rs_price * estimateData.ed_resource_amount
         estimateData.labor_costs = estimateData.ed_input_value * (estimateData.cpd_labor_costs + estimateData.rt_extra_labor_costs)
         return estimateData

@@ -198,7 +198,7 @@
       if (this.bus) {
         this.bus.$on('updateTab', () => {
           const id = this.$route.params.id
-          const selectedData = _.pluck(this.dataGroup, 'selectedData')
+          const selectedData = this.getNewTabDataByDiffOriginData()
 
           this.$http.post(`${queryApi}/${id}/estimate/master`, {
             estimateList: selectedData
@@ -360,7 +360,42 @@
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
       },
-
+      getNewTabDataByDiffOriginData () {
+        const selectedData = deepClone(_.pluck(this.dataGroup, 'selectedData'))
+        const originData = deepClone(_.pluck(this.originDataGroup, 'selectedData'))
+        const sendData = []
+        _.forEach(selectedData, (item) => {
+          let targetOriginData = _.find(originData, (origin) => {
+            return parseInt(item.ed_place_pk, 10) === parseInt(origin.ed_place_pk, 10) &&
+              item.ed_detail_place === origin.ed_detail_place &&
+              parseInt(item.ed_ctpk, 10) === parseInt(origin.ed_ctpk, 10) &&
+              parseInt(item.ed_cppk, 10) === parseInt(origin.ed_cppk, 10) &&
+              parseInt(item.ed_cpdpk, 10) === parseInt(origin.ed_cpdpk, 10) &&
+              parseInt(item.rc_pk, 10) === parseInt(origin.rc_pk, 10) &&
+              parseInt(item.ed_rtpk, 10) === parseInt(origin.ed_rtpk, 10) &&
+              parseInt(item.ed_rspk, 10) === parseInt(origin.ed_rspk, 10)
+          })
+          if (targetOriginData) {
+            item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
+            // item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
+            // item.ed_calculated_amount = (item.ed_calculated_amount - targetOriginData.ed_calculated_amount).toFixed(2)
+            // item.labor_costs = (item.labor_costs - targetOriginData.labor_costs).toFixed()
+            // item.resource_costs = (item.resource_costs - targetOriginData.resource_costs).toFixed()
+            const _item = this.estimateAmountCalculation(item)
+            sendData.push(_item)
+          } else {
+            targetOriginData = _.find(originData, (origin) => {
+              return origin.index === item.index
+            })
+            targetOriginData.ed_input_value = -Math.abs(targetOriginData.ed_input_value)
+            targetOriginData = this.estimateAmountCalculation(targetOriginData)
+            sendData.push(targetOriginData)
+            sendData.push(item)
+          }
+        })
+        console.log(sendData)
+        return sendData
+      },
       /**
        * recursive function
        * @param model model to removed

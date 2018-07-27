@@ -632,9 +632,9 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
                     })
                     .then(row => {
                       let fn = calc.func(`f(x) = ${row.ru_calc_expression}`);
-                      let resourceAmount = fn(obj.ed_input_value);
-
-                      if (resourceAmount !== obj.ed_calculated_amount) {
+                      let resourceAmount = fn(obj.ed_input_value)
+                      console.log(resourceAmount, obj.ed_calculated_amount)
+                      if (resourceAmount.toFixed(2).toString() !== obj.ed_calculated_amount.toString()) {
                         throw Error('[1001]부적절한 데이터입니다. 다시 시도해주세요.')
                       } else {
                         o.ed_calculated_amount = obj.ed_calculated_amount;
@@ -662,6 +662,7 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             }));
           })
           .catch(err => {
+            console.log(err)
             res.json(resHelper.getError('[0001] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
           });
 
@@ -1621,8 +1622,11 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
       .then(arrEsPk => {
         return cur.raw(`
           select ct.ct_name,
+                 ct.ct_pk,
                  cp.cp_name,
+                 cp.cp_pk,
                  cpd.cpd_name,
+                 cpd.cpd_pk,
                  rt.rt_name,
                  rt.rt_sub,
                  rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
