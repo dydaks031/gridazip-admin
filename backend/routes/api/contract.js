@@ -657,7 +657,7 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             }));
           })
           .catch(err => {
-            console.log(err)
+            console.error(err);
             res.json(resHelper.getError('[0001] 상세견적서 신규 탭을 추가하는 중 오류가 발생하였습니다.'));
           });
 
@@ -1602,7 +1602,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
           if (labor.ceil_labor_costs !== labor.labor_costs) return true;
         }).map(labor => {
           labor.plus_value = Math.ceil((labor.ceil_labor_costs - labor.labor_costs) / labor.count);
-          console.log(`${labor.ceil_labor_costs} - ${labor.labor_costs} = ${labor.ceil_labor_costs - labor.labor_costs}  /  ${labor.count}  =  ${labor.plus_value}`);
+          // console.log(`${labor.ceil_labor_costs} - ${labor.labor_costs} = ${labor.ceil_labor_costs - labor.labor_costs}  /  ${labor.count}  =  ${labor.plus_value}`);
           return labor;
         });
 
@@ -1650,6 +1650,12 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
       .map(row => {
         resourceList.forEach(resource => {
           if (resource.rs_pk === row.rs_pk) row.resource_costs += resource.plus_value;
+        });
+        laborList.forEach(labor => {
+          // console.log(`cpd_pk : (${typeof labor.cpd_pk})[${labor.cpd_pk}] (${typeof row.cpd_pk})[${row.cpd_pk}]  /  rt_pk : (${typeof labor.rt_pk})[${labor.rt_pk}] (${typeof row.rt_pk})[${row.rt_pk}]  /  ed_alias : (${typeof labor.ed_alias})[${labor.ed_alias}] (${typeof row.ed_alias})[${row.ed_alias}]  /  ed_detail_place : (${typeof labor.ed_detail_place})[${labor.ed_detail_place}] (${typeof row.detail_place})[${row.detail_place}]`);
+          if (labor.cpd_pk === row.cpd_pk && labor.rt_pk === row.rt_pk && labor.ed_alias === row.ed_alias && labor.ed_detail_place === row.detail_place) {
+            row.labor_costs += labor.plus_value;
+          }
         });
         return row;
       })
