@@ -6,7 +6,8 @@
       <a class="button is-info is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
-    <table class="table position-base-table">
+    <div class="table-wrapper">
+      <table class="table position-base-table">
       <colgroup>
         <col width="8%" />
         <col width="5%" />
@@ -43,13 +44,15 @@
         </tr>
       </tbody>
     </table>
+    </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent is-6">
         <article class="tile is-child box">
           <h4 class="title">자재비</h4>
           <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
           <div class="content">
-            <table class="table">
+            <div class="table-wrapper">
+              <table class="table">
               <colgroup>
                 <col width="auto"/>
               </colgroup>
@@ -74,6 +77,7 @@
               </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </article>
       </div>
@@ -83,7 +87,8 @@
           <h4 class="title">인건비</h4>
           <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
           <div class="content">
-            <table class="table">
+            <div class="table-wrapper">
+              <table class="table">
               <colgroup>
                 <col width="auto"/>
               </colgroup>
@@ -106,6 +111,7 @@
               </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </article>
       </div>
@@ -617,6 +623,11 @@
     padding: 1rem;
     margin: 1rem 0 0.5rem 0;
   }
+  .table-wrapper {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    width: 100%;
+  }
   .position-base-table {
     margin: 1rem 0 3rem 0
   }
@@ -640,6 +651,11 @@
   .table th {
     &.has-text-right {
       text-align: right;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .position-base-table {
+      width: 250%;
     }
   }
 </style>
