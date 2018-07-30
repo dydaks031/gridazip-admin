@@ -5,7 +5,7 @@
       <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre">복제</a>
       <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre">채택</a>
-      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">
+      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && (estimateIsPre || estimateCurrentTabs.length !== 0)">
         <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
           등록
         </span>
