@@ -790,9 +790,9 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
   const reqCpdPk = req.body.ed_cpdpk || '';
   const reqRtPk = req.body.ed_rtpk || '';
   const reqRsPk = req.body.ed_rspk || '';
-  const reqInputValue = req.body.ed_input_value || '';
+  const reqInputValue = req.body.ed_input_value || 0;
   const reqDetailPlace = req.body.ed_detail_place || '';
-  const reqResourceAmount = req.body.ed_resource_amount || '';
+  const reqResourceAmount = req.body.ed_resource_amount || 0;
   const cf = 1000;
 
   if (reqPlacePk === '' || reqCtPk === '' || reqCpPk === '' || reqCpdPk === '' || reqRtPk === '' || reqRsPk === '') {
