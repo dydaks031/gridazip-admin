@@ -376,11 +376,12 @@
               parseInt(item.ed_rspk, 10) === parseInt(origin.ed_rspk, 10)
           })
           if (targetOriginData) {
+            const currentInputValueToFixed = parseFloat(item.ed_input_value).toFixed(2)
+            const originInputValueToFixed = parseFloat(targetOriginData.ed_input_value).toFixed(2)
+            if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
+              item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
+            }
             item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
-            // item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
-            // item.ed_calculated_amount = (item.ed_calculated_amount - targetOriginData.ed_calculated_amount).toFixed(2)
-            // item.labor_costs = (item.labor_costs - targetOriginData.labor_costs).toFixed()
-            // item.resource_costs = (item.resource_costs - targetOriginData.resource_costs).toFixed()
             const _item = this.estimateAmountCalculation(item)
             sendData.push(_item)
           } else {
