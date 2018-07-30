@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="estimate-detail">
     <div class="tabs is-boxed">
       <ul>
         <li @click="activeView(tabType.info)" :class="{'is-active': currentTab === tabType.info}"><a>정보</a></li>
@@ -530,6 +530,21 @@
   }
 </script>
 
-<style scoped>
-
+<style lang="scss">
+  @media screen and (max-width: 768px) {
+    html {
+      font-size: 12px;
+    }
+    .app-content {
+      padding: 20px 0;
+    }
+    .estimate-detail {
+      .tile {
+        padding: 0.25rem;
+        > div {
+          padding: 0.5rem;
+        }
+      }
+    }
+  }
 </style>
