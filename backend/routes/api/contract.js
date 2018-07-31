@@ -1764,6 +1764,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/resource', (req, res) => {
           select rs.rs_name,
                  rs.rs_code,
                  rs.rs_price,
+                 rc.rc_pk,
                  rc.rc_name,
                  ceil(sum(ed.ed_resource_amount)) as resource_amount,
                  ru.ru_name,
