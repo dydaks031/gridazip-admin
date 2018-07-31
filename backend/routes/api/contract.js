@@ -1490,15 +1490,15 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
              rs.rs_pk as ed_rspk,
              rs.rs_code,
              ed.ed_alias,
-             ed.ed_resource_amount resource_amount,
+             sum(ed.ed_resource_amount) resource_amount,
              ru.ru_name,
              ru.ru_calc_expression,
              rs.rs_price,
-             ed.ed_resource_amount * rs.rs_price resource_costs,
-             ed.ed_input_value,
+             sum(ed.ed_resource_amount * rs.rs_price) resource_costs,
+             sum(ed.ed_input_value) ed_input_value,
              ed.ed_alias,
              cpd.cpd_min_amount,
-             ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs) labor_costs
+             sum(ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)) labor_costs
       
         from estimate_detail_hst ed
        inner join estimate_tbl es on ed.ed_espk = es.es_pk
