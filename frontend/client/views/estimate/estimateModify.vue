@@ -51,8 +51,9 @@
         <input type="text" placeholder="입력값 입력" class="input" v-model="data.selectedData.ed_input_value" v-show="data.isModify === true" />
       </td>
       <td>
-        <span v-show="data.isModify === false">{{data.selectedData.ed_resource_amount}}</span>
-        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"  v-show="data.isModify === true" />
+        {{data.selectedData.ed_resource_amount}}
+        <!--<span v-show="data.isModify === false"></span>-->
+        <!--<input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"  v-show="data.isModify === true" />-->
       </td>
       <td>
         {{addCommas(data.selectedData.labor_costs)}}

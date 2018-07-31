@@ -775,7 +775,11 @@
             }
             this.estimateCurrentTabs = response.data.data.tabs
             if (this.estimateCurrentTabs.length > 0) {
-              this.selectedTab = this.estimateCurrentTabs[0].es_pk
+              if (this.estimateIsPre) {
+                this.selectedTab = this.estimateCurrentTabs[0].es_pk
+              } else {
+                this.selectedTab = ''
+              }
             }
           })
       }
