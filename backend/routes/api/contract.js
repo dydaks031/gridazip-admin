@@ -1201,7 +1201,7 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
             if (labor.ceil_labor_costs !== labor.labor_costs) return true;
           }).map(labor => {
             labor.plus_value = Math.ceil((labor.ceil_labor_costs - labor.labor_costs) / labor.count);
-            // console.log(`${labor.ceil_labor_costs - labor.labor_costs}  /  ${labor.count}  =  ${labor.plus_value}`);
+            // console.log(`${labor.ceil_labor_costs} - ${labor.labor_costs} = ${labor.ceil_labor_costs - labor.labor_costs}  /  ${labor.count}  =  ${labor.plus_value}`);
             return labor;
           });
 
@@ -1224,9 +1224,11 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
                  ed.ed_alias,
                  sum(ed.ed_resource_amount) resource_amount,
                  ru.ru_name,
+                 ru.ru_calc_expression,
                  rs.rs_price,
                  sum(ed.ed_resource_amount * rs.rs_price) resource_costs,
                  sum(ed.ed_input_value) ed_input_value,
+                 ed.ed_alias,
                  cpd.cpd_min_amount,
                  sum(ed.ed_input_value * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)) labor_costs
           
@@ -1251,11 +1253,15 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
         })
         .map(row => {
           resourceList.forEach(resource => {
-            if (resource.rs_pk === row.rs_pk && resource.ed_alias === row.ed_alias && resource.ed_detail_place === row.detail_place) row.resource_costs += resource.plus_value;
+            if (resource.rs_pk === row.rs_pk && resource.ed_alias === row.ed_alias && resource.ed_detail_place === row.detail_place) {
+              // console.log(`${resource.rs_pk} ${row.rs_pk}  |  ${resource.ed_alias} ${row.ed_alias}  |  ${resource.ed_detail_place} ${row.detail_place}`);
+              row.resource_costs += resource.plus_value;
+            }
           });
           laborList.forEach(labor => {
             // console.log(`cpd_pk : (${typeof labor.cpd_pk})[${labor.cpd_pk}] (${typeof row.cpd_pk})[${row.cpd_pk}]  /  rt_pk : (${typeof labor.rt_pk})[${labor.rt_pk}] (${typeof row.rt_pk})[${row.rt_pk}]  /  ed_alias : (${typeof labor.ed_alias})[${labor.ed_alias}] (${typeof row.ed_alias})[${row.ed_alias}]  /  ed_detail_place : (${typeof labor.ed_detail_place})[${labor.ed_detail_place}] (${typeof row.detail_place})[${row.detail_place}]`);
             if (labor.cpd_pk === row.cpd_pk && labor.rt_pk === row.rt_pk && labor.ed_alias === row.ed_alias && labor.ed_detail_place === row.detail_place) {
+              // console.log(`cpd_pk : (${typeof labor.cpd_pk})[${labor.cpd_pk}] (${typeof row.cpd_pk})[${row.cpd_pk}]  /  rt_pk : (${typeof labor.rt_pk})[${labor.rt_pk}] (${typeof row.rt_pk})[${row.rt_pk}]  /  ed_alias : (${typeof labor.ed_alias})[${labor.ed_alias}] (${typeof row.ed_alias})[${row.ed_alias}]  /  ed_detail_place : (${typeof labor.ed_detail_place})[${labor.ed_detail_place}] (${typeof row.detail_place})[${row.detail_place}]`);
               row.labor_costs += labor.plus_value;
             }
           });
@@ -1509,6 +1515,7 @@ router.get('/:pcpk([0-9]+)/estimate/master', (req, res) => {
        group by ed.ed_place_pk, ed_detail_place, ed.ed_ctpk, ed.ed_cppk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk, ed_alias
        order by pl.cp_name, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_name, rs.rs_name, ed.ed_alias
       `, reqPcPk);
+    // console.log(query.toString());
 
     query
       .then(response => {
