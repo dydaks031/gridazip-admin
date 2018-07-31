@@ -1162,19 +1162,25 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
     knexBuilder.getConnection().then(cur => {
 
       cur.raw(`
-        select rs.rs_pk,
-               ed.ed_alias,
-               ed.ed_detail_place,
-               count(rs.rs_pk) as count,
-               rs.rs_price,
-               ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
-               sum(ed.ed_resource_amount) as resource_amount
-          from estimate_detail_hst ed
-         inner join estimate_tbl es on ed.ed_espk = es.es_pk
-          left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
-         where es.es_pcpk = ?
-           and es.es_is_pre = ?
-         group by ed.ed_rspk, ed.ed_alias, ed.ed_detail_place
+        select rs_pk,
+               ed_alias,
+               ed_detail_place,
+               count(rs_pk) as count,
+               rs_price,
+               sum(ed_resource_amount) as resource_amount,
+               ceil(sum(ed_resource_amount)) ceil_resource_amount
+          from (select rs_pk,
+                       ed_alias,
+                       ed_detail_place,
+                       rs_price,
+                       sum(ed_resource_amount) as ed_resource_amount
+                  from estimate_detail_hst ed
+                 inner join estimate_tbl es on ed.ed_espk = es.es_pk
+                  left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
+                 where es_pcpk = ?
+                   and es_is_pre = ?
+                 group by ed_rspk, ed_place_pk, ed_detail_place, ed_alias) sub
+         group by rs_pk
          `, [reqPcPk, reqEsIsPre === 'true'])
         .then(response => {
           resourceList = response[0].filter(resource => {
@@ -1185,25 +1191,31 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
           });
 
           return cur.raw(`
-            select cpd.cpd_pk,
-                   rt.rt_pk,
-                   ed.ed_alias,
-                   ed.ed_detail_place,
-                   count(ed.ed_cpdpk) as count,
-                   cpd.cpd_labor_costs + rt.rt_extra_labor_costs labor_price,
-                   sum(ed.ed_input_value) as ed_input_value,
-                   sum(ed.ed_input_value) * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs,
-                   case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
-                        then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-                        else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
-                    end as ceil_labor_costs
-              from estimate_detail_hst ed
-             inner join estimate_tbl es on ed.ed_espk = es.es_pk
-              left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-              left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-             where es.es_pcpk = ?
-               and es.es_is_pre = ?
-             group by ed.ed_cpdpk, ed.ed_rtpk, ed.ed_alias, ed.ed_detail_place
+            select cpd_pk,
+                   rt_pk,
+                   ed_alias,
+                   ed_detail_place,
+                   count(*) as count,
+                   labor_costs,
+                   ceil_labor_costs
+              from (select cpd_pk,
+                           rt_pk,
+                           ed_alias,
+                           ed_detail_place,
+                           cpd_labor_costs + rt_extra_labor_costs as labor_price,
+                           sum(ed_input_value) * (cpd_labor_costs + rt_extra_labor_costs) as labor_costs,
+                           case when (sum(ed_input_value) % cpd_min_amount = 0)
+                                then sum(ed_input_value) * (rt_extra_labor_costs + cpd_labor_costs)
+                                else ( rt_extra_labor_costs + cpd_labor_costs ) * ifnull( (sum(ed_input_value) + cpd_min_amount - sum(ed_input_value) % cpd_min_amount), 0)
+                            end as ceil_labor_costs
+                      from estimate_detail_hst ed
+                     inner join estimate_tbl es on ed.ed_espk = es.es_pk
+                      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+                      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+                     where es_pcpk = ?
+                       and es_is_pre = ?
+                     group by ed_cpdpk, ed_rtpk, ed_place_pk, ed_detail_place, ed_alias) sub
+             group by cpd_pk, rt_pk
             `, [reqPcPk, reqEsIsPre === 'true']);
         })
         .then(response => {
@@ -1265,11 +1277,12 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
         })
         .map(row => {
           resourceList.forEach(resource => {
+            // console.log(`cpd_count : ${row.cpd_count}  rt_count : ${row.rt_count}`);
+            // console.log(`${resource.rs_pk} ${row.rs_pk}  |  ${resource.ed_alias} ${row.ed_alias}  |  ${resource.ed_detail_place} ${row.detail_place}`);
+            // console.log(`plus_value : ${resource.plus_value}  resource_count : ${resource.count}`);
+            // console.log('________________________________________________________');
             if (resource.rs_pk === row.rs_pk && resource.ed_alias === row.ed_alias && resource.ed_detail_place === row.detail_place) {
-              // console.log(`cpd_count : ${row.cpd_count}  rt_count : ${row.rt_count}`);
-              // console.log(`${resource.rs_pk} ${row.rs_pk}  |  ${resource.ed_alias} ${row.ed_alias}  |  ${resource.ed_detail_place} ${row.detail_place}`);
-              // console.log(`plus_value : ${resource.plus_value}  resource_count : ${resource.count}`);
-              // console.log('________________________________________________________');
+
               row.resource_costs += resource.plus_value;
             }
           });
@@ -1577,15 +1590,24 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
       .then(arrEsPk => {
 
         return cur.raw(`
-          select rs.rs_pk,
-                 count(rs.rs_pk) as count,
-                 rs.rs_price,
-                 ceil(sum(ed.ed_resource_amount)) as ceil_resource_amount,
-                 sum(ed.ed_resource_amount) as resource_amount
-            from estimate_detail_hst ed
-            left join resource_tbl rs on ed.ed_rspk = rs.rs_pk\n` +
-          (reqFullMode === '0' ? `where ed.ed_espk = ${reqEsPk}\n` : `where ed.ed_espk in (${arrEsPk.join(',')})\n`) +
-           `group by ed.ed_rspk, ed.ed_alias, ed.ed_detail_place
+          select rs_pk,
+                 ed_alias,
+                 ed_detail_place,
+                 count(rs_pk) as count,
+                 rs_price,
+                 sum(ed_resource_amount) as resource_amount,
+                 ceil(sum(ed_resource_amount)) ceil_resource_amount
+            from (select rs_pk,
+                         ed_alias,
+                         ed_detail_place,
+                         rs_price,
+                         sum(ed_resource_amount) as ed_resource_amount
+                    from estimate_detail_hst ed
+                   inner join estimate_tbl es on ed.ed_espk = es.es_pk
+                    left join resource_tbl rs on ed.ed_rspk = rs.rs_pk\n` +
+                  (reqFullMode === '0' ? `where ed_espk = ${reqEsPk}\n` : `where ed_espk in (${arrEsPk.join(',')})\n`) +
+                  `group by ed_rspk, ed_place_pk, ed_detail_place, ed_alias) sub
+           group by rs_pk
         `);
       })
       .then(response => {
@@ -1596,28 +1618,32 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
           return resource;
         });
 
-        const query =  cur.raw(`
-            select cpd.cpd_pk,
-                   rt.rt_pk,
-                   ed.ed_alias,
-                   ed.ed_detail_place,
-                   count(ed.ed_cpdpk) as count,
-                   cpd.cpd_labor_costs + rt.rt_extra_labor_costs labor_price,
-                   sum(ed.ed_input_value) as ed_input_value,
-                   sum(ed.ed_input_value) * (cpd.cpd_labor_costs + rt.rt_extra_labor_costs) as labor_costs,
-                   case when (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
-                        then sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-                        else ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
-                    end as ceil_labor_costs
-              from estimate_detail_hst ed
-             inner join estimate_tbl es on ed.ed_espk = es.es_pk
-              left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-              left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk\n` +
-            (reqFullMode === '0' ? `where ed.ed_espk = ${reqEsPk}\n` : `where ed.ed_espk in (${arrEsPk.join(',')})\n`) +
-            `group by ed.ed_cpdpk, ed.ed_rtpk, ed.ed_alias, ed.ed_detail_place
+        return cur.raw(`
+            select cpd_pk,
+                   rt_pk,
+                   ed_alias,
+                   ed_detail_place,
+                   count(*) as count,
+                   labor_costs,
+                   ceil_labor_costs
+              from (select cpd_pk,
+                           rt_pk,
+                           ed_alias,
+                           ed_detail_place,
+                           cpd_labor_costs + rt_extra_labor_costs as labor_price,
+                           sum(ed_input_value) * (cpd_labor_costs + rt_extra_labor_costs) as labor_costs,
+                           case when (sum(ed_input_value) % cpd_min_amount = 0)
+                                then sum(ed_input_value) * (rt_extra_labor_costs + cpd_labor_costs)
+                                else ( rt_extra_labor_costs + cpd_labor_costs ) * ifnull( (sum(ed_input_value) + cpd_min_amount - sum(ed_input_value) % cpd_min_amount), 0)
+                            end as ceil_labor_costs
+                      from estimate_detail_hst ed
+                     inner join estimate_tbl es on ed.ed_espk = es.es_pk
+                      left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+                      left join resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk\n` +
+                    (reqFullMode === '0' ? `where ed_espk = ${reqEsPk}\n` : `where ed_espk in (${arrEsPk.join(',')})\n`) +
+                    `group by ed_cpdpk, ed_rtpk, ed_place_pk, ed_detail_place, ed_alias) sub
+             group by cpd_pk, rt_pk
             `);
-        // console.log(query.toString());
-        return query;
       })
       .then(response => {
         laborList = response[0].filter(labor => {
