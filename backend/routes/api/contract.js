@@ -417,15 +417,25 @@ router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   const reqEsIsPre = req.query.es_is_pre || '';
   knexBuilder.getConnection().then(cur => {
+    let selectionFlag = true;
     cur('estimate_tbl')
-      .select('es_pk', 'es_version', 'es_is_pre')
+      .count({count: 'es_pk'})
       .where('es_pcpk', reqPcPk)
-      .andWhere('es_is_pre', reqEsIsPre === 'true')
-      .orderBy('es_version')
+      .andWhere('es_is_pre', false)
+      .then(response => {
+        if (response[0].count > 0) selectionFlag = false;
+
+        return cur('estimate_tbl')
+          .select('es_pk', 'es_version', 'es_is_pre')
+          .where('es_pcpk', reqPcPk)
+          .andWhere('es_is_pre', reqEsIsPre === 'true')
+          .orderBy('es_version')
+      })
       .then(response => {
         res.json(
           resHelper.getJson({
-            tabs: response
+            tabs: response,
+            selectionFlag
           })
         );
       })
@@ -1165,7 +1175,7 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
          where es.es_pcpk = ?
            and es.es_is_pre = ?
          group by ed.ed_rspk, ed.ed_alias, ed.ed_detail_place
-         order by rs.rs_name`, [reqPcPk, reqEsIsPre === 'true'])
+         `, [reqPcPk, reqEsIsPre === 'true'])
         .then(response => {
           resourceList = response[0].filter(resource => {
             if (resource.ceil_resource_amount !== resource.resource_amount) return true;
@@ -1209,6 +1219,8 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
           select pl.cp_name as place_name,
                  pl.cp_pk as place_pk,
                  ed.ed_detail_place as detail_place,
+                 count(rt.rt_pk) rt_count,
+                 count(cpd.cpd_pk) cpd_count,
                  ct.ct_pk,
                  ct.ct_name,
                  cp.cp_name,
@@ -1254,7 +1266,10 @@ router.get('/:pcpk([0-9]+)/estimate/general', (req, res) => {
         .map(row => {
           resourceList.forEach(resource => {
             if (resource.rs_pk === row.rs_pk && resource.ed_alias === row.ed_alias && resource.ed_detail_place === row.detail_place) {
+              // console.log(`cpd_count : ${row.cpd_count}  rt_count : ${row.rt_count}`);
               // console.log(`${resource.rs_pk} ${row.rs_pk}  |  ${resource.ed_alias} ${row.ed_alias}  |  ${resource.ed_detail_place} ${row.detail_place}`);
+              // console.log(`plus_value : ${resource.plus_value}  resource_count : ${resource.count}`);
+              // console.log('________________________________________________________');
               row.resource_costs += resource.plus_value;
             }
           });
