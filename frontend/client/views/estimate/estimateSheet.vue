@@ -3,9 +3,9 @@
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
-      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre">복제</a>
-      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre">채택</a>
-      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && (estimateIsPre || estimateCurrentTabs.length !== 0) && selectedTab !== ''">
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre && selectionFlag">복제</a>
+      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre && selectionFlag">채택</a>
+      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && !(estimateIsPre ^ selectionFlag)">
         <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
           등록
         </span>
@@ -240,7 +240,8 @@
           total: {}
         },
         estimateCurrentTabs: [],
-        selectedTab: ''
+        selectedTab: '',
+        selectionFlag: false
       }
     },
     methods: {
@@ -298,6 +299,11 @@
               return false
             }
             this.estimateCurrentTabs.push(response.data.data.tab)
+            openNotification({
+              message: '선택한 가견적서가 복제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
           })
       },
       moveTab (tab = {}) {
@@ -313,6 +319,11 @@
           if (response.data.code !== 200) {
             return false
           }
+          openNotification({
+            message: '선택한 견적서가 상세 견적서로 이동하였습니다.',
+            type: 'success',
+            duration: 1500
+          })
         })
       },
       moveToRegister () {
@@ -546,8 +557,10 @@
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in resourceCategoryByData) {
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
-            return item.rs_price.toString() !== '0'
+            return item.resource_costs.toString() !== '0'
           })
+          console.log('resourceCategoryItem')
+          console.log(resourceCategoryItem)
           if (resourceCategoryItem.length === 0) {
             continue
           }
@@ -566,7 +579,7 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-          if (item.rs_price.toString() === '0') {
+          if (item.resource_costs.toString() === '0') {
             continue
           }
           if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
@@ -773,7 +786,9 @@
             if (response.data.code !== 200) {
               return false
             }
-            this.estimateCurrentTabs = response.data.data.tabs
+            const data = response.data.data
+            this.estimateCurrentTabs = data.tabs
+            this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
             if (this.estimateCurrentTabs.length > 0) {
               if (this.estimateIsPre) {
                 this.selectedTab = this.estimateCurrentTabs[0].es_pk
@@ -825,6 +840,10 @@
         },
         deep: true
       }
+    },
+    beforeDestroy () {
+      EventBus.$off('loadEstimateView')
+      EventBus.$off('loadPreEstimateView')
     }
   }
 </script>

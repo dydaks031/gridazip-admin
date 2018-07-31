@@ -123,7 +123,23 @@
   import deepClone from '../../services/deepClone'
   import mixin from '../../services/mixin'
   import utils from '../../services/utils'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+  const NotificationComponent = Vue.extend(Notification)
 
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
   const queryApi = '/api/contract/'
 
   export default {
@@ -206,6 +222,21 @@
           })
           .then((response) => {
             console.log(response)
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '신규 탭 생성 도중 이상이 발생하였습니다..',
+                type: 'success',
+                duration: 1500
+              })
+              return false
+            }
+
+            openNotification({
+              message: '등록하신 내용으로 신규 탭이 생성 되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.$router.back()
           })
           .catch((e) => {
             console.error(e)
@@ -260,6 +291,12 @@
               data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
               data.selectedData.labor_costs = response.data.data.data.labor_costs
               data.selectedData.resource_costs = response.data.data.data.resource_costs
+
+              openNotification({
+                message: '해당 내역이 수정되었습니다.',
+                type: 'success',
+                duration: 1500
+              })
             }).catch((error) => {
               console.log(error)
             })
