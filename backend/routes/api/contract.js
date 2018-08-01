@@ -1627,17 +1627,18 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
                    ed_detail_place,
                    count(*) as count,
                    sum(labor_costs) labor_costs,
-                   sum(ceil_labor_costs) ceil_labor_costs
+                   case when (sum(ed_input_value) % cpd_min_amount = 0)
+                        then sum(ed_input_value) * labor_price
+                        else labor_price * ifnull( (sum(ed_input_value) + cpd_min_amount - sum(ed_input_value) % cpd_min_amount), 0)
+                    end as ceil_labor_costs
               from (select cpd_pk,
                            rt_pk,
                            ed_alias,
                            ed_detail_place,
+                           cpd_min_amount,
                            cpd_labor_costs + rt_extra_labor_costs as labor_price,
-                           sum(ed_input_value) * (cpd_labor_costs + rt_extra_labor_costs) as labor_costs,
-                           case when (sum(ed_input_value) % cpd_min_amount = 0)
-                                then sum(ed_input_value) * (rt_extra_labor_costs + cpd_labor_costs)
-                                else ( rt_extra_labor_costs + cpd_labor_costs ) * ifnull( (sum(ed_input_value) + cpd_min_amount - sum(ed_input_value) % cpd_min_amount), 0)
-                            end as ceil_labor_costs
+                           sum(ed_input_value) as ed_input_value,
+                           sum(ed_input_value) * (cpd_labor_costs + rt_extra_labor_costs) as labor_costs
                       from estimate_detail_hst ed
                      inner join estimate_tbl es on ed.ed_espk = es.es_pk
                       left join construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
