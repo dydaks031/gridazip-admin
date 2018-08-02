@@ -47,7 +47,6 @@
           <col width="auto" />
           <col width="10%" />
           <col width="10%" />
-          <col width="10%" />
         </colgroup>
         <thead>
         <tr>
@@ -174,7 +173,8 @@
       </div>
     </div>
     <div v-else>
-      <h3 class="has-text-centered">등록된 견적서가 없습니다. <br />등록 버튼을 선택하여 견적서를 등록 해 주세요.</h3>
+      <h3 class="has-text-centered" v-if="estimateIsPre">등록된 가견적서가 없습니다. <br />등록 버튼을 선택하여 가견적서를 등록 해 주세요.</h3>
+      <h3 class="has-text-centered" v-else>등록된 상세 견적서가 없습니다. <br />가견적서를 입력하신 후 채택 버튼을 선택하여 상세 견적서를 등록 해 주세요.</h3>
     </div>
   </div>
 </template>
@@ -559,8 +559,6 @@
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
             return item.resource_costs.toString() !== '0'
           })
-          console.log('resourceCategoryItem')
-          console.log(resourceCategoryItem)
           if (resourceCategoryItem.length === 0) {
             continue
           }
@@ -671,7 +669,6 @@
 
           }
         }
-        console.log(mergeCount)
         let item
         const resultCount = resultData.length
         for (let i = 0; i < resultCount; i++) {
@@ -697,7 +694,6 @@
             firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk] = true
           }
         }
-        console.log(resultData)
         this.viewerData.labor = resultData
       },
       openSubResource (item) {
@@ -823,7 +819,7 @@
     },
     watch: {
       estimateData: {
-        handler (newValue, oldValue) {
+        handler (newValue) {
           this.viewerData.general = newValue.general
           this.viewerData.labor = newValue.labor
           this.viewerData.resource = newValue.resource
@@ -831,12 +827,6 @@
           this.mergeSubResource(this.viewerData.general)
           this.mergeResourceTable(this.viewerData.resource)
           this.mergeLaborTable(this.viewerData.labor)
-        },
-        deep: true
-      },
-      estimateCurrentTabs: {
-        handler (newValue, oldValue) {
-          console.log(newValue)
         },
         deep: true
       }

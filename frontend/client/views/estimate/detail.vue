@@ -76,7 +76,7 @@
         <article class="tile is-child box" v-show = "currentTab === tabType.preEstimateView">
           <estimate-sheet :estimateIsPre="true"/>
         </article>
-        <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
+        <article class="tile is-child box estimate" v-show = "currentTab === tabType.estimateView">
           <estimate-sheet :estimateIsPre="false"/>
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
