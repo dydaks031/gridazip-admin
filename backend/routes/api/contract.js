@@ -2194,4 +2194,84 @@ router.get('/:pcpk([0-9]+)/resource', (req, res) => {
 // construction & resource category per contract :end
 
 
-module.exports = router;
+router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  knexBuilder.getConnection().then(cur => {
+
+    cur({cl:'checklist_tbl'})
+      .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource')
+      .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
+      .where('cl_pcpk', reqPcPk)
+      .orderBy('cl.cl_date', 'cl.cl_ctpk')
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            checklist: response
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('진행 계약의 확인 목록을 조회하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  knexBuilder.getConnection().then(cur => {
+
+    cur('checklist_tbl')
+      .insert({})
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            checklist: response
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('진행 계약의 확인 목록을 추가하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
+  const reqClPk = req.params.clpk;
+  const reqCtPk = req.params.ctpk;
+  const reqClConstructor = req.body.cl_constructor;
+  const reqClResource = req.body.cl_resource;
+
+  knexBuilder.getConnection().then(cur => {
+    let o = {};
+    o.cl_pcpk = reqPcPk;
+    o.cl_ctpk = reqCtPk;
+    o.cl_constructor = reqClConstructor;
+    o.cl_resource = reqClResource;
+
+    cur('checklist_tbl')
+      .update(o)
+      .where('cl_pk', reqClPk)
+      .then(() => {
+        res.json(
+          resHelper.getJson({
+            msg: 'ok'
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('진행 계약의 확인 목록을 추가하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+
+  module.exports = router;
