@@ -2202,6 +2202,7 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
       .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource')
       .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
       .where('cl_pcpk', reqPcPk)
+      .andWhere('cl_deleted', 0)
       .orderBy('cl.cl_date', 'cl.cl_ctpk')
       .then(response => {
         res.json(
@@ -2221,42 +2222,67 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
 
 router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
   const reqPcPk = req.params.pcpk;
-  knexBuilder.getConnection().then(cur => {
+  const reqCtPk = req.body.ct_pk || '';
+  const reqClDate = req.body.cl_date || 0;
+  const reqClConstructor = req.body.cl_constructor || 0;
+  const reqClResource = req.body.cl_resource || 0;
 
-    cur('checklist_tbl')
-      .insert({})
-      .then(response => {
-        res.json(
-          resHelper.getJson({
-            checklist: response
-          })
-        );
-      })
-      .catch(err => {
-        console.error(err);
-        res.json(
-          resHelper.getError('진행 계약의 확인 목록을 추가하는 중 오류가 발생했습니다.')
-        );
-      })
-  })
+  console.log(reqClDate);
+
+  if (reqClDate === 0 || reqCtPk === '') {
+    res.json(
+      resHelper.getError('필수 파라메터가 누락되었습니다.')
+    );
+  }
+  else {
+    knexBuilder.getConnection().then(cur => {
+      let o = {};
+      o.cl_pcpk = reqPcPk;
+      o.cl_date = reqClDate;
+      o.cl_ctpk = reqCtPk;
+      o.cl_constructor = reqClConstructor;
+      o.cl_resource = reqClResource;
+
+      cur('checklist_tbl')
+        .insert(o)
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              check: o
+            })
+          );
+        })
+        .catch(err => {
+          console.error(err);
+          res.json(
+            resHelper.getError('진행 계약의 확인 목록을 추가하는 중 오류가 발생했습니다.')
+          );
+        })
+    })
+  }
 });
 
 router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
   const reqClPk = req.params.clpk;
-  const reqCtPk = req.params.ctpk;
+  const reqCtPk = req.body.ct_pk;
+  const reqClDate = req.body.cl_date;
   const reqClConstructor = req.body.cl_constructor;
   const reqClResource = req.body.cl_resource;
 
+  // console.log(`reqClPk : [${reqClPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
   knexBuilder.getConnection().then(cur => {
     let o = {};
-    o.cl_pcpk = reqPcPk;
     o.cl_ctpk = reqCtPk;
+    o.cl_date = reqClDate;
     o.cl_constructor = reqClConstructor;
     o.cl_resource = reqClResource;
 
-    cur('checklist_tbl')
+    const query = cur('checklist_tbl')
       .update(o)
-      .where('cl_pk', reqClPk)
+      .where('cl_pk', reqClPk);
+    // console.log(query.toString());
+
+    query
       .then(() => {
         res.json(
           resHelper.getJson({
@@ -2273,5 +2299,66 @@ router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
   })
 });
 
+router.delete('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
+  const reqClPk = req.params.clpk;
 
+  knexBuilder.getConnection().then(cur => {
+    let o = {};
+    o.cl_deleted = 1;
+
+    cur('checklist_tbl')
+      .update(o)
+      .where('cl_pk', reqClPk)
+      .then(() => {
+        res.json(
+          resHelper.getJson({
+            msg: 'ok'
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('진행 계약의 확인 목록을 삭제하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
+
+router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
+  const reqClDate = req.body.cl_date || 0;
+  const reqChecklist = req.body.checklist || [];
+
+  console.log(reqClDate);
+  console.log(reqChecklist);
+
+  if (reqClDate === 0 || reqChecklist.length === 0) {
+    res.json(
+      resHelper.getError('필수 파라메터가 누락되었습니다.')
+    );
+  }
+  else {
+    knexBuilder.getConnection().then(cur => {
+      let o = {};
+      o.cl_date = reqClDate;
+
+      cur('checklist_tbl')
+        .update(o)
+        .whereIn('cl_pk', reqChecklist)
+        .then(() => {
+          res.json(
+            resHelper.getJson({
+              msg: 'ok'
+            })
+          );
+        })
+        .catch(err => {
+          console.error(err);
+          res.json(
+            resHelper.getError('진행 계약의 확인 목록을 이동하는 중 오류가 발생했습니다.')
+          );
+        })
+    })
+  }
+});
   module.exports = router;
