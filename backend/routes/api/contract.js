@@ -2227,7 +2227,7 @@ router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
   const reqClConstructor = req.body.cl_constructor || 0;
   const reqClResource = req.body.cl_resource || 0;
 
-  console.log(reqClDate);
+  // console.log(`reqPcPk : [${reqPcPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
 
   if (reqClDate === 0 || reqCtPk === '') {
     res.json(
@@ -2328,9 +2328,6 @@ router.delete('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
 router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
   const reqClDate = req.body.cl_date || 0;
   const reqChecklist = req.body.checklist || [];
-
-  console.log(reqClDate);
-  console.log(reqChecklist);
 
   if (reqClDate === 0 || reqChecklist.length === 0) {
     res.json(
