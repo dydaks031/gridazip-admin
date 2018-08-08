@@ -624,7 +624,7 @@
               return false
             }
             userInfo = response.data.data.contract
-            return this.$http.get(`${queryApi}/${id}/estimate/general`)
+            return this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=false`)
           })
 
           .then((response) => {
@@ -632,21 +632,21 @@
               return false
             }
             general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
+            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=false`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
+            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=false`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total`)
+            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=false`)
           })
           .then((response) => {
             if (response.data.code !== 200) {

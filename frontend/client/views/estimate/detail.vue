@@ -199,7 +199,7 @@
             <datepicker ref="moveToDate" style="width:100px; vertical-align: middle" v-model="wantMoveDate"/> <b style="vertical-align: middle;">으로</b>
           </span>
           <div>
-            <table class="table is-bordered">
+            <table class="table is-bordered check-list">
             <colgroup>
               <col width="5%"/>
               <col width="16%"/>
@@ -218,7 +218,10 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody v-for="checkListByDate in checkList">
+            <tbody v-for="(checkListByDate, index) in checkList">
+              <tr @click="toggleCheckDate(index)" class="date-header">
+                <th colspan="6">{{index}}</th>
+              </tr>
               <tr v-for="checkListItem in checkListByDate">
                 <td class="has-text-centered">
                   <input type="checkbox" class="checkbox" v-model="checkListItem.isChecked">
@@ -652,6 +655,18 @@
             console.error(e)
           })
       },
+      toggleCheckDate (date) {
+        const alreadyCheckedList = _.filter(this.checkList[date], (item) => {
+          return item.isChecked
+        })
+        let checkedType = true
+        if (alreadyCheckedList.length === this.checkList[date].length) {
+          checkedType = false
+        }
+        _.map(this.checkList[date], (item) => {
+          item.isChecked = checkedType
+        })
+      },
       registerCheckList () {
         this.newCheckList.cl_date = moment(this.newCheckList.date, 'YYYY-MM-DD').format('X')
         console.log(this.newCheckList)
@@ -745,6 +760,11 @@
     width: 100%;
     .is-child {
       width: 100%;
+    }
+  }
+  .check-list {
+    .date-header {
+      cursor: pointer;
     }
   }
 </style>
