@@ -136,8 +136,8 @@
               <p class="has-text-right" v-if="viewerData.total.discount_amount">
                 <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
               </p>
-              <p class="has-text-right">
-                <span>합계(VAT 별도, 천단위 절삭): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
+              <p class="has-text-right total-costs">
+                <span>합계(VAT 별도): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
               </p>
             </div>
           </div>
@@ -641,10 +641,17 @@
     }
   }
   .summary {
-    p:last-child {
-      span {
-        font-size: 1.3rem;
-        font-weight: bold;
+    p {
+      &.total-costs {
+        span {
+          font-size: 1.3rem;
+          font-weight: bold;
+        }
+      }
+      &.vat-costs {
+        span {
+          font-size:90%;
+        }
       }
     }
   }
