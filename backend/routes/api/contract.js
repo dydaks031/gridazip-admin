@@ -1691,8 +1691,8 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
             left join resource_tbl rs on ed.ed_rspk = rs.rs_pk
             left join resource_unit_tbl ru on rs.rs_rupk = ru.ru_pk\n` +
           (reqFullMode === '0' ? `where ed.ed_espk = ${reqEsPk}\n` : `where ed.ed_espk in (${arrEsPk.join(',')})\n`) +
-          `group by ed.ed_place_pk, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk
-           order by pl.cp_name, ct.ct_pk, cp.cp_name, cpd.cpd_name, ed.ed_rtpk, ed.ed_rspk
+          `group by ed.ed_place_pk, ed.ed_detail_place, ed.ed_cpdpk, ed.ed_rtpk, ed.ed_rspk, ed_alias
+           order by pl.cp_pk, ct.ct_pk, cp.cp_pk, cpd.cpd_name, rt.rt_sub desc, rt.rt_name, rs.rs_name
           `);
       })
       .then(response => {
