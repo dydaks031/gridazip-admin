@@ -67,7 +67,7 @@
           <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
           <td>{{generalData.cpd_name}}</td>
           <td>{{generalData.detail_place}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
           <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
           <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
         </tr>
