@@ -22,10 +22,10 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
+            <tr v-for="item in data" v-on:click="moveToPage(item)">
               <td>{{item.pn_name}}</td>
               <td>{{item.pn_tel_no}}</td>
-              <td><a :href="item.pn_price_list" v-on:click.stop="doThis">링크</a></td>
+              <td><a :href="item.pn_price_list" v-on:click.stop="doThis" v-if="item.pn_price_list">링크</a></td>
               <td>{{(item.pn_reg_dt === '0000-00-00' || !item.pn_reg_dt) ? '' : moment(item.pn_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</td>
               <td>
                 <button class="button" v-on:click.stop="deleteRow(item)">삭제</button>
