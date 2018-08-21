@@ -310,9 +310,9 @@
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         let apiUrl = `${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`
-        if (data.isAddedBySelf) {
+        if (data.selectedData.isAddedBySelf) {
           return
-        } else if (!data.isAddedBySelf && this.estimateAmountCalculation) {
+        } else if (!data.selectedData.isAddedBySelf && this.estimateAmountCalculation) {
           const param = {
             ct_pk: data.selectedData.ed_ctpk,
             cp_pk: data.selectedData.ed_cppk,
@@ -414,14 +414,18 @@
               parseInt(item.ed_rspk, 10) === parseInt(origin.ed_rspk, 10)
           })
           if (targetOriginData) {
-            const currentInputValueToFixed = parseFloat(item.ed_input_value).toFixed(2)
-            const originInputValueToFixed = parseFloat(targetOriginData.ed_input_value).toFixed(2)
-            if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
-              item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
+            if (item.isAddedBySelf) {
+              sendData.push(item)
+            } else {
+              const currentInputValueToFixed = parseFloat(item.ed_input_value).toFixed(2)
+              const originInputValueToFixed = parseFloat(targetOriginData.ed_input_value).toFixed(2)
+              if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
+                item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
+              }
+              item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
+              const _item = this.estimateAmountCalculation(item)
+              sendData.push(_item)
             }
-            item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
-            const _item = this.estimateAmountCalculation(item)
-            sendData.push(_item)
           } else {
             targetOriginData = _.find(originData, (origin) => {
               return origin.index === item.index
@@ -432,7 +436,6 @@
             sendData.push(item)
           }
         })
-        console.log(sendData)
         return sendData
       },
       /**

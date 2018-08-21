@@ -1,203 +1,184 @@
 <template>
-  <div>
-    <div class="wrapper" :class="{'modal-closed': !isCloseModal}">
-      <div class="title-wrapper is-clearfix">
-        <h1 class="title">인테리어 <span class="is-bold">상세견적서</span></h1>
-        <a class="button is-rounded is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄하기</a>
-      </div>
-      <!-- Main container -->
-      <nav class="level user-info">
-        <!-- Left side -->
-        <div class="level-left">
-          <div class="level-item user-name">
-            <p class="subtitle is-5">
-              <strong>{{userInfo.pc_name}}</strong> 고객
-            </p>
-            <hr />
-          </div>
-          <div class="level-item">
-            <p>
-              <strong>연락처</strong>
-              <span class="is-block">{{userInfo.pc_phone}}</span>
-            </p>
-          </div>
-          <div class="level-item">
-            <p>
-              <strong>이사일</strong>
-              <span class="is-block">{{getComputedDate(userInfo.pc_move_date)}}</span>
-            </p>
-          </div>
-          <div class="level-item">
-            <p>
-              <strong>평수</strong>
-              <span class="is-block">{{userInfo.pc_size}}</span>
-            </p>
-          </div>
-          <div class="level-item">
-            <p>
-              <strong>주소</strong>
-              <span class="is-block">{{getFullAddress(userInfo.pc_address_brief, userInfo.pc_address_detail)}}</span>
-            </p>
+  <div class="wrapper">
+    <div class="container outer">
+      <div class="container inner">
+        <div class="title-container is-hidden-mobile is-clearfix">
+          <h1 class="title is-hidden-mobile is-pulled-left">
+            실시간 <br> <b>인테리어 상세 견적서</b>
+          </h1>
+          <div class="is-pulled-right user-info-contents">
+            <h3 class="user-name"><b>그리다</b> 님</h3>
+            <div class="user-info is-clearfix">
+              <div class="contents is-pulled-left has-text-right">
+                <p>010-0000-0000</p>
+                <p>2018-09-01</p>
+                <p>32평</p>
+                <p>안양시 동안구 부림로</p>
+              </div>
+              <div class="label-view is-pulled-right has-text-right">
+                <p>연락처</p>
+                <p>이사일</p>
+                <p>평수</p>
+                <p>주소</p>
+              </div>
+            </div>
           </div>
         </div>
-      </nav>
-
-      <div class="contents">
-        <section class="space-base-info">
-          <h2 class="title has-text-centered">공간별 견적</h2>
-          <table class="table position-base-table">
-            <colgroup>
-              <col width="8%" />
-              <col class="is-hidden-mobile" width="5%" />
-              <col class="is-hidden-mobile" width="10%" />
-              <col width="10%" />
-              <col width="10%" />
-              <col class="is-hidden-mobile" width="auto" />
-              <col class="is-hidden-mobile" width="10%" />
-              <col width="10%" />
-              <col width="10%" />
-            </colgroup>
-            <thead>
-            <tr>
-              <th>위치</th>
-              <th class="is-hidden-mobile">공사</th>
-              <th class="is-hidden-mobile">공정</th>
-              <th>상세공정</th>
-              <th class="is-hidden-mobile">상세위치</th>
-              <th class="is-hidden-mobile">자재</th>
-              <th class="has-text-right">인건비</th>
-              <th class="has-text-right">자재비</th>
-            </tr>
-            </thead>
-            <tbody>
-              <tr :class="{'is-summary': generalData.is_summary}" v-for="(generalData, index) in viewerData.general" v-if="rowHideCondition(generalData, index)" @click="openSubResource(generalData)">
+        <div class="tabs is-hidden-desktop">
+          <ul>
+            <li class="is-active">상세견적서</li>
+            <li>시공현황</li>
+            <li>고객정보</li>
+          </ul>
+        </div>
+        <div class="btn-select-view">
+          <div class="select-view">
+            <label for="versionSelect">견적서 선택</label>
+            <div class="select">
+              <select id="versionSelect">
+                <option>2018-08-01 (v1.0)</option>
+                <option>2018-08-02 (v1.0)</option>
+                <option>2018-08-03 (v1.0)</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-view">
+            <button class="button white">시공현황보기</button>
+            <button class="button">인쇄하기</button>
+          </div>
+        </div>
+        <div class="estimate-contents">
+          <div class="content">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">공간별 견적</h3>
+              <i class="fa fa-angle-up is-pulled-right"></i>
+            </div>
+            <table class="table position-base-table" id="general-table">
+              <colgroup>
+                <col width="8%" />
+                <col width="5%" />
+                <col width="10%" />
+                <col width="10%" />
+                <col width="10%" />
+                <col width="auto" />
+                <col width="10%" />
+                <col width="10%" />
+              </colgroup>
+              <thead>
+              <tr>
+                <th>위치</th>
+                <th>공사</th>
+                <th>공정</th>
+                <th>상세공정</th>
+                <th>상세위치</th>
+                <th>자재</th>
+                <th class="has-text-right">인건비</th>
+                <th class="has-text-right">자재비</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
                 <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-                <td class="is-hidden-mobile"v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-                <td class="is-hidden-mobile" v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+                <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+                <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
                 <td>{{generalData.cpd_name}}</td>
-                <td class="is-hidden-mobile">{{generalData.detail_place}}</td>
-                <td class="is-hidden-mobile">{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+                <td>{{generalData.detail_place}}</td>
+                <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
                 <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
                 <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
               </tr>
-            </tbody>
-          </table>
-          <div class="more-data" @click="toggleMoreData('general')">
-            <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['general'], 'fa-angle-up': isMoreBtnStatus['general']}"></i><span>더보기</span>
+              </tbody>
+            </table>
           </div>
-        </section>
-        <section  class="detail-info columns is-desktop">
-          <div class="column is-6">
-            <article>
-              <h2 class="title has-text-centered">자재비</h2>
-              <div class="content">
-                <table class="table">
-                  <colgroup>
-                    <col class="is-hidden-mobile" width="15%"/>
-                    <col class="is-hidden-desktop" width="30%"/>
-                    <col width="auto"/>
-                    <col class="is-hidden-mobile" width="auto"/>
-                    <col class="is-hidden-mobile" width="auto"/>
-                    <col width="auto"/>
-                  </colgroup>
-                  <thead>
-                  <tr>
-                    <th>자재분류</th>
-                    <th>자재</th>
-                    <th class="is-hidden-mobile">물량</th>
-                    <th class="is-hidden-mobile has-text-right">단가</th>
-                    <th class="has-text-right">금액</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr :class="{'is-summary': resource.is_summary}" v-for="(resource, index) in viewerData.resource" v-if="resource.resource_costs !== 0 && (index <= 5 || isMoreBtnStatus.resource)">
-                    <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
-                    <td>{{resource.rs_name}}<span class="resource-code" v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                    <td class="is-hidden-mobile">{{resource.resource_amount}} {{resource.ru_name}}</td>
-                    <td class="is-hidden-mobile has-text-right">{{resource.is_summary ? '' : addCommas(resource.rs_price)}}</td>
-                    <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
-                  </tr>
-                  </tbody>
-                </table>
-                <div class="more-data" @click="toggleMoreData('resource')">
-                  <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['resource'], 'fa-angle-up': isMoreBtnStatus['resource']}"></i><span>더보기</span>
-                </div>
-              </div>
-            </article>
+          <div class="content fold">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">자재비</h3>
+              <i class="fa fa-angle-down is-pulled-right"></i>
+              <span class="is-pulled-right money-summary"><b>9,944,000</b> 원</span>
+            </div>
+            <table class="table" id="resource-table">
+              <colgroup>
+                <col width="auto"/>
+              </colgroup>
+              <thead>
+              <tr>
+                <th>자재분류</th>
+                <th>자재</th>
+                <th>물량</th>
+                <th>자재단위</th>
+                <th class="has-text-right">단가</th>
+                <th class="has-text-right">금액</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
+                <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
+                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
+                <td>{{resource.resource_amount}}</td>
+                <td>{{resource.ru_name}}</td>
+                <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
+              </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="column is-6">
-            <article>
-              <h2 class="title has-text-centered">인건비</h2>
-              <div class="content">
-                <table class="table">
-                  <colgroup>
-                    <col width="auto"/>
-                  </colgroup>
-                  <thead>
-                  <tr>
-                    <th>공사</th>
-                    <th class="is-hidden-mobile">공정</th>
-                    <th>상세공정</th>
-                    <th>자재군</th>
-                    <th class="has-text-right">인건비</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr :class="{'is-summary': labor.is_summary}" v-for="(labor, index) in viewerData.labor" v-if="labor.labor_costs !== 0 && (index <= 5 || isMoreBtnStatus.labor)">
-                    <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
-                    <td class="is-hidden-mobile" v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
-                    <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
-                    <td>{{labor.rt_name}}</td>
-                    <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
-                  </tr>
-                  </tbody>
-                </table>
-                <div class="more-data" @click="toggleMoreData('labor')">
-                  <i class="fa" :class="{'fa-angle-down': !isMoreBtnStatus['labor'], 'fa-angle-up': isMoreBtnStatus['labor']}"></i><span>더보기</span>
-                </div>
-              </div>
-            </article>
+          <div class="content fold">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">인건비</h3>
+              <i class="fa fa-angle-down is-pulled-right"></i>
+              <span class="is-pulled-right money-summary"><b>12,905,320</b> 원</span>
+            </div>
+            <table class="table" id="labor-table">
+              <colgroup>
+                <col width="auto"/>
+              </colgroup>
+              <thead>
+              <tr>
+                <th>공사</th>
+                <th>공정</th>
+                <th>상세공정</th>
+                <th>자재군</th>
+                <th class="has-text-right">인건비</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
+                <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
+                <td>{{labor.rt_name}}</td>
+                <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
+              </tr>
+              </tbody>
+            </table>
           </div>
-        </section>
-        <section class="summary-info">
-          <nav class="level">
-            <!-- Left side -->
-            <div class="level-left">
-              <h3 class="subtitle">총 견적금액</h3>
+          <div class="content not-opened">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">설계비 및 감리비</h3>
+              <span class="is-pulled-right money-summary"><b>3,427,398</b> 원</span>
             </div>
-            <div class="level-right">
-              <div class="level-item mr-15">
-                <p>자재비</p>
-                <p>인건비</p>
-                <p>설계비 및 감리비</p>
-                <p>공과잡비</p>
-                <p v-if="viewerData.total.discount_amount">할인금액</p>
-              </div>
-              <div class="level-item flex-item-right">
-                <p>{{addCommas(viewerData.total.resource_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.labor_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}원</p>
-                <p>{{addCommas(viewerData.total.etc_costs)}}원</p>
-                <p class="discount-amount" v-if="viewerData.total.discount_amount">-{{addCommas(viewerData.total.discount_amount)}}원</p>
-              </div>
+          </div>
+          <div class="content not-opened">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">공과잡비</h3>
+              <span class="is-pulled-right money-summary"><b>1,142,466</b> 원</span>
             </div>
-          </nav>
-          <nav class="level">
-            <!-- Left side -->
-            <div class="level-left flex-center-text">
-              <h3 class="subtitle">합계(VAT 별도)</h3>
+          </div>
+          <div class="content not-opened">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left discount">할인 금액</h3>
+              <span class="is-pulled-right money-summary discount"><b>- 0</b> 원</span>
             </div>
-            <div class="level-right flex-center-text">
-              <div class="level-item summary">
-                <p>{{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</p>
-              </div>
+          </div>
+          <div class="content result">
+            <div class="title-container is-clearfix">
+              <h3 class="subtitle is-pulled-left">총 견적 금액</h3>
+              <span class="is-pulled-right money-summary"><b>27,419,000</b> 원</span>
             </div>
-          </nav>
-        </section>
+          </div>
+        </div>
       </div>
-      <div class="footer">
 
-      </div>
     </div>
     <estimate-auth-view
       :beforeClose="loadEstimateView"
@@ -732,3 +713,12 @@
 
 <style scoped lang="scss" src="./estimate.scss"></style>
 <style scoped lang="scss" src="./estimate-mediaquery.scss"></style>
+<style scoped lang="scss">
+  .content {
+    &.fold {
+      table {
+        display: none;
+      }
+    }
+  }
+</style>

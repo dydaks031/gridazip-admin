@@ -138,9 +138,11 @@
         const _data = deepClone(data)
         const estimateData = this.getEstimateAmount(_data.selectedData)
         EventBus.$emit('updateModifyView', {
-          selectedData: estimateData,
+          selectedData: {
+            ...estimateData,
+            isAddedBySelf: _data.isAddedBySelf
+          },
           options: _data.options,
-          isAddedBySelf: _data.isAddedBySelf,
           isRemoved: _data.isRemoved
         })
       },
@@ -148,6 +150,7 @@
         EventBus.$emit('removeModifyView', index)
       },
       getEstimateAmount (estimateData) {
+        console.log(estimateData)
         const func = calculator.func(`f(x) = ${estimateData.ru_calc_expression}`)
         const resourceAmount = parseFloat(func(estimateData.ed_input_value)).toFixed(2)
         estimateData.ed_resource_amount = resourceAmount
