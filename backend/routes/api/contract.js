@@ -74,7 +74,8 @@ router.get('/', (req, res) => {
     let query = cur('proceeding_contract_tbl')
       .select('*')
       .where('pc_deleted', false)
-      .andWhere('pc_completed', completed);
+      .andWhere('pc_completed', completed)
+      .orderBy('pc_recency');
 
     query = query
       .limit(pageData.limit)
