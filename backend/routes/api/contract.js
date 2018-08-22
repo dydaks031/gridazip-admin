@@ -74,7 +74,8 @@ router.get('/', (req, res) => {
     let query = cur('proceeding_contract_tbl')
       .select('*')
       .where('pc_deleted', false)
-      .andWhere('pc_completed', completed);
+      .andWhere('pc_completed', completed)
+      .orderBy('pc_recency');
 
     query = query
       .limit(pageData.limit)
@@ -412,6 +413,40 @@ router.delete('/:pcpk([0-9]+)/image/:sipk([0-9]+)', (req, res) => {
 
 
 // tabs :start
+
+router.get('/:pcpk([0-9]+)/customer/estimate/tabs', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
+
+  knexBuilder.getConnection().then(cur => {
+    let selectionFlag = true;
+    cur('estimate_tbl')
+      .count({count: 'es_pk'})
+      .where('es_pcpk', reqPcPk)
+      .andWhere('es_is_pre', false)
+      .then(response => {
+        if (response[0].count > 0) selectionFlag = false;
+        return cur('estimate_tbl')
+          .select('es_pk', 'es_version', 'es_is_pre')
+          .where('es_pcpk', reqPcPk)
+          .andWhere('es_is_pre', selectionFlag)
+          .orderBy('es_version', 'desc')
+      })
+      .then(response => {
+        res.json(
+          resHelper.getJson({
+            tabs: response,
+            selectionFlag
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('고객의 탭 정보를 조회하는 중 오류가 발생하였습니다.')
+        );
+      })
+  })
+});
 
 router.get('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
