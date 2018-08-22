@@ -426,7 +426,7 @@ router.get('/:pcpk([0-9]+)/customer/estimate/tabs', (req, res) => {
       .then(response => {
         if (response[0].count > 0) selectionFlag = false;
         return cur('estimate_tbl')
-          .select('es_pk', 'es_version', 'es_is_pre')
+          .select('es_pk', 'es_version', 'es_is_pre', 'es_reg_dt')
           .where('es_pcpk', reqPcPk)
           .andWhere('es_is_pre', selectionFlag)
           .orderBy('es_version', 'desc')

@@ -1,189 +1,246 @@
 <template>
   <div class="wrapper">
-    <div class="container outer">
-      <div class="container inner">
-        <div class="title-container is-hidden-mobile is-clearfix">
-          <h1 class="title is-hidden-mobile is-pulled-left">
-            실시간 <br> <b>인테리어 상세 견적서</b>
-          </h1>
-          <div class="is-pulled-right user-info-contents">
-            <h3 class="user-name"><b>그리다</b> 님</h3>
-            <div class="user-info is-clearfix">
-              <div class="contents is-pulled-left has-text-right">
-                <p>010-0000-0000</p>
-                <p>2018-09-01</p>
-                <p>32평</p>
-                <p>안양시 동안구 부림로</p>
-              </div>
-              <div class="label-view is-pulled-right has-text-right">
-                <p>연락처</p>
-                <p>이사일</p>
-                <p>평수</p>
-                <p>주소</p>
-              </div>
+    <div class="container guide">
+      <div class="title-container is-hidden-mobile is-clearfix">
+        <h1 class="title is-hidden-mobile is-pulled-left">
+          실시간 <br> <b>인테리어 상세 견적서</b>
+        </h1>
+        <div class="is-pulled-right user-info-contents">
+          <h3 class="user-name"><b>{{userInfo.pc_name}}</b> 님</h3>
+          <div class="user-info is-clearfix">
+            <div class="label-view is-pulled-right has-text-right">
+              <p>연락처</p>
+              <p>이사일</p>
+              <p>평수</p>
+              <p>주소</p>
             </div>
-          </div>
-        </div>
-        <div class="tabs is-hidden-desktop">
-          <ul>
-            <li class="is-active">상세견적서</li>
-            <li>시공현황</li>
-            <li>고객정보</li>
-          </ul>
-        </div>
-        <div class="btn-select-view">
-          <div class="select-view">
-            <label for="versionSelect">견적서 선택</label>
-            <div class="select">
-              <select id="versionSelect">
-                <option>2018-08-01 (v1.0)</option>
-                <option>2018-08-02 (v1.0)</option>
-                <option>2018-08-03 (v1.0)</option>
-              </select>
-            </div>
-          </div>
-          <div class="btn-view">
-            <button class="button white">시공현황보기</button>
-            <button class="button">인쇄하기</button>
-          </div>
-        </div>
-        <div class="estimate-contents">
-          <div class="content">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">공간별 견적</h3>
-              <i class="fa fa-angle-up is-pulled-right"></i>
-            </div>
-            <table class="table position-base-table" id="general-table">
-              <colgroup>
-                <col width="8%" />
-                <col width="5%" />
-                <col width="10%" />
-                <col width="10%" />
-                <col width="10%" />
-                <col width="auto" />
-                <col width="10%" />
-                <col width="10%" />
-              </colgroup>
-              <thead>
-              <tr>
-                <th>위치</th>
-                <th>공사</th>
-                <th>공정</th>
-                <th>상세공정</th>
-                <th>상세위치</th>
-                <th>자재</th>
-                <th class="has-text-right">인건비</th>
-                <th class="has-text-right">자재비</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
-                <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-                <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-                <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-                <td>{{generalData.cpd_name}}</td>
-                <td>{{generalData.detail_place}}</td>
-                <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-                <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
-                <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="content fold">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">자재비</h3>
-              <i class="fa fa-angle-down is-pulled-right"></i>
-              <span class="is-pulled-right money-summary"><b>9,944,000</b> 원</span>
-            </div>
-            <table class="table" id="resource-table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>자재분류</th>
-                <th>자재</th>
-                <th>물량</th>
-                <th>자재단위</th>
-                <th class="has-text-right">단가</th>
-                <th class="has-text-right">금액</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
-                <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
-                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                <td>{{resource.resource_amount}}</td>
-                <td>{{resource.ru_name}}</td>
-                <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
-                <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="content fold">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">인건비</h3>
-              <i class="fa fa-angle-down is-pulled-right"></i>
-              <span class="is-pulled-right money-summary"><b>12,905,320</b> 원</span>
-            </div>
-            <table class="table" id="labor-table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>공사</th>
-                <th>공정</th>
-                <th>상세공정</th>
-                <th>자재군</th>
-                <th class="has-text-right">인건비</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
-                <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
-                <td>{{labor.rt_name}}</td>
-                <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="content not-opened">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">설계비 및 감리비</h3>
-              <span class="is-pulled-right money-summary"><b>3,427,398</b> 원</span>
-            </div>
-          </div>
-          <div class="content not-opened">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">공과잡비</h3>
-              <span class="is-pulled-right money-summary"><b>1,142,466</b> 원</span>
-            </div>
-          </div>
-          <div class="content not-opened">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left discount">할인 금액</h3>
-              <span class="is-pulled-right money-summary discount"><b>- 0</b> 원</span>
-            </div>
-          </div>
-          <div class="content result">
-            <div class="title-container is-clearfix">
-              <h3 class="subtitle is-pulled-left">총 견적 금액</h3>
-              <span class="is-pulled-right money-summary"><b>27,419,000</b> 원</span>
+            <div class="contents is-pulled-right has-text-right">
+              <p>{{userInfo.pc_phone}}</p>
+              <p>{{(userInfo.pc_move_date === '0000-00-00 00:00:00' || !userInfo.pc_move_date ) ? '-' : moment(userInfo.pc_move_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p>
+              <p>{{userInfo.pc_size}}</p>
+              <p>{{userInfo.pc_address_brief}} {{userInfo.pc_address_detail}}</p>
             </div>
           </div>
         </div>
       </div>
+      <div class="tabs is-hidden-desktop">
+        <ul>
+          <li class="is-active">상세견적서</li>
+          <li>시공현황</li>
+          <li>고객정보</li>
+        </ul>
+      </div>
+      <div class="tabs is-hidden-mobile">
+        <ul>
+          <li :class="{'is-active' : openTabData.estimate}" @click="changeTab('estimate')"><span>견적서 보기</span></li>
+          <li :class="{'is-active' : openTabData.photo}" @click="changeTab('photo')"><span>시공현황 보기</span></li>
+        </ul>
+      </div>
+      <div class="container outer">
+        <div class="container inner" :class="{hide: !openTabData.estimate, current: openTabData.estimate}">
+          <div class="btn-select-view">
+            <div class="select-view">
+              <label for="versionSelect">견적서 선택</label>
+              <div class="select">
+                <select id="versionSelect" v-model="selectedTab" @change="loadEstimateView">
+                  <option v-if="!selectionFlag" value="">현황 ({{ moment().format('YYYY-MM-DD') }})</option>
+                  <option v-for="(tab, index) in estimateCurrentTabs" :value="tab.es_pk">
+                    {{tab.es_version}}.0v - {{ getComputedDate(tab.es_reg_dt)}}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="btn-view">
+              <button class="button">인쇄하기</button>
+            </div>
+          </div>
+          <div class="estimate-contents">
+            <div class="content" :class="{fold: isFoldStatus.general}" ref="generalTable">
+              <div class="title-container is-clearfix" @click="toggleTable('general')">
+                <h3 class="subtitle is-pulled-left">공간별 견적</h3>
+                <i class="fa is-pulled-right" :class="{'fa-angle-up' : !isFoldStatus.general, 'fa-angle-down': isFoldStatus.general}"></i>
+              </div>
+              <div class="fold-view">
+                <table class="table position-base-table" id="general-table">
+                  <colgroup>
+                    <col width="8%" />
+                    <col width="5%" />
+                    <col width="10%" />
+                    <col width="10%" />
+                    <col width="10%" />
+                    <col width="auto" />
+                    <col width="10%" />
+                    <col width="10%" />
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>위치</th>
+                    <th>공사</th>
+                    <th>공정</th>
+                    <th>상세공정</th>
+                    <th>상세위치</th>
+                    <th>자재</th>
+                    <th class="has-text-right">인건비</th>
+                    <th class="has-text-right">자재비</th>
+                  </tr>
+                  </thead>
+                    <transition-group name="list" mode="out-in" tag="tbody">
+                      <tr class="list-item"
+                          :class="{'is-summary': generalData.is_summary}"
+                          v-for="(generalData, index) in viewerData.general"
+                          v-if="rowHideCondition(generalData, index)"
+                          @click="openSubResource(generalData)"
+                          v-bind:key="index">
+                        <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count - 1">{{generalData.place_name}}</td>
+                        <td class="construction" v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count" :colspan="generalData.is_summary ? 6 : 1">{{generalData.ct_name}}</td>
+                        <td v-if="!generalData.is_summary && generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+                        <td v-if="!generalData.is_summary">{{generalData.cpd_name}}</td>
+                        <td v-if="!generalData.is_summary">{{generalData.detail_place}}</td>
+                        <td v-if="!generalData.is_summary">{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+                        <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
+                        <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
+                      </tr>
+                    </transition-group>
+                </table>
+                <div class="more-btn-container">
+                  <button class="more-btn button" @click="toggleMoreData('general')">더보기</button>
+                </div>
+              </div>
+            </div>
+            <div class="content" :class="{fold: isFoldStatus.resource}" ref="resourceTable">
+              <div class="title-container is-clearfix" @click="toggleTable('resource')">
+                <h3 class="subtitle is-pulled-left">자재비</h3>
+                <i class="fa fa-angle-down is-pulled-right" :class="{'fa-angle-up' : !isFoldStatus.resource, 'fa-angle-down': isFoldStatus.resource}"></i>
+                <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.resource_costs)}}</b> 원</span>
+              </div>
+              <div class="fold-view">
+                <table class="table" id="resource-table">
+                  <colgroup>
+                    <col width="auto"/>
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>자재분류</th>
+                    <th>자재</th>
+                    <th>물량</th>
+                    <th>자재단위</th>
+                    <th class="has-text-right">단가</th>
+                    <th class="has-text-right">금액</th>
+                  </tr>
+                  </thead>
+                    <transition-group name="list" mode="out-in" tag="tbody">
+                      <tr
+                        class="list-item"
+                        :class="{'is-summary': resource.is_summary}"
+                        v-for="(resource, index) in viewerData.resource"
+                        v-if="resource.resource_costs !== 0 && (index <= 10 || isMoreBtnStatus.resource)"
+                        v-bind:key="index" >
+                        <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
+                        <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
+                        <td>{{resource.resource_amount}}</td>
+                        <td>{{resource.ru_name}}</td>
+                        <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                        <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
+                      </tr>
+                    </transition-group>
+                </table>
+                <div class="more-btn-container">
+                  <button class="more-btn button" @click="toggleMoreData('resource')">더보기</button>
+                </div>
+              </div>
+            </div>
+            <div class="content" :class="{fold: isFoldStatus.labor}" ref="laborTable">
+              <div class="title-container is-clearfix" @click="toggleTable('labor')">
+                <h3 class="subtitle is-pulled-left">인건비</h3>
+                <i class="fa fa-angle-down is-pulled-right" :class="{'fa-angle-up' : !isFoldStatus.labor, 'fa-angle-down': isFoldStatus.labor}"></i>
+                <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.labor_costs)}}</b> 원</span>
+              </div>
+              <div class="fold-view">
+                <table class="table" id="labor-table">
+                  <colgroup>
+                    <col width="auto"/>
+                  </colgroup>
+                  <thead>
+                  <tr>
+                    <th>공사</th>
+                    <th>공정</th>
+                    <th>상세공정</th>
+                    <th>자재군</th>
+                    <th class="has-text-right">인건비</th>
+                  </tr>
+                  </thead>
+                  <transition-group name="list" mode="out-in" tag="tbody">
+                    <tr
+                      class="list-item"
+                      :class="{'is-summary': labor.is_summary}"
+                      v-for="(labor, index) in viewerData.labor"
+                      v-if="labor.labor_costs !== 0 && (index <= 10 || isMoreBtnStatus.labor)"
+                      v-bind:key="index" >
+                      <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                      <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                      <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
+                      <td>{{labor.rt_name}}</td>
+                      <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
+                    </tr>
+                  </transition-group>
+                </table>
+                <div class="more-btn-container">
+                  <button class="more-btn button" @click="toggleMoreData('labor')">더보기</button>
+                </div>
+              </div>
+            </div>
+            <div class="content not-opened">
+              <div class="title-container is-clearfix">
+                <h3 class="subtitle is-pulled-left">공과잡비</h3>
+                <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.etc_costs)}}</b> 원</span>
+              </div>
+            </div>
+            <div class="content not-opened">
+              <div class="title-container is-clearfix">
+                <h3 class="subtitle is-pulled-left">설계비 및 감리비</h3>
+                <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.design_costs + viewerData.total.supervision_costs)}}</b> 원</span>
+              </div>
+            </div>
+            <div class="content not-opened">
+              <div class="title-container is-clearfix">
+                <h3 class="subtitle is-pulled-left discount">할인 금액</h3>
+                <span class="is-pulled-right money-summary discount"><b>- {{addCommas(viewerData.total.discount_amount)}}</b> 원</span>
+              </div>
+            </div>
+            <div class="content result">
+              <div class="title-container is-clearfix">
+                <h3 class="subtitle is-pulled-left">총 견적 금액</h3>
+                <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}</b> 원</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div class="container inner" :class="{hide: !openTabData.photo, current: openTabData.photo}">
+          <div class="estimate-photo-view">
+            <div v-for="date in siteImageDateList" class="photo-date-container">
+              <h1 class="subtitle">{{getDateName(date)}}</h1>
+              <div class="photo-list">
+                <div class="image-box" v-for="(image, index) in siteImageList[date]" :key="index" >
+                  <img :src="image.si_url" class="slide-image"
+                       @click="openImageModal({image, index, siteImageList: siteImageList[date]})"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <estimate-auth-view
       :beforeClose="loadEstimateView"
       :isCloseModal.sync="isCloseModal"
       v-on:changeCloseModalStatus="changeCloseModalStatus"/>
+    <ImageEnlargedView
+      :image="enlargedImage.image"
+      :imageGroup="enlargedImage.imageGroup"
+      :index="enlargedImage.index"
+    />
   </div>
 </template>
 
@@ -195,17 +252,30 @@
   import deepClone from '../../services/deepClone'
   import EstimateAuthView from './EstimateAuthView'
   import _ from 'underscore'
+  import moment from 'moment'
+  import { Carousel, Slide } from 'vue-carousel'
+  import ImageEnlargedView from './ImageEnlargedView'
 
   const queryApi = '/api/contract'
 
   export default {
-    components: {EstimateAuthView},
+    components: {
+      EstimateAuthView,
+      ImageEnlargedView,
+      Carousel,
+      Slide
+    },
     name: 'estimate-sheet',
     mixins: [mixin],
     data () {
       return {
+        moment,
         param: {},
         mergeRestTime: false,
+        openTabData: {
+          estimate: true,
+          photo: false
+        },
         viewerData: {
           general: [],
           labor: [],
@@ -226,15 +296,25 @@
           labor: false,
           resource: false
         },
-        isCloseModal: false
+        isFoldStatus: {
+          general: false,
+          labor: true,
+          resource: true
+        },
+        siteImageList: {},
+        enlargedImage: {
+          image: {},
+          imageGroup: [],
+          index: 0
+        },
+        siteImageDateList: [],
+        isCloseModal: false,
+        estimateCurrentTabs: {},
+        selectionFlag: false,
+        selectedTab: ''
       }
     },
     methods: {
-      moveToRegister () {
-        router.push({
-          path: `/private/estimate/${this.param.id}/register`
-        })
-      },
       printPage () {
         EventBus.$emit('togglePrintMode')
         window.setTimeout(() => {
@@ -426,7 +506,7 @@
               return memo + obj.resource_costs
             }, 0),
             rs_code: '',
-            rs_name: '',
+            rs_name: '소계',
             rs_price: '',
             ru_name: '',
             is_summary: true
@@ -443,7 +523,7 @@
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in resourceCategoryByData) {
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
-            return item.rs_price.toString() !== '0'
+            return item.resource_costs.toString() !== '0'
           })
           if (resourceCategoryItem.length === 0) {
             continue
@@ -463,7 +543,7 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-          if (item.rs_price.toString() === '0') {
+          if (item.resource_costs.toString() === '0') {
             continue
           }
           if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
@@ -591,6 +671,8 @@
       },
       loadEstimateView () {
         const id = this.pc_pk
+        const isPre = this.estimateIsPre
+        const esPk = this.selectedTab
         let userInfo
         let general
         let labor
@@ -599,13 +681,14 @@
         if (!id) {
           return false
         }
+
         this.$http.get(`${queryApi}/${id}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
             }
             userInfo = response.data.data.contract
-            return this.$http.get(`${queryApi}/${id}/estimate/general?es_is_pre=false`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/general?es_is_pre=${isPre}`)
           })
 
           .then((response) => {
@@ -613,21 +696,43 @@
               return false
             }
             general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor?es_is_pre=false`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/labor?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource?es_is_pre=false`)
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total?es_is_pre=false`)
+            return this.$http.get(`${queryApi}/${id}/image`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            const siteImageList = response.data.data.siteImageList
+            _.forEach(siteImageList, (siteImage) => {
+              const dateToMoment = moment(siteImage.si_reg_dt, 'YYYY-MM-DDTTHH:mm:ss:SSSZ')
+              const date = dateToMoment.isValid() ? dateToMoment.format('YYYY-MM-DD') : ''
+              if (!this.siteImageList[date]) {
+                this.siteImageList[date] = []
+              }
+              this.siteImageList[date].push(siteImage)
+              this.siteImageDateList.push(date)
+            })
+            this.siteImageDateList = _.chain(this.siteImageDateList)
+              .uniq()
+              .sortBy((item) => {
+                return moment(item, 'YYYY-MM-DD').format('X')
+              })
+              .value()
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/total?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
@@ -652,6 +757,25 @@
             console.log(error)
           })
       },
+      getTabList () {
+        const id = this.pc_pk
+        return this.$http.get(`${queryApi}/${id}/customer/estimate/tabs`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            const data = response.data.data
+            this.estimateCurrentTabs = data.tabs
+            this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
+            if (this.estimateCurrentTabs.length > 0) {
+              if (this.estimateIsPre) {
+                this.selectedTab = this.estimateCurrentTabs[0].es_pk
+              } else {
+                this.selectedTab = ''
+              }
+            }
+          })
+      },
       changeCloseModalStatus (result) {
         if (window.hasOwnProperty('sessionStorage')) {
           window.sessionStorage.setItem('pc_pk', result.pc_pk)
@@ -659,14 +783,21 @@
         this.isCloseModal = result.closeStatus
         this.pc_pk = result.pc_pk
         if (this.isCloseModal) {
-          this.loadEstimateView()
+          this.getTabList()
+            .then(() => {
+              this.loadEstimateView()
+            })
         }
       },
       rowHideCondition (item, index) {
-        return (item.rt_sub === 0 || (item.hasOwnProperty('sub_key') && this.isOpenSubResource[item.sub_key] === true)) && (index <= 5 || this.isMoreBtnStatus.general)
+        return (item.rt_sub === 0 || (item.hasOwnProperty('sub_key') && this.isOpenSubResource[item.sub_key] === true)) && (index <= 10 || this.isMoreBtnStatus.general)
       },
       toggleMoreData (type) {
         this.isMoreBtnStatus[type] = !this.isMoreBtnStatus[type]
+        if (!this.isMoreBtnStatus[type]) {
+          const target = this.$refs[`${type}Table`]
+          this.$scrollTo(target)
+        }
       },
       getFullAddress (brief, detail) {
         if (!(brief || detail)) {
@@ -674,6 +805,32 @@
         } else {
           return `${brief} ${detail}`
         }
+      },
+      toggleTable (type) {
+        this.isFoldStatus[type] = !this.isFoldStatus[type]
+      },
+      changeTab (target) {
+        for (let i in this.openTabData) {
+          if (this.openTabData.hasOwnProperty(i)) {
+            this.openTabData[i] = i === target
+          }
+        }
+      },
+      getDateName (date) {
+        const dateToMoment = moment(date, 'YYYY-MM-DD')
+        const today = moment()
+        if (dateToMoment.format('YYYY') === today.format('YYYY')) {
+          return dateToMoment.format('MM월 DD일')
+        } else {
+          return dateToMoment.format('YYYY년 MM월 DD일')
+        }
+      },
+      openImageModal (options) {
+        this.enlargedImage.image = options.image
+        this.enlargedImage.index = options.index
+        this.enlargedImage.imageGroup = options.siteImageList
+
+        this.$modal.show('imageEnlargedView')
       }
     },
     mounted () {
@@ -714,11 +871,5 @@
 <style scoped lang="scss" src="./estimate.scss"></style>
 <style scoped lang="scss" src="./estimate-mediaquery.scss"></style>
 <style scoped lang="scss">
-  .content {
-    &.fold {
-      table {
-        display: none;
-      }
-    }
-  }
+
 </style>

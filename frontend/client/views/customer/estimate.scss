@@ -2,24 +2,120 @@ $main-color: #9dadff;
 .wrapper {
   background: $main-color;
   padding: 50px;
+  .hide {
+    animation: hideAnim .5s;
+    display:none;
+  }
+
+  .current {
+    animation: showAnim .5s;
+    display: block;
+  }
+
+  @keyframes showAnim {
+    0% {
+      display: none;
+      opacity: 0;
+    }
+    1% {
+      display: block;
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+
+  @keyframes hideAnim {
+    0% {
+      display: block;
+      opacity: 1;
+    }
+    1% {
+      display: none;
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
 
   .container {
     &.outer {
       background:white;
-      max-width:1280px;
+      max-width: 1280px;
     }
 
     &.inner {
       padding:4rem;
+      margin: 0 auto;
+      max-width: 1280px;
+    }
+
+    &.guide {
+      max-width:1280px;
+      margin: 0 auto;
+    }
+  }
+
+  .tabs {
+    margin-bottom: 0;
+    ul {
+      border-bottom: 0;
+      li {
+        display: block;
+        width: 15rem;
+        height: 4.6rem;
+        border-top-left-radius: 7px;
+        border-top-right-radius: 7px;
+        background-color: #ccd4ff;
+        text-align: center;
+        margin: 0 0.35rem;
+        cursor: pointer;
+
+        span {
+          display: inline-block;
+          vertical-align: middle;
+          font-size: 1.5rem;
+          color: #ffffff;
+        }
+
+        &.is-active {
+          background-color: white;
+          span {
+            color: #869aff;
+          }
+        }
+
+        &:first-child {
+          margin: 0 0.35rem 0 0;
+        }
+        &:last-child {
+          margin: 0 0 0 0.35rem;
+        }
+        &:before{
+          content: '';
+          display: inline-block;
+          vertical-align: middle;
+          height: 100%;
+        }
+      }
+
     }
   }
 
   .title-container {
+    color: white;
+    padding-bottom: 3rem;
+
     .title {
       font-size: 3rem;
       line-height: 1.34;
+      color: white;
     }
   }
+
   .user-info-contents {
     .user-name {
       font-size: 1.4rem;
@@ -29,7 +125,7 @@ $main-color: #9dadff;
       &::after {
         margin-left:calc(100% - 100px);
         content: " ";
-        border: 1px solid $main-color;
+        border: 1px solid white;
         margin-top: 0.2rem;
         margin-bottom: 1.8rem;
         display: block;
@@ -38,7 +134,7 @@ $main-color: #9dadff;
     }
     .user-info {
       font-size: 1.14rem;
-      color: #333333;
+      color: white;
       .contents {
         margin-right: 0.8rem;
       }
@@ -48,6 +144,7 @@ $main-color: #9dadff;
       }
     }
   }
+
   .btn-select-view {
     display: flex;
     justify-content: space-between;
@@ -112,8 +209,9 @@ $main-color: #9dadff;
     .content {
       border-bottom: 1px solid #e1e1e1;
       padding-bottom: 1.5rem;
+      margin-bottom: 0;
       .title-container {
-        margin: 1.3rem 0 1.3rem 0.7rem;
+        padding: 1.3rem 0 1.3rem 0.7rem;
         .subtitle {
           margin: 0;
           color: $main-color;
@@ -137,6 +235,9 @@ $main-color: #9dadff;
             color: #aaaaaa;
           }
         }
+        .fold-view {
+          display:none;
+        }
       }
 
       &.not-opened {
@@ -159,7 +260,7 @@ $main-color: #9dadff;
 
       &.result {
         .title-container {
-          margin: 2.5rem 0 1.3rem 0.7rem;
+          padding: 2.5rem 0 1.3rem 0.7rem;
           .subtitle {
             color: black;
             font-size: 2.28rem;
@@ -188,12 +289,93 @@ $main-color: #9dadff;
         }
 
         tbody {
+          tr {
+            &.is-summary {
+              td {
+                background: #f5f5f5;
+                font-weight: bold;
+              }
+              .construction {
+                text-align: right;
+              }
+            }
+            &:last-child {
+              td {
+                border-bottom-width: 1px;
+              }
+            }
+          }
+        }
+      }
+      .list-enter-active, .list-leave-active {
+        transition: all 0.2s;
+      }
+      .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
+        opacity: 0;
+        transform: translateY(30px);
+      }
 
+      .more-btn-container {
+        text-align: center;
+        padding: 1.3rem 0 3rem 0;
+        .more-btn {
+          width: 180px;
+          height: 53px;
+          border-radius: 3px;
+          background-color: #ffffff;
+          border: solid 1px #e1e1e1;
+          font-size:1.5rem;
+          color: #333333;
         }
       }
       .money-summary {
         font-size: 1.7rem;
         margin-right: 1rem;
+      }
+    }
+  }
+
+  .estimate-photo-view {
+    .subtitle {
+      font-weight: 400;
+      font-size: 1.5rem;
+      margin-left: 0.78rem;
+    }
+
+    .photo-date-container {
+      .photo-list {
+        .image-box {
+          position: relative;
+          width: calc(20% - 0.8rem);		/* desired width */
+          overflow: hidden;
+          display:inline-block;
+          margin: 0 0.5rem 0.5rem 0.5rem;
+
+          &:nth-child(5n+1){
+            margin: 0 0.5rem 0.5rem 0;
+          }
+
+          &:nth-child(5n+5){
+            margin: 0 0 0.5rem 0.5rem;
+          }
+
+          &:before {
+            content: "";
+            display: block;
+            padding-top: 100%;
+          }
+
+          .slide-image {
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+          }
+        }
       }
     }
   }
