@@ -1,0 +1,299 @@
+$main-color: #9dadff;
+
+// mobile
+@media screen and (max-width: 999px) {
+  .wrapper {
+    background: #f8f7fc;
+    padding: 0;
+    color: #333333;
+
+    .container {
+      .inner {
+        max-width: 100%;
+        padding: 0;
+        overflow: auto;
+        max-height: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+      .outer {
+        background: inherit;
+        height: calc(100vh - 3.5rem - 1rem);
+      }
+    }
+    .title-container {
+      padding: 0;
+    }
+
+    .btn-select-view {
+      display: block;
+      margin: 0 0 1rem 0;
+      padding: 0 1.5rem 1.15rem 1.5rem;
+      box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
+      background: white;
+
+      .select-view {
+        text-align: center;
+        max-width: 100%;
+        padding: 1.4rem 0;
+        border-bottom: 1px solid #e1e1e1;
+
+        label {
+          font-size: 1rem;
+          display: inline;
+          vertical-align: middle;
+          margin-right: 1rem;
+          font-weight: bold;
+        }
+
+        div.select {
+          width: 193px;
+          height: 28px;
+          background-color: #ffffff;
+          border: solid 1px #e1e1e1;
+        }
+
+        select {
+          width: 193px;
+          height: 28px;
+          font-size: 1rem;
+        }
+      }
+
+      .money-summary {
+        text-align: center;
+        margin: 1.35rem 0 2.2rem 0;
+        .subtitle {
+          font-size: 1.1rem;
+          font-weight: bold;
+          margin-bottom: 0.8rem;
+        }
+
+        p {
+          line-height: 1.1;
+          font-size: 1.4rem;
+          b {
+            font-size: 2.8rem;
+          }
+        }
+      }
+    }
+
+    .estimate-contents {
+      .content {
+        .title-container {
+          padding: 1.1rem 0;
+
+          .subtitle {
+            font-size: 1.1rem;
+          }
+
+          i {
+            line-height: 0.8;
+          }
+
+          .money-summary {
+            color: black;
+            font-size: 1.1rem;
+          }
+        }
+
+        &.fold, &.not-opened {
+          .title-container {
+
+          }
+        }
+      }
+      .table {
+        thead {
+          th {
+            &.has-text-right {
+              text-align: right;
+            }
+          }
+        }
+        tbody {
+          tr {
+            td {
+              font-size: 0.9rem;
+            }
+          }
+        }
+      }
+    }
+
+    .tabs {
+      margin-bottom: 1rem;
+      box-shadow: 0px 0px 3px 0 rgba(4, 0, 0, 0.1);
+      width: 100%;
+      background-color: white;
+      ul {
+        li {
+          height: 3.5rem;
+          span {
+            font-weight: bold;
+            color: black;
+            vertical-align: bottom;
+            font-size: 1rem;
+            padding-bottom: calc(0.5rem + 3px);
+          }
+
+          width: 100%;
+          background: white;
+
+          &.is-active {
+            span {
+              color: $main-color;
+              border-bottom: 3px solid $main-color;
+              padding-bottom: 0.5rem;
+            }
+          }
+        }
+      }
+    }
+
+    .estimate-contents {
+      padding: 0 1.5rem;
+      background-color: white;
+      .content {
+        &:last-child {
+          border-bottom: 0;
+        }
+      }
+      .general-table {
+
+      }
+    }
+    .estimate-photo-view {
+
+      background: white;
+      box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
+      padding: 1.4rem;
+      .subtitle {
+        font-size: 1rem;
+        margin-bottom: 0.7rem;
+        margin-left: 0;
+      }
+
+      .photo-date-container {
+        .photo-list {
+          margin-bottom: 1.05rem;
+          .image-box {
+            position: relative;
+            width: calc(33.3% - 0.4rem); /* desired width */
+            overflow: hidden;
+            display: inline-block;
+            margin: 0 0.25rem 0.25rem 0.25rem;
+
+            &:nth-child(5n+1) {
+              margin: 0 0.25rem 0.25rem 0.25rem;
+            }
+
+            &:nth-child(5n+5) {
+              margin: 0 0.25rem 0.25rem 0.25rem;
+            }
+
+            &:nth-child(3n+1) {
+              margin: 0 0.25rem 0.25rem 0 !important;
+            }
+
+            &:nth-child(3n+3) {
+              margin: 0 0 0.25rem 0.25rem !important;
+            }
+
+            &:before {
+              content: "";
+              display: block;
+              padding-top: 100%;
+            }
+
+            .slide-image {
+              cursor: pointer;
+              height: 100%;
+              width: 100%;
+              position: absolute;
+              top: 0;
+              left: 0;
+              bottom: 0;
+              right: 0;
+            }
+          }
+        }
+      }
+    }
+    .user-info-view {
+      .user-info-container {
+        margin: 0 1.6rem 1.6rem;
+        padding: 1.4rem;
+        background: white;
+        box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
+        .user-name-view {
+          border-bottom: 1px solid #e1e1e1;
+          padding-bottom: 1.4rem;
+          .profile-image-view {
+            text-align: center;
+          }
+          .user-name {
+            font-size: 1.1rem;
+            text-align: center;
+          }
+        }
+        .user-info {
+          padding-top: 1.4rem;
+
+          > div {
+            padding-bottom: 2.2rem;
+            .subtitle {
+              margin-bottom: 0;
+              font-weight: bold;
+              font-size: 1.05rem;
+            }
+          }
+        }
+      }
+    }
+
+    // Swipe Module Library
+    // Check this css when You want to update Vue Swipe Library
+    .mint-swipe, .mint-swipe-items-wrap {
+      overflow: hidden;
+      position: relative;
+      height: 100%
+    }
+    .mint-swipe-items-wrap {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0)
+    }
+    .mint-swipe-items-wrap > div {
+      position: absolute;
+      -webkit-transform: translateX(-100%);
+      transform: translateX(-100%);
+      width: 100%;
+      height: 100%;
+      display: none
+    }
+    .mint-swipe-items-wrap > div.is-active {
+      display: block;
+      -webkit-transform: none;
+      transform: none
+    }
+    .mint-swipe-indicators {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%)
+    }
+    .mint-swipe-indicator {
+      width: 8px;
+      height: 8px;
+      display: inline-block;
+      border-radius: 100%;
+      background: #000;
+      opacity: .2;
+      margin: 0 3px
+    }
+    .mint-swipe-indicator.is-active {
+      background: #fff
+    }
+  }
+}

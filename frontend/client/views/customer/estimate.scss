@@ -25,8 +25,6 @@ $main-color: #9dadff;
       opacity: 1;
     }
   }
-
-
   @keyframes hideAnim {
     0% {
       display: block;
@@ -290,6 +288,13 @@ $main-color: #9dadff;
 
         tbody {
           tr {
+            td {
+              .resource-code {
+                display: block;
+                font-size: .8rem;
+                color: #777;
+              }
+            }
             &.is-summary {
               td {
                 background: #f5f5f5;
