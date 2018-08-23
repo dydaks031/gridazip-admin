@@ -741,7 +741,7 @@
       },
       loadEstimateView () {
         const id = this.pc_pk
-        const isPre = this.estimateIsPre
+        const isPre = this.selectionFlag
         const esPk = this.selectedTab
         let userInfo
         let general
@@ -838,7 +838,7 @@
             this.estimateCurrentTabs = data.tabs
             this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
             if (this.estimateCurrentTabs.length > 0) {
-              if (this.estimateIsPre) {
+              if (this.selectionFlag) {
                 this.selectedTab = this.estimateCurrentTabs[0].es_pk
               } else {
                 this.selectedTab = ''
