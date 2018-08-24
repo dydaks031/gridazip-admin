@@ -18,7 +18,7 @@ const mixin = {
     },
     isMobile () {
       let isMobile = false
-      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      if (window.matchMedia('(max-width: 999px)').matches) {
         isMobile = true
       }
       return isMobile

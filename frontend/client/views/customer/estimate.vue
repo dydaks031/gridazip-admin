@@ -5,7 +5,7 @@
         <h1 class="title is-hidden-mobile is-pulled-left">
           실시간 <br> <b>인테리어 상세 견적서</b>
         </h1>
-        <div class="is-pulled-right user-info-contents">
+        <div class="is-pulled-right user-info-contents is-hidden-touch">
           <h3 class="user-name"><b>{{userInfo.pc_name}}</b> 님</h3>
           <div class="user-info is-clearfix">
             <div class="label-view is-pulled-right has-text-right">
@@ -123,7 +123,7 @@
                         </tr>
                       </transition-group>
                   </table>
-                  <div class="more-btn-container">
+                  <div class="more-btn-container" v-if="viewerData.general.length > 10">
                     <button class="more-btn button" @click="toggleMoreData('general')">더보기</button>
                   </div>
                 </div>
@@ -170,7 +170,7 @@
                         </tr>
                       </transition-group>
                   </table>
-                  <div class="more-btn-container">
+                  <div class="more-btn-container" v-if="viewerData.resource.length > 10">
                     <button class="more-btn button" @click="toggleMoreData('resource')">더보기</button>
                   </div>
                 </div>
@@ -210,7 +210,7 @@
                       </tr>
                     </transition-group>
                   </table>
-                  <div class="more-btn-container">
+                  <div class="more-btn-container" v-if="viewerData.labor.length > 10">
                     <button class="more-btn button" @click="toggleMoreData('labor')">더보기</button>
                   </div>
                 </div>
@@ -233,7 +233,7 @@
                   <span class="is-pulled-right money-summary discount"><b>- {{addCommas(viewerData.total.discount_amount)}}</b> 원</span>
                 </div>
               </div>
-              <div class="content result is-hidden-touch" v-if="isMobile()">
+              <div class="content result is-hidden-touch">
                 <div class="title-container is-clearfix">
                   <h3 class="subtitle is-pulled-left">총 견적 금액</h3>
                   <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}</b> 원</span>
@@ -243,7 +243,7 @@
           </div>
           </swipe-item>
           <swipe-item>
-            <div class="container inner photo-view" :class="{hide: !openTabData.photo && !isMobile(), current: openTabData.photo}">
+            <div class="container inner photo-view" :class="{hide: !openTabData.photo, current: openTabData.photo}">
               <div class="estimate-photo-view">
                 <div v-for="date in siteImageDateList" class="photo-date-container">
                   <h1 class="subtitle">{{getDateName(date)}}</h1>
@@ -259,7 +259,7 @@
             </div>
           </swipe-item>
           <swipe-item>
-            <div class="container inner user-info-view" v-if="isMobile()">
+            <div class="container inner user-info-view is-hidden-desktop">
               <div class="user-info-container">
                 <div class="user-name-view">
                   <div class="profile-image-view">
