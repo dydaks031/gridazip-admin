@@ -767,6 +767,7 @@
       cursor: pointer;
     }
   }
+</style>
 
 <style scoped lang="scss">
   @media screen and (max-width: 768px) {

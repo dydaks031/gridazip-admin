@@ -1,5 +1,5 @@
 <template>
-  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="isMobile() ? '90%' : 650" :height="'auto'" :clickToClose="true">
+  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="modalWidth" :height="'auto'" :clickToClose="true" @before-open="beforeOpen">
     <div class="modal-card-head" @click="$modal.hide('imageEnlargedView')">
       <span class="close"></span>
     </div>
@@ -24,13 +24,29 @@
     },
     data () {
       return {
+        modalWidth: 650
       }
     },
     methods: {
-
+      beforeOpen () {
+        console.log(this.$modal)
+        if (this.isMobile()) {
+          this.modalWidth = '90%'
+        } else {
+          this.modalWidth = 650
+        }
+      }
     }
   }
 </script>
+
+<style lang="scss">
+  .image-enlarged-view {
+    max-width: 90%;
+    margin: 0 auto;
+    left: 0 !important;
+  }
+</style>
 
 <style scoped lang="scss">
   .modal-card-head {

@@ -869,7 +869,13 @@
         this.isMoreBtnStatus[type] = !this.isMoreBtnStatus[type]
         if (!this.isMoreBtnStatus[type]) {
           const target = this.$refs[`${type}Table`]
-          this.$scrollTo(target)
+          if (this.isMobile()) {
+            this.$scrollTo(target, 500, {
+              container: '.container.inner.current'
+            })
+          } else {
+            this.$scrollTo(target)
+          }
         }
       },
       getFullAddress (brief, detail) {
