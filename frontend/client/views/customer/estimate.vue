@@ -786,6 +786,9 @@
             if (response.data.code !== 200) {
               return false
             }
+            this.siteImageList = {}
+            this.siteImageDateList = []
+
             const siteImageList = response.data.data.siteImageList
             _.forEach(siteImageList, (siteImage) => {
               const dateToMoment = moment(siteImage.si_reg_dt, 'YYYY-MM-DDTTHH:mm:ss:SSSZ')
@@ -908,6 +911,15 @@
       },
       changeMobileMenu (index) {
         this.$refs.swipeView.goto(index)
+      },
+      checkScrollBlockToMobileDevice (e) {
+        if (this.isMobile()) {
+          document.getElementsByTagName('html')[0].classList.add('v--modal-block-scroll')
+          document.body.classList.add('v--modal-block-scroll')
+        } else {
+          document.getElementsByTagName('html')[0].classList.remove('v--modal-block-scroll')
+          document.body.classList.remove('v--modal-block-scroll')
+        }
       }
     },
     mounted () {
@@ -922,6 +934,8 @@
           this.$modal.show('estimateAuthView')
         }
       }
+      window.addEventListener('resize', this.checkScrollBlockToMobileDevice)
+      this.checkScrollBlockToMobileDevice()
     },
     created () {
     },
@@ -948,4 +962,5 @@
 <style scoped lang="scss" src="./estimate.scss"></style>
 <style scoped lang="scss" src="./estimate-mediaquery.scss"></style>
 <style lang="scss">
+
 </style>

@@ -16,13 +16,14 @@ $main-color: #9dadff;
       .inner {
         max-width: 100%;
         padding: 0;
-        overflow: auto;
+        overflow-y: auto;
         max-height: 100%;
         -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
       }
       .outer {
         background: inherit;
-        height: calc(100vh - 3.5rem - 1rem);
+        height: calc(100vh - 3.5rem);
       }
     }
     .title-container {
@@ -31,7 +32,7 @@ $main-color: #9dadff;
 
     .btn-select-view {
       display: block;
-      margin: 0 0 1rem 0;
+      margin: 1rem 0 1rem 0;
       padding: 0 1.5rem 1.15rem 1.5rem;
       box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
       background: white;
@@ -84,7 +85,14 @@ $main-color: #9dadff;
     }
 
     .estimate-contents {
+      padding: 0 1.5rem 5rem 1.5rem;
+      background-color: white;
+
       .content {
+        &:last-child {
+          border-bottom: 0;
+        }
+
         .title-container {
           padding: 1.1rem 0;
 
@@ -127,10 +135,11 @@ $main-color: #9dadff;
     }
 
     .tabs {
-      margin-bottom: 1rem;
       box-shadow: 0px 0px 3px 0 rgba(4, 0, 0, 0.1);
       width: 100%;
       background-color: white;
+      border-bottom: 1px solid #e8e7eb;
+
       ul {
         li {
           height: 3.5rem;
@@ -156,23 +165,11 @@ $main-color: #9dadff;
       }
     }
 
-    .estimate-contents {
-      padding: 0 1.5rem;
-      background-color: white;
-      .content {
-        &:last-child {
-          border-bottom: 0;
-        }
-      }
-      .general-table {
-
-      }
-    }
     .estimate-photo-view {
-
       background: white;
       box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
       padding: 1.4rem;
+      margin-top: 1rem;
       .subtitle {
         font-size: 1rem;
         margin-bottom: 0.7rem;
@@ -225,9 +222,10 @@ $main-color: #9dadff;
         }
       }
     }
+
     .user-info-view {
       .user-info-container {
-        margin: 0 1.6rem 1.6rem;
+        margin: 1rem 1.6rem 1.6rem;
         padding: 1.4rem;
         background: white;
         box-shadow: 0px 1px 3px 0 rgba(4, 0, 0, 0.1);
