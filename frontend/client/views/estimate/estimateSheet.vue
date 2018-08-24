@@ -5,7 +5,7 @@
       <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre && selectionFlag">복제</a>
       <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre && selectionFlag">채택</a>
-      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && !(estimateIsPre ^ selectionFlag)">
+      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && !(estimateIsPre ^ selectionFlag) && (selectedTab !== '' || estimateIsPre)">
         <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
           등록
         </span>
@@ -319,6 +319,7 @@
           if (response.data.code !== 200) {
             return false
           }
+          this.selectionFlag = false
           openNotification({
             message: '선택한 견적서가 상세 견적서로 이동하였습니다.',
             type: 'success',
@@ -343,9 +344,8 @@
               })
             })
         } else {
-          const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
           router.push({
-            path: `/private/estimate/${this.param.id}/register/${tab.es_pk}?es_is_pre=${this.estimateIsPre}`
+            path: `/private/estimate/${this.param.id}/register/${this.selectedTab}?es_is_pre=${this.estimateIsPre}`
           })
         }
       },
