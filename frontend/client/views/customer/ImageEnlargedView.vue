@@ -1,5 +1,5 @@
 <template>
-  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="isMobile() ? 250: 650" :height="'auto'" :clickToClose="true">
+  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="isMobile() ? '90%' : 650" :height="'auto'" :clickToClose="true">
     <div class="modal-card-head" @click="$modal.hide('imageEnlargedView')">
       <span class="close"></span>
     </div>
