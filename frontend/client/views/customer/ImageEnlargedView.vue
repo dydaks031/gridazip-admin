@@ -1,7 +1,7 @@
 <template>
-  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="650" :height="'auto'">
-    <div class="modal-card-head">
-      <span class="close" @click="$modal.hide('imageEnlargedView')"></span>
+  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="isMobile() ? 250: 650" :height="'auto'" :clickToClose="true">
+    <div class="modal-card-head" @click="$modal.hide('imageEnlargedView')">
+      <span class="close"></span>
     </div>
     <div class="modal-card-body">
       <img :src="image.si_url" />
@@ -10,8 +10,11 @@
 </template>
 
 <script>
+  import mixin from '../../services/mixin'
+
   export default {
     name: 'imageEnlargedView',
+    mixins: [mixin],
     components: {
     },
     props: {
