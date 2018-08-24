@@ -47,7 +47,7 @@
               <th></th>
             </tr>
             </thead>
-            <estimate-modify :rowData="{}"/>
+            <estimate-modify :rowData="[]"/>
           </table>
         </div>
       </div>
@@ -55,7 +55,7 @@
     <div class="tile is-ancestor" v-show="currentTab === tabType.preview">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn=true />
+          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn=true :estimateIsPre="true" :estimateCurrentTabs="estimateTabList" />
         </article>
       </div>
     </div>
@@ -89,11 +89,14 @@
           labor: [],
           resource: [],
           total: {}
-        }
+        },
+        estimateTabList: [],
+        estimateIsPre: false
       }
     },
     mounted () {
       this.currentTab = this.tabType.register
+      this.estimateIsPre = this.$route.query.es_is_pre
       this.loadData()
     },
     methods: {
@@ -103,7 +106,11 @@
           case this.tabType.register:
             break
           case this.tabType.preview:
-            this.loadEstimateView()
+            if (this.estimateIsPre) {
+              EventBus.$emit('loadPreEstimateView')
+            } else {
+              EventBus.$emit('loadEstimateView')
+            }
             break
         }
       },
@@ -123,61 +130,6 @@
             var data = response.data.data
             EventBus.$emit('updateModifyView', data.estimateList)
           }).catch((error) => {
-            console.log(error)
-          })
-      },
-      loadEstimateView () {
-        const id = this.$route.params.id
-        let general
-        let labor
-        let resource
-        let total
-        if (!id) {
-          return false
-        }
-        this.$http.get(`${queryApi}/${id}/estimate/general`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response)
-            general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
-          })
-          .then((response) => {
-            console.log(response)
-            if (response.data.code !== 200) {
-              return
-            }
-            labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            total = response.data.data.totalCosts
-            this.estimateData = {
-              general,
-              labor,
-              resource,
-              total
-            }
-          })
-          .catch((error) => {
-            this.estimateData = {
-              general: [],
-              labor: [],
-              resource: [],
-              total: {}
-            }
             console.log(error)
           })
       }

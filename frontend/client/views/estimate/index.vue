@@ -89,6 +89,7 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
+        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`)
         this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
           page: this.page.get(),
           filter: this.filter.get()

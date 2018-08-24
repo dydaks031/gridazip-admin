@@ -12,11 +12,24 @@ import { TOGGLE_SIDEBAR } from './store/mutation-types'
 import 'expose-loader?$!expose-loader?jQuery!jquery'
 import Vuelidate from 'vuelidate'
 import vmodal from 'vue-js-modal'
+import VueScrollTo from 'vue-scrollto'
 
 Vue.router = router
 Vue.use(VueAxios, axios)
 Vue.use(Vuelidate)
 Vue.use(vmodal)
+Vue.use(VueScrollTo, {
+  container: 'html',
+  duration: 500,
+  easing: 'ease',
+  offset: 0,
+  cancelable: true,
+  onStart: false,
+  onDone: false,
+  onCancel: false,
+  x: false,
+  y: true
+})
 Vue.use(VueAuth, {
   auth: {
     request: function (req, token) {

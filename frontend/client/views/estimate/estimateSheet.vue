@@ -2,48 +2,77 @@
   <div>
     <div class="title-wrapper">
       <span class="title">공간별 견적</span>
-      <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true">등록/수정</a>
-      <a class="button is-info is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true">SMS 발송</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
+      <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre && selectionFlag">복제</a>
+      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre && selectionFlag">채택</a>
+      <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && !(estimateIsPre ^ selectionFlag) && (selectedTab !== '' || estimateIsPre)">
+        <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
+          등록
+        </span>
+        <span v-else>
+          수정
+        </span>
+      </a>
+      <a class="button is-danger is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true ">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
-    <div class="table-wrapper">
-      <table class="table position-base-table">
-      <colgroup>
-        <col width="8%" />
-        <col width="5%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="auto" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="10%" />
-      </colgroup>
-      <thead>
-        <tr>
-          <th>위치</th>
-          <th>공사</th>
-          <th>공정</th>
-          <th>상세공정</th>
-          <th>상세위치</th>
-          <th>자재</th>
-          <th class="has-text-right">인건비</th>
-          <th class="has-text-right">자재비</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
-          <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
-          <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
-          <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-          <td>{{generalData.cpd_name}}</td>
-          <td>{{generalData.detail_place}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-          <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
-          <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="tabs is-boxed is-medium">
+      <ul>
+        <li v-if="!estimateIsPre" :class="{'is-active': selectedTab === ''}">
+          <a @click="moveTab">
+            <span>총계</span>
+          </a>
+        </li>
+        <li v-for="(tab, index) in estimateCurrentTabs" :class="{'is-active': selectedTab === tab.es_pk}">
+          <a @click="moveTab(tab)">
+            <span class="icon is-small"><i class="fa fa-image" aria-hidden="true"></i></span>
+            <span>v.{{tab.es_version}}</span>
+          </a>
+        </li>
+        <li v-if="!estimateIsPre">
+          <a @click="createNewTab">
+            <span class="icon is-small"><i class="fa fa-plus" aria-hidden="true"></i></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div v-if="estimateCurrentTabs.length !== 0" class="table-wrapper">
+      <table class="table position-base-table" id="general-table">
+        <colgroup>
+          <col width="8%" />
+          <col width="5%" />
+          <col width="10%" />
+          <col width="10%" />
+          <col width="10%" />
+          <col width="auto" />
+          <col width="10%" />
+          <col width="10%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>위치</th>
+            <th>공사</th>
+            <th>공정</th>
+            <th>상세공정</th>
+            <th>상세위치</th>
+            <th>자재</th>
+            <th class="has-text-right">인건비</th>
+            <th class="has-text-right">자재비</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
+            <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
+            <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
+            <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
+            <td>{{generalData.cpd_name}}</td>
+            <td>{{generalData.detail_place}}</td>
+          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+            <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
+            <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent is-6">
@@ -52,31 +81,31 @@
           <h4 class="title">금액: {{addCommas(viewerData.total.resource_costs)}}</h4>
           <div class="content">
             <div class="table-wrapper">
-              <table class="table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>자재분류</th>
-                <th>자재</th>
-                <th>물량</th>
-                <th>자재단위</th>
-                <th class="has-text-right">단가</th>
-                <th class="has-text-right">금액</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
-                <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
-                <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
-                <td>{{resource.resource_amount}}</td>
-                <td>{{resource.ru_name}}</td>
-                <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
-                <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
+              <table class="table" id="resource-table">
+                <colgroup>
+                  <col width="auto"/>
+                </colgroup>
+                <thead>
+                <tr>
+                  <th>자재분류</th>
+                  <th>자재</th>
+                  <th>물량</th>
+                  <th>자재단위</th>
+                  <th class="has-text-right">단가</th>
+                  <th class="has-text-right">금액</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr :class="{'is-summary': resource.is_summary}" v-for="resource in viewerData.resource" v-if="resource.resource_costs !== 0">
+                  <td v-if="resource.hasOwnProperty('resource_category_count')" :rowspan="resource.resource_category_count || 1">{{resource.rc_name}}</td>
+                  <td>{{resource.rs_name}}<span v-if="resource.rs_code !== ''">({{resource.ed_alias || resource.rs_code}})</span></td>
+                  <td>{{resource.resource_amount}}</td>
+                  <td>{{resource.ru_name}}</td>
+                  <td class="has-text-right">{{addCommas(resource.rs_price)}}</td>
+                  <td class="has-text-right">{{addCommas(resource.resource_costs)}}</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </article>
@@ -87,30 +116,30 @@
           <h4 class="title">인건비</h4>
           <h4 class="title">금액: {{addCommas(viewerData.total.labor_costs)}}</h4>
           <div class="content">
-            <div class="table-wrapper">
+            <div class="table-wrapper" id="labor-table">>
               <table class="table">
-              <colgroup>
-                <col width="auto"/>
-              </colgroup>
-              <thead>
-              <tr>
-                <th>공사</th>
-                <th>공정</th>
-                <th>상세공정</th>
-                <th>자재군</th>
-                <th class="has-text-right">인건비</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
-                <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
-                <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
-                <td>{{labor.rt_name}}</td>
-                <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
-              </tr>
-              </tbody>
-            </table>
+                <colgroup>
+                  <col width="auto"/>
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>공사</th>
+                    <th>공정</th>
+                    <th>상세공정</th>
+                    <th>자재군</th>
+                    <th class="has-text-right">인건비</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr :class="{'is-summary': labor.is_summary}" v-for="(labor) in viewerData.labor" v-if="labor.labor_costs !== 0">
+                    <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
+                    <td v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
+                    <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
+                    <td>{{labor.rt_name}}</td>
+                    <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </article>
@@ -136,13 +165,20 @@
               <p class="has-text-right" v-if="viewerData.total.discount_amount">
                 <span>할인금액: </span><span class="discount-amount">-{{addCommas(viewerData.total.discount_amount)}}원</span>
               </p>
-              <p class="has-text-right total-costs">
-                <span>합계(VAT 별도): {{addCommas(viewerData.total.total_costs - viewerData.total.discount_amount)}}원</span>
+              <p class="has-text-right">
+                <span>합계(VAT 별도): {{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}원</span>
               </p>
             </div>
-          </div>
-        </article>
+            <div class="signature">
+
+            </div>
+          </article>
+        </div>
       </div>
+    </div>
+    <div v-else>
+      <h3 class="has-text-centered" v-if="estimateIsPre">등록된 가견적서가 없습니다. <br />등록 버튼을 선택하여 가견적서를 등록 해 주세요.</h3>
+      <h3 class="has-text-centered" v-else>등록된 상세 견적서가 없습니다. <br />가견적서를 입력하신 후 채택 버튼을 선택하여 상세 견적서를 등록 해 주세요.</h3>
     </div>
   </div>
 </template>
@@ -153,6 +189,7 @@
   import EventBus from '../../services/eventBus'
   import deepClone from '../../services/deepClone'
   import _ from 'underscore'
+  import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   const NotificationComponent = Vue.extend(Notification)
@@ -177,17 +214,9 @@
     name: 'estimate-sheet',
     mixins: [mixin],
     props: {
-      estimateData: {
-        type: Object,
-        default: {
-          general: [],
-          labor: [],
-          resource: [],
-          total: {}
-        }
-      },
-      estimateCurrentTabs: {
-        type: Array
+      estimateIsPre: {
+        type: Boolean,
+        default: false
       },
       deleteRegisterBtn: {
         type: Boolean,
@@ -196,6 +225,7 @@
     },
     data () {
       return {
+        router,
         param: {},
         mergeRestTime: false,
         viewerData: {
@@ -206,15 +236,122 @@
         },
         isOpenSubResource: {
 
-        }
+        },
+        estimateData: {
+          general: [],
+          labor: [],
+          resource: [],
+          total: {}
+        },
+        estimateCurrentTabs: [],
+        selectedTab: '',
+        selectionFlag: false
       }
     },
     methods: {
-      moveToRegister () {
-        const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
+      excelxport (type, fn) {
+        const generalEl = document.getElementById('general-table')
+        const resourceEl = document.getElementById('resource-table')
+        const laborEl = document.getElementById('labor-table')
+        const exportWb = XLSX.utils.book_new()
+        const generalWs = XLSX.utils.table_to_sheet(generalEl)
+        const resourceWs = XLSX.utils.table_to_sheet(resourceEl)
+        const laborWs = XLSX.utils.table_to_sheet(laborEl)
+
+        generalWs['!cols'] = [
+          {wch: 10},
+          {wch: 6},
+          {wch: 14},
+          {wch: 14},
+          {wch: 16},
+          {wch: 40},
+          {wch: 10},
+          {wch: 10}
+        ]
+        resourceWs['!cols'] = [
+          {wch: 14},
+          {wch: 40},
+          {wch: 4},
+          {wch: 20},
+          {wch: 10},
+          {wch: 10}
+        ]
+        laborWs['!cols'] = [
+          {wch: 8},
+          {wch: 14},
+          {wch: 14},
+          {wch: 14},
+          {wch: 10}
+        ]
+        XLSX.utils.book_append_sheet(exportWb, generalWs, '공간별 견적')
+        XLSX.utils.book_append_sheet(exportWb, resourceWs, '자재비')
+        XLSX.utils.book_append_sheet(exportWb, laborWs, '인건비')
+        return XLSX.writeFile(exportWb, fn || '상세견적서.xlsx')
+      },
+      createNewTab () {
         router.push({
-          path: `/private/estimate/${this.param.id}/register/${tab.es_pk}`
+          path: `/private/estimate/${this.param.id}/register/tabs`
         })
+      },
+      duplicateTab () {
+        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+          es_is_pre: true,
+          es_pk: this.selectedTab
+        })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.estimateCurrentTabs.push(response.data.data.tab)
+            openNotification({
+              message: '선택한 가견적서가 복제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+          })
+      },
+      moveTab (tab = {}) {
+        this.selectedTab = tab.es_pk || ''
+        this.loadEstimateView()
+      },
+      selectionTab () {
+        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+          es_is_pre: false,
+          es_pk: this.selectedTab
+        })
+        .then((response) => {
+          if (response.data.code !== 200) {
+            return false
+          }
+          this.selectionFlag = false
+          openNotification({
+            message: '선택한 견적서가 상세 견적서로 이동하였습니다.',
+            type: 'success',
+            duration: 1500
+          })
+        })
+      },
+      moveToRegister () {
+        if (this.estimateCurrentTabs.length === 0) {
+          this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+            es_is_pre: true
+          })
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return false
+              }
+              this.estimateCurrentTabs.push(response.data.data.tab)
+
+              const tab = this.estimateCurrentTabs[this.estimateCurrentTabs.length - 1]
+              router.push({
+                path: `/private/estimate/${this.param.id}/register/${tab.es_pk}?es_is_pre=${this.estimateIsPre}`
+              })
+            })
+        } else {
+          router.push({
+            path: `/private/estimate/${this.param.id}/register/${this.selectedTab}?es_is_pre=${this.estimateIsPre}`
+          })
+        }
       },
       printPage () {
         EventBus.$emit('togglePrintMode')
@@ -424,7 +561,7 @@
         // 위치순으로 동일한 위치의 데이터가 몇건인지 확인한다.
         for (let i in resourceCategoryByData) {
           const resourceCategoryItem = _.filter(resourceCategoryByData[i], (item) => {
-            return item.rs_price.toString() !== '0'
+            return item.resource_costs.toString() !== '0'
           })
           if (resourceCategoryItem.length === 0) {
             continue
@@ -444,7 +581,7 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
-          if (item.rs_price.toString() === '0') {
+          if (item.resource_costs.toString() === '0') {
             continue
           }
           if (!firstMeetPk.resourceCategory.hasOwnProperty(item.rc_pk)) {
@@ -536,7 +673,6 @@
 
           }
         }
-        console.log(mergeCount)
         let item
         const resultCount = resultData.length
         for (let i = 0; i < resultCount; i++) {
@@ -562,7 +698,6 @@
             firstMeetPk.construction[item.ct_pk].constructionProcess[item.cp_pk].constructionProcessDetail[item.cpd_pk] = true
           }
         }
-        console.log(resultData)
         this.viewerData.labor = resultData
       },
       openSubResource (item) {
@@ -586,16 +721,109 @@
               })
             })
         }
+      },
+      loadEstimateView () {
+        const id = this.$route.params.id
+        const isPre = this.estimateIsPre
+        const esPk = this.selectedTab
+        let general
+        let labor
+        let resource
+        let total
+        if (!id) {
+          return false
+        }
+
+        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/general?es_is_pre=${isPre}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            general = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/labor?es_is_pre=${isPre}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            labor = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/resource?es_is_pre=${isPre}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            resource = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/total?es_is_pre=${isPre}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            total = response.data.data.totalCosts
+
+            this.estimateData = {
+              general,
+              labor,
+              resource,
+              total
+            }
+          })
+          .catch((error) => {
+            this.estimateData = {
+              general: [],
+              labor: [],
+              resource: [],
+              total: {}
+            }
+            console.log(error)
+          })
+      },
+      getTabList () {
+        const id = this.$route.params.id
+        return this.$http.get(`${queryApi}/${id}/estimate/tabs?es_is_pre=${this.estimateIsPre}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            const data = response.data.data
+            this.estimateCurrentTabs = data.tabs
+            this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
+            if (this.estimateCurrentTabs.length > 0) {
+              if (this.estimateIsPre) {
+                this.selectedTab = this.estimateCurrentTabs[0].es_pk
+              } else {
+                this.selectedTab = ''
+              }
+            }
+          })
       }
     },
     mounted () {
       this.param = this.$route.params
+      EventBus.$on('loadEstimateView', () => {
+        if (!this.estimateIsPre) {
+          this.getTabList()
+            .then(() => {
+              this.loadEstimateView()
+            })
+        }
+      })
+
+      EventBus.$on('loadPreEstimateView', () => {
+        if (this.estimateIsPre) {
+          this.getTabList()
+            .then(() => {
+              this.loadEstimateView()
+            })
+        }
+      })
     },
     created () {
     },
     watch: {
       estimateData: {
-        handler (newValue, oldValue) {
+        handler (newValue) {
           this.viewerData.general = newValue.general
           this.viewerData.labor = newValue.labor
           this.viewerData.resource = newValue.resource
@@ -605,13 +833,11 @@
           this.mergeLaborTable(this.viewerData.labor)
         },
         deep: true
-      },
-      estimateCurrentTabs: {
-        handler (newValue, oldValue) {
-          console.log(newValue)
-        },
-        deep: true
       }
+    },
+    beforeDestroy () {
+      EventBus.$off('loadEstimateView')
+      EventBus.$off('loadPreEstimateView')
     }
   }
 </script>

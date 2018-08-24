@@ -6,6 +6,9 @@ const utils = require('./utils')
 const projectRoot = path.resolve(__dirname, '../')
 
 module.exports = {
+  node: {
+    fs: "empty"
+  },
   entry: {
     app: ['./client/index.js'],
     // If you want to support IE < 11, should add `babel-polyfill` to vendor.
