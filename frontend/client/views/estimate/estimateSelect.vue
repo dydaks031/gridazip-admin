@@ -79,6 +79,23 @@
   import utils from '../../services/utils'
   import _ from 'underscore'
   import deepClone from '../../services/deepClone'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   const queryApi = '/api/contract/'
 
@@ -289,6 +306,11 @@
           this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
             .then((response) => {
               if (response.data.code !== 200) {
+                openNotification({
+                  message: response.data.data.msg,
+                  type: 'danger',
+                  duration: 1500
+                })
                 return
               }
               console.log(response.data.data)
