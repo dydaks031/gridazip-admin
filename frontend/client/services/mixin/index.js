@@ -15,6 +15,13 @@ const mixin = {
       } else {
         return '-'
       }
+    },
+    isMobile () {
+      let isMobile = false
+      if (window.matchMedia('(max-width: 999px)').matches) {
+        isMobile = true
+      }
+      return isMobile
     }
   },
   mounted () {}

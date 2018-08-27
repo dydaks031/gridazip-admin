@@ -84,7 +84,7 @@
 
 <style lang="scss" scoped>
   .modal-card-head {
-    background-image: linear-gradient(330deg, #9daeff, #82befd);
+    background-color: #9dadff;
     h1 {
       color: white;
       text-align: center;
@@ -106,7 +106,7 @@
       text-align: center;
       button {
         border-radius: 19px;
-        background-image: linear-gradient(330deg, #9daeff, #82befd);
+        background-color: #9dadff;
         height: 38px;
         width: 92px;
         color: white;

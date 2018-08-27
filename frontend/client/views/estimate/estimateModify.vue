@@ -1,6 +1,7 @@
 <template>
   <tbody class="estimate-modify">
-    <tr v-for="data in dataGroup">
+    <template v-for="(data, index) in dataGroup">
+      <tr :class="{'is-removed': data.isRemoved}">
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionPlace,  data.selectedData.ed_place_pk) || data.selectedData.place_name}}</span>
         <select2 :options="data.options.constructionPlace" v-model="data.selectedData.ed_place_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" >
@@ -12,32 +13,32 @@
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.construction, data.selectedData.ed_ctpk) || data.selectedData.ct_name}}</span>
-        <select2 :options="data.options.construction" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'construction', 'ed_ctpk', ...arguments)">
+        <select2 :options="data.options.construction" v-if="data.options.construction.length > 0" v-model="data.selectedData.ed_ctpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'construction', 'ed_ctpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcess, data.selectedData.ed_cppk) || data.selectedData.cp_name}}</span>
-        <select2 :options="data.options.constructionProcess" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcess', 'ed_cppk', ...arguments)">
+        <select2 :options="data.options.constructionProcess" v-if="data.options.constructionProcess.length > 0" v-model="data.selectedData.ed_cppk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcess', 'ed_cppk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.constructionProcessDetail, data.selectedData.ed_cpdpk) || data.selectedData.cpd_name}}</span>
-        <select2 :options="data.options.constructionProcessDetail" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcessDetail', 'ed_cpdpk', ...arguments)">
+        <select2 :options="data.options.constructionProcessDetail" v-if="data.options.constructionProcessDetail.length > 0" v-model="data.selectedData.ed_cpdpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'constructionProcessDetail', 'ed_cpdpk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceCategory, data.selectedData.rc_pk) || data.selectedData.rc_name}}</span>
-        <select2 :options="data.options.resourceCategory" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceCategory', 'rc_pk', ...arguments)">
+        <select2 :options="data.options.resourceCategory" v-if="data.options.resourceCategory.length > 0" v-model="data.selectedData.rc_pk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceCategory', 'rc_pk', ...arguments)">
         </select2>
       </td>
       <td>
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resourceType, data.selectedData.ed_rtpk) || data.selectedData.rt_name}}</span>
-        <select2 :options="data.options.resourceType" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
+        <select2 :options="data.options.resourceType" v-if="data.options.resourceType.length > 0" v-model="data.selectedData.ed_rtpk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resourceType', 'ed_rtpk', ...arguments)">
         </select2>
       </td>
       <td class="resource-view">
         <span v-show="data.isModify === false">{{getSelectedText(data.options.resource, data.selectedData.ed_rspk) || data.selectedData.rs_name}}</span>
-        <select2 :options="data.options.resource" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
+        <select2 :options="data.options.resource" v-if="data.options.resource.length > 0" v-model="data.selectedData.ed_rspk" v-show="data.isModify === true" :class="{'is-modify': data.isModify}" v-on:input="changedData(data, 'resource', 'ed_rspk', ...arguments)">
         </select2>
         <span class="resource-code" v-show="data.isModify === false && data.selectedData.rs_code">{{data.selectedData.rs_code}}</span>
       </td>
@@ -50,8 +51,9 @@
         <input type="text" placeholder="입력값 입력" class="input" v-model="data.selectedData.ed_input_value" v-show="data.isModify === true" />
       </td>
       <td>
-        <span v-show="data.isModify === false">{{data.selectedData.ed_resource_amount}}</span>
-        <input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"  v-show="data.isModify === true" />
+        {{data.selectedData.ed_resource_amount}}
+        <!--<span v-show="data.isModify === false"></span>-->
+        <!--<input type="text" placeholder="물량 입력" class="input" v-model="data.selectedData.ed_resource_amount"  v-show="data.isModify === true" />-->
       </td>
       <td>
         {{addCommas(data.selectedData.labor_costs)}}
@@ -60,11 +62,56 @@
         {{addCommas(data.selectedData.resource_costs)}}
       </td>
       <td>
-        <button class="button" @click="changedModifyView(data)">{{data.isModify ? '취소': '수정'}}</button>
-        <button class="button" :class="{hide: data.isModify}" @click="deleteRow(data)">삭제</button>
-        <button class="button" :class="{hide: !data.isModify}" @click="updateRow(data)">확인</button>
+        <button class="button" @click="changedModifyRowView(data)" v-if="!data.isRemoved">{{data.isModify ? '취소': '수정'}}</button>
+        <button class="button" v-if="!data.isModify && data.hasOwnProperty('ed_pk')" @click="deleteRow(data)">삭제</button>
+        <button class="button" v-if="data.isModify && !data.isRemoved" @click="updateRow(data)">확인</button>
+        <button class="button" v-if="data.isRemoved" @click="cancelRemoveRow(data, index)">취소</button>
       </td>
     </tr>
+      <tr class="original-diff" :class="{'is-removed': data.isRemoved}" v-if="estimateAmountCalculation !== undefined && !data.isRemoved">
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionPlace,  originDataGroup[index].selectedData.ed_place_pk) || originDataGroup[index].selectedData.place_name}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_detail_place}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.construction, originDataGroup[index].selectedData.ed_ctpk) || originDataGroup[index].selectedData.ct_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionProcess, originDataGroup[index].selectedData.ed_cppk) || originDataGroup[index].selectedData.cp_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.constructionProcessDetail, originDataGroup[index].selectedData.ed_cpdpk) || originDataGroup[index].selectedData.cpd_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.resourceCategory, originDataGroup[index].selectedData.rc_pk) || originDataGroup[index].selectedData.rc_name}}</span>
+        </td>
+        <td>
+          <span>{{getSelectedText(originDataGroup[index].options.resourceType, originDataGroup[index].selectedData.ed_rtpk) || originDataGroup[index].selectedData.rt_name}}</span>
+        </td>
+        <td class="resource-view">
+          <span>{{getSelectedText(originDataGroup[index].options.resource, originDataGroup[index].selectedData.ed_rspk) || originDataGroup[index].selectedData.rs_name}}</span>
+          <span class="resource-code" v-show="data.isModify === false && originDataGroup[index].selectedData.rs_code">{{originDataGroup[index].selectedData.rs_code}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_alias || '-'}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_input_value}}</span>
+        </td>
+        <td>
+          <span>{{originDataGroup[index].selectedData.ed_resource_amount}}</span>
+        </td>
+        <td>
+          {{addCommas(originDataGroup[index].selectedData.labor_costs)}}
+        </td>
+        <td>
+          {{addCommas(originDataGroup[index].selectedData.resource_costs)}}
+        </td>
+        <td></td>
+      </tr>
+    </template>
   </tbody>
 </template>
 
@@ -76,7 +123,23 @@
   import deepClone from '../../services/deepClone'
   import mixin from '../../services/mixin'
   import utils from '../../services/utils'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+  const NotificationComponent = Vue.extend(Notification)
 
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
   const queryApi = '/api/contract/'
 
   export default {
@@ -87,12 +150,19 @@
     },
     props: {
       rowData: {
+        type: Array
+      },
+      estimateAmountCalculation: {
+        type: Function
+      },
+      bus: {
         type: Object
       }
     },
     data () {
       return {
         dataGroup: [],
+        originDataGroup: [],
         options: {
 
         },
@@ -101,7 +171,6 @@
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)
-      console.log(mixin)
       EventBus.$on('updateModifyView', (data) => {
         if (_.isArray(data)) {
           const target = data[0]
@@ -128,8 +197,52 @@
         } else {
           data.isModify = false
           this.dataGroup.unshift(deepClone(data))
+          this.originDataGroup.unshift(deepClone(data))
         }
       })
+      EventBus.$on('removeModifyView', (index) => {
+        const target = _.filter(this.dataGroup, (item) => {
+          return item.selectedData.index === index
+        })
+        target.forEach((item) => {
+          this.dataGroup = _.without(this.dataGroup, item)
+          const targetOrigin = _.find(this.originDataGroup, (origin) => {
+            return origin.selectedData.index === item.selectedData.index
+          })
+          this.originDataGroup = _.without(this.originDataGroup, targetOrigin)
+        })
+      })
+      if (this.bus) {
+        this.bus.$on('updateTab', () => {
+          const id = this.$route.params.id
+          const selectedData = this.getNewTabDataByDiffOriginData()
+
+          this.$http.post(`${queryApi}/${id}/estimate/master`, {
+            estimateList: selectedData
+          })
+          .then((response) => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '신규 탭 생성 도중 이상이 발생하였습니다..',
+                type: 'success',
+                duration: 1500
+              })
+              return false
+            }
+
+            openNotification({
+              message: '등록하신 내용으로 신규 탭이 생성 되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.$router.back()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+        })
+      }
     },
     methods: {
       getSelectedText (selectList, id) {
@@ -144,10 +257,13 @@
         }
       },
       deleteRow (data) {
-        console.log(data)
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
+        if (!sendData.ed_pk) {
+          this.dataGroup = _.without(this.dataGroup, data)
+          return
+        }
         this.$http.delete(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
         .then((response) => {
           if (response.data.code !== 200) {
@@ -159,37 +275,58 @@
         })
       },
       updateRow (data) {
-        console.log(data)
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
         const sendData = data.selectedData
-        this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response.data.data)
-            data.isModify = false
-            data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
-            data.selectedData.labor_costs = response.data.data.data.labor_costs
-            data.selectedData.resource_costs = response.data.data.data.resource_costs
-          }).catch((error) => {
-            console.log(error)
-          })
+        if (!esPk || !sendData.ed_pk) {
+          data.selectedData = this.estimateAmountCalculation(sendData)
+          data.isModify = false
+        } else {
+          this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                return
+              }
+              data.isModify = false
+              data.selectedData.ed_resource_amount = response.data.data.data.ed_resource_amount
+              data.selectedData.labor_costs = response.data.data.data.labor_costs
+              data.selectedData.resource_costs = response.data.data.data.resource_costs
+
+              openNotification({
+                message: '해당 내역이 수정되었습니다.',
+                type: 'success',
+                duration: 1500
+              })
+            }).catch((error) => {
+              console.log(error)
+            })
+        }
       },
-      changedModifyView (data) {
+      changedModifyRowView (data) {
         data.isModify = !data.isModify
         if (data.isFirstSelectDataLoaded) {
           return false
         }
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
-        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`)
+        let apiUrl = `${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`
+        if (data.selectedData.isAddedBySelf) {
+          return
+        } else if (!data.selectedData.isAddedBySelf && this.estimateAmountCalculation) {
+          const param = {
+            ct_pk: data.selectedData.ed_ctpk,
+            cp_pk: data.selectedData.ed_cppk,
+            rc_pk: data.selectedData.rc_pk,
+            rt_pk: data.selectedData.ed_rtpk
+          }
+          apiUrl = `${queryApi}/${id}/estimate/master/row?${utils.getQueryString(param)}`
+        }
+
+        this.$http.get(apiUrl)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
-            console.log(response.data.data)
             const selectBoxData = response.data.data
             for (const key in selectBoxData) {
               if (selectBoxData.hasOwnProperty(key)) {
@@ -228,6 +365,11 @@
         })
         return convertData
       },
+      cancelRemoveRow (data, index) {
+        data.isRemoved = false
+        this.dataGroup = _.without(this.dataGroup, data)
+        EventBus.$emit('cancelDeleteMasterModifyView', data)
+      },
       getType (id) {
         const metaData = this.metaData
         const keyList = Object.keys(metaData)
@@ -255,6 +397,46 @@
           this.cpdUnit = selectedData.cpd_unit
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
+      },
+      getNewTabDataByDiffOriginData () {
+        const selectedData = deepClone(_.pluck(this.dataGroup, 'selectedData'))
+        const originData = deepClone(_.pluck(this.originDataGroup, 'selectedData'))
+        const sendData = []
+        _.forEach(selectedData, (item) => {
+          let targetOriginData = _.find(originData, (origin) => {
+            return parseInt(item.ed_place_pk, 10) === parseInt(origin.ed_place_pk, 10) &&
+              item.ed_detail_place === origin.ed_detail_place &&
+              parseInt(item.ed_ctpk, 10) === parseInt(origin.ed_ctpk, 10) &&
+              parseInt(item.ed_cppk, 10) === parseInt(origin.ed_cppk, 10) &&
+              parseInt(item.ed_cpdpk, 10) === parseInt(origin.ed_cpdpk, 10) &&
+              parseInt(item.rc_pk, 10) === parseInt(origin.rc_pk, 10) &&
+              parseInt(item.ed_rtpk, 10) === parseInt(origin.ed_rtpk, 10) &&
+              parseInt(item.ed_rspk, 10) === parseInt(origin.ed_rspk, 10)
+          })
+          if (targetOriginData) {
+            if (item.isAddedBySelf) {
+              sendData.push(item)
+            } else {
+              const currentInputValueToFixed = parseFloat(item.ed_input_value).toFixed(2)
+              const originInputValueToFixed = parseFloat(targetOriginData.ed_input_value).toFixed(2)
+              if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
+                item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
+              }
+              item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
+              const _item = this.estimateAmountCalculation(item)
+              sendData.push(_item)
+            }
+          } else {
+            targetOriginData = _.find(originData, (origin) => {
+              return origin.index === item.index
+            })
+            targetOriginData.ed_input_value = -Math.abs(targetOriginData.ed_input_value)
+            targetOriginData = this.estimateAmountCalculation(targetOriginData)
+            sendData.push(targetOriginData)
+            sendData.push(item)
+          }
+        })
+        return sendData
       },
       /**
        * recursive function
@@ -361,5 +543,19 @@
 <style lang="scss" scoped>
   .hide {
     display:none
+  }
+  .is-removed {
+    > td {
+      background-color: #dfdfdf;
+    }
+  }
+  .original-diff {
+    font-size: 0.9rem;
+
+    td {
+      background: #f0f0f0;
+      opacity: 0.8;
+      padding-left: 0.85rem;
+    }
   }
 </style>

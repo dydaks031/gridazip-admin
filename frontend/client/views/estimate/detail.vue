@@ -3,9 +3,11 @@
     <div class="tabs is-boxed">
       <ul>
         <li @click="activeView(tabType.info)" :class="{'is-active': currentTab === tabType.info}"><a>정보</a></li>
+        <li @click="activeView(tabType.preEstimateView)" :class="{'is-active': currentTab === tabType.preEstimateView}"><a>가견적서</a></li>
         <li @click="activeView(tabType.estimateView)" :class="{'is-active': currentTab === tabType.estimateView}"><a>상세견적서</a></li>
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
         <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
+        <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>체크리스트</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -72,8 +74,11 @@
             </p>
           </div>
         </article>
-        <article class="tile is-child box" v-show = "currentTab === tabType.estimateView">
-          <estimate-sheet :estimateData.sync="estimateData" :estimateCurrentTabs.sync="estimateTabList"/>
+        <article class="tile is-child box" v-show = "currentTab === tabType.preEstimateView">
+          <estimate-sheet :estimateIsPre="true"/>
+        </article>
+        <article class="tile is-child box estimate" v-show = "currentTab === tabType.estimateView">
+          <estimate-sheet :estimateIsPre="false"/>
         </article>
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
@@ -187,6 +192,105 @@
             </tbody>
           </table>
         </article>
+        <article class="tile is-child box" v-show="currentTab === tabType.checkList">
+          <p class="subtitle is-3 is-pulled-left">체크리스트</p>
+          <a class="button is-primary is-pulled-right is-medium" @click="moveToDate">이동</a>
+          <span class="is-pulled-right" style="height:2.885rem">
+            <datepicker ref="moveToDate" style="width:100px; vertical-align: middle" v-model="wantMoveDate"/> <b style="vertical-align: middle;">으로</b>
+          </span>
+          <div>
+            <table class="table is-bordered check-list">
+            <colgroup>
+              <col width="5%"/>
+              <col width="16%"/>
+              <col width="16%"/>
+              <col width="5%"/>
+              <col width="5%"/>
+              <col width="16%"/>
+            </colgroup>
+            <thead>
+              <tr>
+                <th></th>
+                <th>날짜</th>
+                <th>공사</th>
+                <th>자재</th>
+                <th>인력</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody v-for="(checkListByDate, index) in checkList">
+              <tr @click="toggleCheckDate(index)" class="date-header">
+                <th colspan="6">{{index}}</th>
+              </tr>
+              <tr v-for="checkListItem in checkListByDate">
+                <td class="has-text-centered">
+                  <input type="checkbox" class="checkbox" v-model="checkListItem.isChecked">
+                </td>
+                <td>
+                  <span v-if="!checkListItem.isModify">{{checkListItem.date}}</span>
+                  <datepicker v-if="checkListItem.isModify" v-model="checkListItem.date" />
+                </td>
+                <td>
+                  <span v-if="!checkListItem.isModify">{{checkListItem.ct_name}}</span>
+                  <div class="select" v-if="checkListItem.isModify">
+                    <select v-model="checkListItem.cl_ctpk">
+                      <option value="">선택</option>
+                      <option v-for="construction in currentConstructionList" :value="construction.ct_pk">
+                        {{construction.ct_name}}
+                      </option>
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <input type="checkbox" class="checkbox" v-model="checkListItem.cl_resource" @change="updateCheckListStatus(checkListItem)" />
+                </td>
+                <td>
+                  <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(checkListItem)" />
+                </td>
+                <td>
+                  <button class="button" v-if="!checkListItem.isModify" @click="checkListItem.isModify = true">수정</button>
+                  <button class="button is-danger" v-if="!checkListItem.isModify" @click="deleteCheckList(checkListItem)">삭제</button>
+                  <button class="button" v-if="checkListItem.isModify" @click="checkListItem.isModify = false">취소</button>
+                  <button class="button is-info" v-if="checkListItem.isModify" @click="updateCheckListStatus(checkListItem)">확인</button>
+                </td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr v-show="!isAddCheckList">
+                <td colspan="6" class="has-text-centered" @click="isAddCheckList = true;">+</td>
+              </tr>
+              <tr v-show="isAddCheckList">
+                <td>
+                  <!--<input type="checkbox" class="checkbox">-->
+                </td>
+                <td>
+                  <datepicker v-model="newCheckList.date"/>
+                </td>
+                <td>
+                  <div class="select">
+                    <select v-model="newCheckList.ct_pk">
+                      <option value="">선택</option>
+                      <option v-for="construction in currentConstructionList" :value="construction.ct_pk">
+                        {{construction.ct_name}}
+                      </option>
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <input type="checkbox" class="checkbox" v-model="newCheckList.cl_resource"/>
+                </td>
+                <td>
+                  <input type="checkbox" class="checkbox" v-model="newCheckList.cl_constructor"/>
+                </td>
+                <td>
+                  <button class="button" @click="registerCheckList">등록</button>
+                  <button class="button is-danger" @click="isAddCheckList = false;">취소</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </article>
       </div>
     </div>
     <add-partners-modal
@@ -215,6 +319,8 @@
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
   import mixin from '../../services/mixin'
+  import EventBus from '../../services/eventBus'
+  import moment from 'moment'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -247,11 +353,14 @@
     data () {
       return {
         router,
+        moment,
         tabType: {
           info: 'info',
           estimateView: 'estimateView',
           managerAndShop: 'managerAndShop',
-          siteImage: 'siteImage'
+          preEstimateView: 'preEstimateView',
+          siteImage: 'siteImage',
+          checkList: 'checkList'
         },
         currentTab: '',
         param: {},
@@ -273,7 +382,15 @@
           resourceCategory: []
         },
         estimateTabList: [],
-        siteImageList: []
+        siteImageList: [],
+        checkList: [],
+        isAddCheckList: false,
+        currentConstructionList: [],
+        isDatepickerOpen: false,
+        newCheckList: {
+          ct_pk: ''
+        },
+        wantMoveDate: ''
       }
     },
     validations: {
@@ -303,14 +420,20 @@
           case this.tabType.info:
             this.loadDetail()
             break
+          case this.tabType.preEstimateView:
+            EventBus.$emit('loadPreEstimateView')
+            break
           case this.tabType.estimateView:
-            this.loadEstimateView()
+            EventBus.$emit('loadEstimateView')
             break
           case this.tabType.managerAndShop:
             this.loadPartner()
             break
           case this.tabType.siteImage:
             this.loadSiteImage()
+            break
+          case this.tabType.checkList:
+            this.loadCheckList()
             break
         }
       },
@@ -326,67 +449,6 @@
             }
             this.detailData = response.data.data.contract
           }).catch((error) => {
-            console.log(error)
-          })
-      },
-      loadEstimateView () {
-        const id = this.param.id
-        let general
-        let labor
-        let resource
-        let total
-        if (!id) {
-          return false
-        }
-        this.$http.get(`${queryApi}/${id}/estimate/general`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-            general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/labor`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/resource`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/total`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            total = response.data.data.totalCosts
-            return this.$http.get(`${queryApi}/${id}/estimate/tabs`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            console.log(response)
-            this.estimateTabList = response.data.data.tabs
-            this.estimateData = {
-              general,
-              labor,
-              resource,
-              total
-            }
-          })
-          .catch((error) => {
-            this.estimateData = {
-              general: [],
-              labor: [],
-              resource: [],
-              total: {}
-            }
             console.log(error)
           })
       },
@@ -525,19 +587,193 @@
           .catch((e) => {
             console.error(e)
           })
+      },
+      loadCheckList () {
+        const id = this.param.id
+        this.$http.get(`${queryApi}/${id}/checklist`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            const checkList = response.data.data.checklist
+            for (let i = 0; i < checkList.length; i++) {
+              checkList[i].date = moment(checkList[i].cl_date, 'X').format('YYYY-MM-DD')
+              checkList[i].isModify = false
+              checkList[i].isChecked = false
+            }
+            this.checkList = _.groupBy(checkList, 'date')
+
+            return this.$http.get(`${queryApi}/${id}/construction`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            this.currentConstructionList = response.data.data.constructionList
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+      },
+      moveToDate () {
+        const isCheckedCheckList = _.chain(this.checkList)
+          .values()
+          .flatten()
+          .filter((item) => {
+            return item.isChecked === true
+          })
+          .map((item) => {
+            return item.cl_pk
+          })
+          .value()
+
+        const data = {
+          checklist: isCheckedCheckList,
+          cl_date: moment(this.wantMoveDate, 'YYYY-MM-DD').format('X')
+        }
+
+        const id = this.param.id
+        this.$http.put(`${queryApi}/${id}/checklist`, data)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '체크리스트 날짜 이동 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+
+            openNotification({
+              message: '체크리스트가 정상적으로 이동하였습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadCheckList()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+      },
+      toggleCheckDate (date) {
+        const alreadyCheckedList = _.filter(this.checkList[date], (item) => {
+          return item.isChecked
+        })
+        let checkedType = true
+        if (alreadyCheckedList.length === this.checkList[date].length) {
+          checkedType = false
+        }
+        _.map(this.checkList[date], (item) => {
+          item.isChecked = checkedType
+        })
+      },
+      registerCheckList () {
+        this.newCheckList.cl_date = moment(this.newCheckList.date, 'YYYY-MM-DD').format('X')
+        console.log(this.newCheckList)
+        if (!this.newCheckList.date) {
+          window.alert('날짜를 입력해 주십시오.')
+          return
+        } else if (!this.newCheckList.ct_pk) {
+          window.alert('공사를 입력해 주십시오.')
+          return
+        }
+        const id = this.param.id
+        this.$http.post(`${queryApi}/${id}/checklist`, this.newCheckList)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '체크리스트가 등록 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '체크리스트가 정상적으로 등록되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.newCheckList.ct_pk = ''
+            this.newCheckList.date = ''
+            this.newCheckList.cl_constructor = ''
+            this.newCheckList.cl_resource = ''
+            this.newCheckList.cl_date = ''
+            this.isAddCheckList = false
+            this.loadCheckList()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
+      },
+      deleteCheckList (item) {
+        const id = this.param.id
+        this.$http.delete(`${queryApi}/${id}/checklist/${item.cl_pk}`)
+          .then((response) => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '체크리스트가 삭제 중 오류가 발생하였습니다.',
+                type: 'success',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '체크리스트가 정상적으로 삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadCheckList()
+          })
+      },
+      updateCheckListStatus (item) {
+        const id = this.param.id
+        item.cl_date = moment(item.date, 'YYYY-MM-DD').format('X')
+        this.$http.put(`${queryApi}/${id}/checklist/${item.cl_pk}`, item)
+          .then((response) => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '체크리스트가 수정 중 이상이 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '체크리스트가 정상적으로 수정되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadCheckList()
+          })
+          .catch((e) => {
+            console.error(e)
+          })
       }
     }
   }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+  .tile.is-parent {
+    width: 100%;
+    .is-child {
+      width: 100%;
+    }
+  }
+  .check-list {
+    .date-header {
+      cursor: pointer;
+    }
+  }
+</style>
+
+<style scoped lang="scss">
   @media screen and (max-width: 768px) {
-    html {
-      font-size: 12px;
-    }
-    .app-content {
-      padding: 20px 0;
-    }
+    /*.app-content {*/
+      /*padding: 20px 0;*/
+    /*}*/
     .estimate-detail {
       .tile {
         padding: 0.25rem;
