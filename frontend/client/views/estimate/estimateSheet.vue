@@ -787,7 +787,9 @@
               return false
             }
             const data = response.data.data
-            this.estimateCurrentTabs = data.tabs
+            this.estimateCurrentTabs = _.sortBy(data.tabs, (item) => {
+              return item.es_version * -1
+            })
             this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
             if (this.estimateCurrentTabs.length > 0) {
               if (this.estimateIsPre) {
@@ -856,6 +858,7 @@
   .table-wrapper {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
+    overflow-y: hidden;
     width: 100%;
   }
   .position-base-table {

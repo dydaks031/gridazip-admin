@@ -255,6 +255,9 @@
                     </div>
                   </div>
                 </div>
+                <div v-if="Object.keys(siteImageDateList).length === 0">
+                  내용이 없습니다.
+                </div>
               </div>
             </div>
           </swipe-item>
@@ -838,7 +841,9 @@
               return false
             }
             const data = response.data.data
-            this.estimateCurrentTabs = data.tabs
+            this.estimateCurrentTabs = _.sortBy(data.tabs, (item) => {
+              return item.es_version * -1
+            })
             this.selectionFlag = data.hasOwnProperty('selectionFlag') ? data.selectionFlag : this.selectionFlag
             if (this.estimateCurrentTabs.length > 0) {
               if (this.selectionFlag) {

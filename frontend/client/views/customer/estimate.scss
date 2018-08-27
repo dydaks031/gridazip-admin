@@ -224,7 +224,7 @@ $main-color: #9dadff;
       }
 
       .money-summary {
-        color: black;
+        color: $main-color;
       }
 
       &.fold {
@@ -239,6 +239,9 @@ $main-color: #9dadff;
         }
         .fold-view {
           display:none;
+        }
+        .money-summary {
+          color: black;
         }
       }
 
@@ -257,6 +260,7 @@ $main-color: #9dadff;
         }
         .money-summary {
           margin-right: 2.3rem;
+          color: black;
         }
       }
 
@@ -273,6 +277,7 @@ $main-color: #9dadff;
         .money-summary {
           font-size: 2rem;
           padding-right: 0;
+          color: black;
           b {
             font-size: 2.7rem;
           }

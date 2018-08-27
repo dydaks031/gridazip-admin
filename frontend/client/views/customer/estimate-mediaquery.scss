@@ -108,7 +108,7 @@ $main-color: #9dadff;
           }
 
           .money-summary {
-            color: black;
+            color: $main-color;
             font-size: 1.1rem;
           }
         }
@@ -116,6 +116,9 @@ $main-color: #9dadff;
         &.fold, &.not-opened {
           .title-container {
 
+          }
+          .money-summary {
+            color: black;
           }
         }
       }

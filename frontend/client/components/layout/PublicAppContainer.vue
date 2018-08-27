@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="publicApp">
     <nprogress-container></nprogress-container>
     <div class="container is-fluid is-marginless app-content">
       <transition
