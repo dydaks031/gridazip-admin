@@ -90,7 +90,7 @@ router.get('/user', (req, res) => {
     })
     .catch((error) => {
       res.json(
-        resHelper.getError(`으앙시발 ${error}`)
+        resHelper.getError(`${error}`)
       )
     })
 })

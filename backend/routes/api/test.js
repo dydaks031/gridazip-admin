@@ -404,10 +404,26 @@ router.get('/https', (req,res) => {
   // });
 });
 router.get('/:n([0-9]+)/:pk(([0-9]+|master){1})', (req,res) => {
-    console.log(req.params.pk);
-    res.json(
-      resHelper.getJson(req.params.pk)
-    );
+  console.log(req.params.pk);
+  res.json(
+    resHelper.getJson(req.params.pk)
+  );
 });
+router.get('/qt', (req,res) => {
+  knexBuilder.getConnection().then(cur => {
+
+    const query = cur(cur.raw('?? (??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??, ??)', ['estimate_detail_hst', 'ed_espk', 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', 'ed_recency']))
+      .insert(function() {
+        this.from('estimate_detail_hst as ed')
+          .where('ed.ed_espk', 4)
+          .select(1, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
+      });
+
+    console.log(query.toString());
+
+  })
+});
+
+
 
 module.exports = router;

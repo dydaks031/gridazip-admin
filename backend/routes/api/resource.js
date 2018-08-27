@@ -338,11 +338,12 @@ router.get('/', (req, res) => {
   }
   else {
     knexBuilder.getConnection().then(cur => {
-      cur('resource_tbl')
-        .select('rs_pk', 'rs_name', 'rs_code', 'rs_price', 'rs_rupk')
-        .where('rs_rtpk',reqRtPk)
-        .andWhere('rs_deleted', false)
-        .orderBy('rs_name')
+      cur({rs: 'resource_tbl'})
+        .select('rs.rs_pk', 'rs.rs_name', 'rs.rs_code', 'rs.rs_price', 'rs.rs_rupk', 'ru.ru_calc_expression')
+        .innerJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
+        .where('rs.rs_rtpk',reqRtPk)
+        .andWhere('rs.rs_deleted', false)
+        .orderBy('rs.rs_name')
         .then(response => {
           res.json(
             resHelper.getJson({

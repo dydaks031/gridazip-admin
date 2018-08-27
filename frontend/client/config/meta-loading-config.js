@@ -89,6 +89,7 @@ export default {
         list: 'resourceUnitList',
         id: 'ru_pk',
         name: 'ru_name',
+        expression: 'ru_calc_expression',
         order: 'ru_order'
       },
       isDetailEdit: true
