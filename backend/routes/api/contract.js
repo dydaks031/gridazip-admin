@@ -21,17 +21,19 @@ router.post('/pk', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
-      .first('pc_pk')
-      .where('pc_phone', cryptoHelper.encrypt(reqPhone))
+      .first('pc_pk', 'pc_phone')
+      .where('pc_phone', cryptoHelper.encrypt(cryptoHelper.decrypt(reqPhone)))
       .andWhere('pc_password', reqPassword)
       .andWhere('pc_deleted', false)
       .then(row => {
         if (!row) {
           res.json(resHelper.getError('일치하는 진행 계약이 없습니다.'));
         } else {
+
           res.json(
             resHelper.getJson({
-              pc_pk: row.pc_pk
+              pc_pk: row.pc_pk,
+              pc_phone: row.pc_phone
             })
           );
         }
