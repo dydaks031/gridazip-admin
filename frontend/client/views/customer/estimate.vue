@@ -70,6 +70,7 @@
 
               <div class="estimate-contents">
               <div v-if="Object.keys(estimateCurrentTabs).length === 0" class="no-data">
+                <img src="~assets/no-data-estimate.png" />
                 <span>등록된 견적서가 없습니다.</span>
               </div>
               <div class="has-data" v-else>
@@ -261,6 +262,7 @@
                   </div>
                 </div>
                 <div v-if="Object.keys(siteImageDateList).length === 0" class="no-data">
+                  <img src="~assets/no-data-photo.png" />
                   <span>등록된 현장 사진이 없습니다.</span>
                 </div>
               </div>

@@ -212,6 +212,15 @@ $main-color: #9dadff;
     justify-content: center;
     flex-direction: column;
     min-height:51vh;
+
+    > img {
+      width: 240px;
+      align-self: center;
+      margin-right: 14px;
+    }
+    > span {
+      padding-top: 1rem;
+    }
   }
 
   .estimate-contents {
