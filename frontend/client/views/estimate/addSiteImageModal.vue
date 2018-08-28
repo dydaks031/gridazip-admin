@@ -118,6 +118,10 @@
             type: 'success',
             duration: 1500
           })
+
+          this.siteImageList = []
+          this.newDescription = ''
+
           this.$modal.hide('addSiteImageModal')
         })
         .catch((e) => {

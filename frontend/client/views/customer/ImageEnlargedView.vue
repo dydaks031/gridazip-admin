@@ -4,6 +4,7 @@
       <span class="close"></span>
     </div>
     <div class="modal-card-body">
+      <span class="helper"></span>
       <img :src="image.si_url" />
     </div>
   </modal>
@@ -57,6 +58,13 @@
   .modal-card-body {
     padding: 0;
     background:transparent;
+    text-align: center;
+    height: 70vh;
+    overflow: hidden;
+
+    > img {
+      max-height: 100%;
+    }
   }
 
   .close {
