@@ -302,7 +302,6 @@
       </div>
     </div>
     <estimate-auth-view
-      :beforeClose="loadEstimateView"
       :isCloseModal.sync="isCloseModal"
       v-on:changeCloseModalStatus="changeCloseModalStatus"/>
     <ImageEnlargedView
@@ -865,8 +864,8 @@
         if (window.hasOwnProperty('sessionStorage')) {
           window.sessionStorage.setItem('pc_pk', result.pc_pk)
 
-          if (result.hasOwnProperty('phone')) {
-            window.sessionStorage.setItem('phone', result.phone)
+          if (result.hasOwnProperty('pc_encrypt_phone')) {
+            window.sessionStorage.setItem('pc_encrypt_phone', result.pc_encrypt_phone)
           }
           if (result.hasOwnProperty('password')) {
             window.sessionStorage.setItem('password', result.password)
@@ -950,7 +949,7 @@
     mounted () {
       if (window.hasOwnProperty('sessionStorage')) {
         const pcPk = window.sessionStorage.getItem('pc_pk')
-        const phone = window.sessionStorage.getItem('phone')
+        const phone = window.sessionStorage.getItem('pc_encrypt_phone')
         const password = window.sessionStorage.getItem('password')
 
         if (pcPk && phone && password) {
@@ -963,7 +962,7 @@
               if (response.data.code !== 200) {
                 window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
                 window.sessionStorage.removeItem('pc_pk')
-                window.sessionStorage.removeItem('phone')
+                window.sessionStorage.removeItem('pc_encrypt_phone')
                 window.sessionStorage.removeItem('password')
                 this.$modal.show('estimateAuthView')
                 return false
@@ -978,7 +977,7 @@
               } else {
                 window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
                 window.sessionStorage.removeItem('pc_pk')
-                window.sessionStorage.removeItem('phone')
+                window.sessionStorage.removeItem('pc_encrypt_phone')
                 window.sessionStorage.removeItem('password')
                 this.$modal.show('estimateAuthView')
               }
