@@ -864,6 +864,13 @@
       changeCloseModalStatus (result) {
         if (window.hasOwnProperty('sessionStorage')) {
           window.sessionStorage.setItem('pc_pk', result.pc_pk)
+
+          if (result.hasOwnProperty('phone')) {
+            window.sessionStorage.setItem('phone', result.phone)
+          }
+          if (result.hasOwnProperty('password')) {
+            window.sessionStorage.setItem('password', result.password)
+          }
         }
         this.isCloseModal = result.closeStatus
         this.pc_pk = result.pc_pk
@@ -943,15 +950,44 @@
     mounted () {
       if (window.hasOwnProperty('sessionStorage')) {
         const pcPk = window.sessionStorage.getItem('pc_pk')
-        if (pcPk) {
-          this.changeCloseModalStatus({
-            closeStatus: true,
-            pc_pk: pcPk
-          })
+        const phone = window.sessionStorage.getItem('phone')
+        const password = window.sessionStorage.getItem('password')
+
+        if (pcPk && phone && password) {
+          const sendData = {
+            phone,
+            password
+          }
+          this.$http.post('/api/contract/pk', sendData)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
+                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('phone')
+                window.sessionStorage.removeItem('password')
+                this.$modal.show('estimateAuthView')
+                return false
+              }
+              const resultPcPk = response.data.data.pc_pk
+
+              if (parseInt(resultPcPk, 10) === parseInt(pcPk, 10)) {
+                this.changeCloseModalStatus({
+                  closeStatus: true,
+                  pc_pk: pcPk
+                })
+              } else {
+                window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
+                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('phone')
+                window.sessionStorage.removeItem('password')
+                this.$modal.show('estimateAuthView')
+              }
+            })
         } else {
           this.$modal.show('estimateAuthView')
         }
       }
+
       window.addEventListener('resize', this.checkScrollBlockToMobileDevice)
       this.checkScrollBlockToMobileDevice()
     },

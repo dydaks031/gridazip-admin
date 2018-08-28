@@ -50,7 +50,8 @@
       beforeCloseEvent () {
         this.$emit('changeCloseModalStatus', {
           closeStatus: true,
-          pc_pk: this.pc_pk
+          pc_pk: this.pc_pk,
+          ...this.userData
         })
       },
       userAuth () {
