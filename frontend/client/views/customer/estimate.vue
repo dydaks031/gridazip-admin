@@ -70,6 +70,7 @@
 
               <div class="estimate-contents">
               <div v-if="Object.keys(estimateCurrentTabs).length === 0" class="no-data">
+                <img src="~assets/no-data-estimate.png" />
                 <span>등록된 견적서가 없습니다.</span>
               </div>
               <div class="has-data" v-else>
@@ -261,6 +262,7 @@
                   </div>
                 </div>
                 <div v-if="Object.keys(siteImageDateList).length === 0" class="no-data">
+                  <img src="~assets/no-data-photo.png" />
                   <span>등록된 현장 사진이 없습니다.</span>
                 </div>
               </div>
@@ -300,7 +302,6 @@
       </div>
     </div>
     <estimate-auth-view
-      :beforeClose="loadEstimateView"
       :isCloseModal.sync="isCloseModal"
       v-on:changeCloseModalStatus="changeCloseModalStatus"/>
     <ImageEnlargedView
@@ -862,6 +863,13 @@
       changeCloseModalStatus (result) {
         if (window.hasOwnProperty('sessionStorage')) {
           window.sessionStorage.setItem('pc_pk', result.pc_pk)
+
+          if (result.hasOwnProperty('pc_encrypt_phone')) {
+            window.sessionStorage.setItem('pc_encrypt_phone', result.pc_encrypt_phone)
+          }
+          if (result.hasOwnProperty('password')) {
+            window.sessionStorage.setItem('password', result.password)
+          }
         }
         this.isCloseModal = result.closeStatus
         this.pc_pk = result.pc_pk
@@ -941,15 +949,44 @@
     mounted () {
       if (window.hasOwnProperty('sessionStorage')) {
         const pcPk = window.sessionStorage.getItem('pc_pk')
-        if (pcPk) {
-          this.changeCloseModalStatus({
-            closeStatus: true,
-            pc_pk: pcPk
-          })
+        const phone = window.sessionStorage.getItem('pc_encrypt_phone')
+        const password = window.sessionStorage.getItem('password')
+
+        if (pcPk && phone && password) {
+          const sendData = {
+            phone,
+            password
+          }
+          this.$http.post('/api/contract/pk', sendData)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
+                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('pc_encrypt_phone')
+                window.sessionStorage.removeItem('password')
+                this.$modal.show('estimateAuthView')
+                return false
+              }
+              const resultPcPk = response.data.data.pc_pk
+
+              if (parseInt(resultPcPk, 10) === parseInt(pcPk, 10)) {
+                this.changeCloseModalStatus({
+                  closeStatus: true,
+                  pc_pk: pcPk
+                })
+              } else {
+                window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
+                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('pc_encrypt_phone')
+                window.sessionStorage.removeItem('password')
+                this.$modal.show('estimateAuthView')
+              }
+            })
         } else {
           this.$modal.show('estimateAuthView')
         }
       }
+
       window.addEventListener('resize', this.checkScrollBlockToMobileDevice)
       this.checkScrollBlockToMobileDevice()
     },

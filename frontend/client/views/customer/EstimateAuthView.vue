@@ -34,7 +34,6 @@
     components: {
     },
     props: {
-      beforeClose: Function,
       isCloseModal: Boolean
     },
     data () {
@@ -50,7 +49,9 @@
       beforeCloseEvent () {
         this.$emit('changeCloseModalStatus', {
           closeStatus: true,
-          pc_pk: this.pc_pk
+          pc_pk: this.pc_pk,
+          password: this.userData.password,
+          pc_encrypt_phone: this.pc_encrypt_phone
         })
       },
       userAuth () {
@@ -61,7 +62,10 @@
               window.alert('일치하는 계약이 존재하지 않습니다.')
               return false
             }
-            this.pc_pk = response.data.data.pc_pk
+
+            const data = response.data.data
+            this.pc_pk = data.pc_pk
+            this.pc_encrypt_phone = data.pc_phone
             this.$modal.hide('estimateAuthView')
           })
       }
