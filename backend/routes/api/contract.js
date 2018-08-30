@@ -894,11 +894,8 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
             let calcExpression = row.ru_calc_expression;
             const fn = calc.func(`f(x) = ${calcExpression}`);
             let resourceAmount = fn(reqInputValue);
-            if (parseFloat(resourceAmount).toFixed(2) === parseFloat(reqResourceAmount).toFixed(2)) {
-              updateObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
-            } else {
-              updateObj.ed_resource_amount = parseFloat(reqResourceAmount).toFixed(2);
-            }
+
+            updateObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
             updateObj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
           }
 
