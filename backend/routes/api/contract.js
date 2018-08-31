@@ -1889,6 +1889,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   const reqEsPk = req.params.espk || '';
   const reqFullMode = req.query.fullMode || '0';
+  const reqEsIsPre = req.query.es_is_pre === 'true';
 
   knexBuilder.getConnection().then(cur => {
     const subQuery = cur('estimate_tbl').select('es_pcpk').where('es_pk', reqEsPk);
@@ -1897,7 +1898,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
     cur('estimate_tbl')
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
-      .andWhere('es_is_pre', false)
+      .andWhere('es_is_pre', reqEsIsPre)
       .orderBy('es_is_pre', 'es_pk')
       .then(response => {
         if (response.length < 2) {
@@ -1909,17 +1910,28 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
       })
       .then(() => {
         return cur('proceeding_contract_tbl')
-          .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio')
+          .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
           .where('pc_pk', reqPcPk);
       })
       .then(row => {
+        console.log(reqEsIsPre)
+        console.log(`
+        SELECT resource_costs,
+               labor_costs,
+               (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
+               (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
+               (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs` +
+               (reqEsIsPre === true ? `,\n ${row.pc_discount_amount} as discount_amount\n` : '\n') +
+        `FROM ()`
+        )
         return cur.raw(`
           SELECT resource_costs,
                  labor_costs,
                  (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
                  (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs
-            FROM (
+                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs` +
+                 (reqEsIsPre === true ? `,\n ${row.pc_discount_amount} as discount_amount\n` : '\n') +
+            `FROM (
               SELECT sum(resource_costs) resource_costs
                 FROM (
                   SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
