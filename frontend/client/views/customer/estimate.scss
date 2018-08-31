@@ -312,12 +312,16 @@ $main-color: #9dadff;
           border-top: 1px solid #e1e1e1;
           th {
             border-bottom: 1px solid #333333;
+            &.has-text-right {
+              text-align: right;
+            }
           }
         }
 
         tbody {
           tr {
             td {
+              word-break: keep-all;
               .resource-code {
                 display: block;
                 font-size: .8rem;

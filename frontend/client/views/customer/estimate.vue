@@ -189,14 +189,20 @@
                   <div class="fold-view">
                     <table class="table" id="labor-table">
                       <colgroup>
-                        <col width="auto"/>
+                        <col width="15%"/>
+                        <col width="20%"/>
+                        <col width="20%"/>
+                        <col width="10%"/>
+                        <col width="10%"/>
+                        <col width="25%"/>
                       </colgroup>
                       <thead>
                       <tr>
                         <th>공사</th>
                         <th class="is-hidden-touch" >공정</th>
                         <th>상세공정</th>
-                        <th>자재군</th>
+                        <th>수량</th>
+                        <th>단위</th>
                         <th class="has-text-right">인건비</th>
                       </tr>
                       </thead>
@@ -210,7 +216,13 @@
                           <td v-if="labor.hasOwnProperty('construction_count')" :rowspan="labor.construction_count || 1">{{labor.ct_name}}</td>
                           <td class="is-hidden-touch" v-if="labor.hasOwnProperty('construction_process_count')" :rowspan="labor.construction_process_count || 1">{{labor.cp_name}}</td>
                           <td v-if="labor.hasOwnProperty('construction_process_detail_count')" :rowspan="labor.construction_process_detail_count || 1">{{labor.cpd_name}}</td>
-                          <td>{{labor.rt_name}}</td>
+                          <td>{{(labor.labor_costs / labor.labor_price) === Infinity ? '' : (labor.labor_costs / labor.labor_price)}}</td>
+                          <td>
+                            <span v-if="labor.cpd_unit === 0">개</span>
+                            <span v-else-if="labor.cpd_unit === 1">m</span>
+                            <span v-else-if="labor.cpd_unit === 2">m<sup>2</sup></span>
+                            <span v-else-if="labor.cpd_unit === 3">인</span>
+                          </td>
                           <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
                         </tr>
                       </transition-group>
