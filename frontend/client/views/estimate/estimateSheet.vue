@@ -143,7 +143,7 @@
                       <span v-if="labor.cpd_unit === 0">개</span>
                       <span v-else-if="labor.cpd_unit === 1">m</span>
                       <span v-else-if="labor.cpd_unit === 2">m<sup>2</sup></span>
-                      <span v-else-if="labor.cpd_unit === 3">명</span>
+                      <span v-else-if="labor.cpd_unit === 3">인</span>
                     </td>
                     <td class="has-text-right">{{addCommas(labor.labor_costs)}}</td>
                   </tr>
