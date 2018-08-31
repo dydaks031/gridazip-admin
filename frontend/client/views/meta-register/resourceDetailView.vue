@@ -33,11 +33,15 @@
               </label>
               <label class="radio">
                 <input type="radio" value="1"  name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
-                M
+                m
               </label>
               <label class="radio">
                 <input type="radio" value="2" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
-                M^2
+                m<sup>2</sup>
+              </label>
+              <label class="radio">
+                <input type="radio" value="3" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
+                인
               </label>
               <p class="help is-danger" v-if="!$v.data.cpd_unit.required">단위를 선택 해 주십시오.</p>
             </div>

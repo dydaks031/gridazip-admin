@@ -63,7 +63,7 @@
       </td>
       <td>
         <button class="button" @click="changedModifyRowView(data)" v-if="!data.isRemoved">{{data.isModify ? '취소': '수정'}}</button>
-        <button class="button" v-if="!data.isModify && data.hasOwnProperty('ed_pk')" @click="deleteRow(data)">삭제</button>
+        <button class="button" v-if="!data.isModify && data.selectedData.hasOwnProperty('ed_pk')" @click="deleteRow(data)">삭제</button>
         <button class="button" v-if="data.isModify && !data.isRemoved" @click="updateRow(data)">확인</button>
         <button class="button" v-if="data.isRemoved" @click="cancelRemoveRow(data, index)">취소</button>
       </td>
