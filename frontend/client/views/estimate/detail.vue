@@ -364,7 +364,9 @@
         },
         currentTab: '',
         param: {},
-        detailData: {},
+        detailData: {
+          pc_move_date: ''
+        },
         estimateData: {
           general: [],
           labor: [],
@@ -448,6 +450,7 @@
               return false
             }
             this.detailData = response.data.data.contract
+            this.detailData.pc_move_date = (this.detailData.pc_move_date === '0000-00-00 00:00:00' || !this.detailData.pc_move_date) ? '' : moment(this.detailData.pc_move_date, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')
           }).catch((error) => {
             console.log(error)
           })
