@@ -377,7 +377,7 @@ router.post('/:pcpk([0-9]+)/image', (req, res) => {
 
     Promise.all(promises)
       .then(response => {
-        console.log(response)
+        // console.log(response)
         res.json(
           resHelper.getJson({
             msg: '정상적으로 등록되었습니다.'
@@ -1914,16 +1914,6 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
           .where('pc_pk', reqPcPk);
       })
       .then(row => {
-        console.log(reqEsIsPre)
-        console.log(`
-        SELECT resource_costs,
-               labor_costs,
-               (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
-               (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-               (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs` +
-               (reqEsIsPre === true ? `,\n ${row.pc_discount_amount} as discount_amount\n` : '\n') +
-        `FROM ()`
-        )
         return cur.raw(`
           SELECT resource_costs,
                  labor_costs,
@@ -2250,7 +2240,7 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur({cl:'checklist_tbl'})
-      .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource')
+      .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource', 'cl.cl_memo')
       .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
       .where('cl_pcpk', reqPcPk)
       .andWhere('cl_deleted', 0)
@@ -2277,6 +2267,7 @@ router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
   const reqClDate = req.body.cl_date || 0;
   const reqClConstructor = req.body.cl_constructor || 0;
   const reqClResource = req.body.cl_resource || 0;
+  const reqClMemo = req.body.cl_memo || '';
 
   // console.log(`reqPcPk : [${reqPcPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
 
@@ -2293,6 +2284,7 @@ router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
       o.cl_ctpk = reqCtPk;
       o.cl_constructor = reqClConstructor;
       o.cl_resource = reqClResource;
+      o.cl_memo = reqClMemo;
 
       cur('checklist_tbl')
         .insert(o)
@@ -2319,6 +2311,7 @@ router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
   const reqClDate = req.body.cl_date;
   const reqClConstructor = req.body.cl_constructor;
   const reqClResource = req.body.cl_resource;
+  const reqClMemo = req.body.cl_memo;
 
   // console.log(`reqClPk : [${reqClPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
   knexBuilder.getConnection().then(cur => {
@@ -2327,6 +2320,7 @@ router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
     o.cl_date = reqClDate;
     o.cl_constructor = reqClConstructor;
     o.cl_resource = reqClResource;
+    o.cl_memo = reqClMemo;
 
     const query = cur('checklist_tbl')
       .update(o)
