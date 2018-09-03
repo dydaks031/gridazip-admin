@@ -6,7 +6,7 @@ const resHelper = require('../../services/response/helper');
 /* 자재 분류*/
 
 router.post('/listener', (req, res) => {
-  console.log(res.body)
+  console.log(req.body)
 });
 
 module.exports = router;
