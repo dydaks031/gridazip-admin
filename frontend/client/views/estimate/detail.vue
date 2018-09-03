@@ -206,6 +206,7 @@
               <col width="16%"/>
               <col width="5%"/>
               <col width="5%"/>
+              <col width="auto"/>
               <col width="16%"/>
             </colgroup>
             <thead>
@@ -215,12 +216,13 @@
                 <th>공사</th>
                 <th>자재</th>
                 <th>인력</th>
+                <th>메모</th>
                 <th></th>
               </tr>
             </thead>
             <tbody v-for="(checkListByDate, index) in checkList">
               <tr @click="toggleCheckDate(index)" class="date-header">
-                <th colspan="6">{{index}}</th>
+                <th colspan="7">{{index}}</th>
               </tr>
               <tr v-for="checkListItem in checkListByDate">
                 <td class="has-text-centered">
@@ -248,6 +250,11 @@
                   <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(checkListItem)" />
                 </td>
                 <td>
+
+                  <span v-if="!checkListItem.isModify">{{checkListItem.cl_memo}}</span>
+                  <textarea class="textarea cl-memo" v-model="checkListItem.cl_memo" v-if="checkListItem.isModify"></textarea>
+                </td>
+                <td>
                   <button class="button" v-if="!checkListItem.isModify" @click="checkListItem.isModify = true">수정</button>
                   <button class="button is-danger" v-if="!checkListItem.isModify" @click="deleteCheckList(checkListItem)">삭제</button>
                   <button class="button" v-if="checkListItem.isModify" @click="checkListItem.isModify = false">취소</button>
@@ -257,7 +264,7 @@
             </tbody>
             <tbody>
               <tr v-show="!isAddCheckList">
-                <td colspan="6" class="has-text-centered" @click="isAddCheckList = true;">+</td>
+                <td colspan="7" class="has-text-centered" @click="isAddCheckList = true;">+</td>
               </tr>
               <tr v-show="isAddCheckList">
                 <td>
@@ -281,6 +288,9 @@
                 </td>
                 <td>
                   <input type="checkbox" class="checkbox" v-model="newCheckList.cl_constructor"/>
+                </td>
+                <td>
+                  <textarea class="textarea cl-memo" v-model="newCheckList.cl_memo"></textarea>
                 </td>
                 <td>
                   <button class="button" @click="registerCheckList">등록</button>
@@ -785,5 +795,9 @@
         }
       }
     }
+  }
+
+  .cl-memo {
+    min-height: 50px;
   }
 </style>
