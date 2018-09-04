@@ -20,21 +20,22 @@ router.post('/listener', (req, res) => {
   const insertData = {
     ch_id: userInfo.id,
     ch_name: userInfo.name,
-    ch_phone: userInfo.mobileNumber,
+    ch_phone: cryptoHelper.encrypt(userInfo.mobileNumber),
     ch_latitude: userInfo.latitude,
     ch_longitude: userInfo.longitude,
     ch_segment: userInfo.segment,
     ch_locale: userInfo.locale,
-    ch_country: userInfo.country
+    ch_country: userInfo.country,
   }
   console.log(JSON.stringify(insertData))
 
   knexBuilder.getConnection().then(cur => {
     cur('channel_access_log_tbl')
       .select('*')
-      .where('ch_phone', userInfo.mobileNumber)
+      .where('ch_phone', insertData.ch_phone)
       .then((response) => {
         if (response.length > 0) {
+          console.log(response[0])
           return cur('channel_access_log_tbl')
             .update(insertData)
             .where('ch_pk', response[0].ch_pk)
@@ -45,7 +46,6 @@ router.post('/listener', (req, res) => {
       })
       .then((response) => {
         console.log(response)
-
         res.json(resHelper.getJson({
           msg: 'OK'
         }));
@@ -56,4 +56,10 @@ router.post('/listener', (req, res) => {
   })
 });
 
+router.get('/channel-list', (req, res) => {
+  knexBuilder.getConnection().then(cur => {
+    cur('channel_access_log_tbl')
+      .select('*')
+  });
+})
 module.exports = router;
