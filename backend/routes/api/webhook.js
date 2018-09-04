@@ -10,8 +10,9 @@ router.post('/listener', (req, res) => {
   console.log(req.body)
   const userInfo = req.body.refers.veil;
   const mobileNumber = userInfo.mobileNumber;
-
-  if (!mobileNumber) {
+  const isNamed = userInfo.named === true || userInfo.named === 'true'
+  console.log(userInfo.profile)
+  if (!mobileNumber || !isNamed) {
     res.json(resHelper.getJson({
       msg: 'NOT INSERTED'
     }));
@@ -35,7 +36,6 @@ router.post('/listener', (req, res) => {
       .where('ch_phone', insertData.ch_phone)
       .then((response) => {
         if (response.length > 0) {
-          console.log(response[0])
           return cur('channel_access_log_tbl')
             .update(insertData)
             .where('ch_pk', response[0].ch_pk)
@@ -43,6 +43,9 @@ router.post('/listener', (req, res) => {
           return cur('channel_access_log_tbl')
             .insert(insertData)
         }
+      })
+      .then((response) => {
+
       })
       .then((response) => {
         res.json(resHelper.getJson({
@@ -59,6 +62,12 @@ router.get('/channel-list', (req, res) => {
   knexBuilder.getConnection().then(cur => {
     cur('channel_access_log_tbl')
       .select('*')
+      .where('ch_segment', '<>', 'lost')
+      .then((response) => {
+        res.json(resHelper.getJson({
+          channel_list: response
+        }));
+      })
   });
 })
 module.exports = router;
