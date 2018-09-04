@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const cryptoHelper = require('../../services/crypto/helper');
 
 /* 자재 분류*/
 
@@ -27,7 +28,6 @@ router.post('/listener', (req, res) => {
     ch_locale: userInfo.locale,
     ch_country: userInfo.country,
   }
-  console.log(JSON.stringify(insertData))
 
   knexBuilder.getConnection().then(cur => {
     cur('channel_access_log_tbl')
@@ -45,7 +45,6 @@ router.post('/listener', (req, res) => {
         }
       })
       .then((response) => {
-        console.log(response)
         res.json(resHelper.getJson({
           msg: 'OK'
         }));
