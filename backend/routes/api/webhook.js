@@ -29,9 +29,31 @@ router.post('/listener', (req, res) => {
   }
   console.log(JSON.stringify(insertData))
 
-  res.json(resHelper.getJson({
-    msg: 'OK'
-  }));
+  knexBuilder.getConnection().then(cur => {
+    cur('channel_access_log_tbl')
+      .select('*')
+      .where('ch_phone', userInfo.mobileNumber)
+      .then((response) => {
+        if (response.length > 0) {
+          return cur('channel_access_log_tbl')
+            .update(insertData)
+            .where(response[0].ch_pk)
+        } else {
+          return cur('channel_access_log_tbl')
+            .insert(insertData)
+        }
+      })
+      .then((response) => {
+        console.log(response)
+
+        res.json(resHelper.getJson({
+          msg: 'OK'
+        }));
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  })
 });
 
 module.exports = router;
