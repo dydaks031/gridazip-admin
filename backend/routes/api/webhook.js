@@ -37,7 +37,7 @@ router.post('/listener', (req, res) => {
         if (response.length > 0) {
           return cur('channel_access_log_tbl')
             .update(insertData)
-            .where(response[0].ch_pk)
+            .where('ch_pk', response[0].ch_pk)
         } else {
           return cur('channel_access_log_tbl')
             .insert(insertData)
