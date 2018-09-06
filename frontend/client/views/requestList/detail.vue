@@ -2,7 +2,10 @@
   <div class="tile is-ancestor">
     <div class="tile is-parent">
       <article class="tile is-child box">
-        <h4 class="title">상담신청내역 상세</h4>
+        <div class="is-clearfix">
+          <h4 class="title">상담신청내역 상세</h4>
+          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToContract">진행계약으로 이동</a>
+        </div>
         <div class="block">
           <label class="label">상담 진행상태</label>
           <div class="select is-fullwidth">
@@ -146,8 +149,7 @@
             </div>
           </div>
           <p class="control">
-            <button class="button is-primary" v-on:click="submitData">Submit</button>
-            <button class="button is-link">Cancel</button>
+            <button class="button is-primary" v-on:click="submitData">수정</button>
           </p>
         </div>
       </article>
@@ -288,6 +290,21 @@
           this.hasStatusChildren = false
         }
         this.$forceUpdate()
+      },
+      moveToContract () {
+        this.$http.post(`${queryApi}/contract/${this.id}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            openNotification({
+              message: '해당 고객이 진행계약 목록에 등록되었습니다.',
+              type: 'success',
+              duration: 2500
+            })
+          }).catch((error) => {
+            console.log(error)
+          })
       }
     }
   }
