@@ -175,6 +175,33 @@
       next()
     },
     mounted () {
+      console.log(window.gapi)
+      window.gapi.client.request({
+        path: '/v4/reports:batchGet',
+        root: 'https://analyticsreporting.googleapis.com/',
+        method: 'POST',
+        body: {
+          reportRequests: [
+            {
+              viewId: 136738850,
+              dateRanges: [
+                {
+                  startDate: '7daysAgo',
+                  endDate: 'today'
+                }
+              ],
+              metrics: [
+                {
+                  expression: 'ga:sessions'
+                }
+              ]
+            }
+          ]
+        }
+      }).then((response) => {
+        console.log(response)
+      }, console.error.bind(console))
+
       this.loadData()
     }
   }

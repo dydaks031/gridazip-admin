@@ -10,9 +10,14 @@ router.post('/listener', (req, res) => {
   console.log(req.body)
   const userInfo = req.body.refers.veil;
   const mobileNumber = userInfo.mobileNumber;
-  const isNamed = userInfo.named === true || userInfo.named === 'true'
-  console.log(userInfo.profile)
-  if (!mobileNumber || !isNamed) {
+  let profile;
+  let isUpdate = false
+  let alreadyInserted = false
+
+  if (userInfo.hasOwnProperty('profile')) {
+    profile = userInfo.profile;
+  }
+  if (!mobileNumber) {
     res.json(resHelper.getJson({
       msg: 'NOT INSERTED'
     }));
@@ -22,7 +27,7 @@ router.post('/listener', (req, res) => {
   const insertData = {
     ch_id: userInfo.id,
     ch_name: userInfo.name,
-    ch_phone: cryptoHelper.encrypt(userInfo.mobileNumber),
+    ch_phone: cryptoHelper.encrypt(userInfo.mobileNumber.split('-').join('').replace('+82', '0')),
     ch_latitude: userInfo.latitude,
     ch_longitude: userInfo.longitude,
     ch_segment: userInfo.segment,
@@ -31,11 +36,22 @@ router.post('/listener', (req, res) => {
   }
 
   knexBuilder.getConnection().then(cur => {
+    cur('request_tbl')
+      .select('*')
+      .where('rq_phone', insertData.ch_phone)
+      .then((response) => {
+        console.log()
+        if (response.length > 0) {
+          alreadyInserted = true;
+        }
+      })
+
     cur('channel_access_log_tbl')
       .select('*')
       .where('ch_phone', insertData.ch_phone)
       .then((response) => {
-        if (response.length > 0) {
+        isUpdate = response.length > 0;
+          if (isUpdate) {
           return cur('channel_access_log_tbl')
             .update(insertData)
             .where('ch_pk', response[0].ch_pk)
@@ -45,7 +61,33 @@ router.post('/listener', (req, res) => {
         }
       })
       .then((response) => {
-
+        if (!isUpdate && insertData.ch_segment !== 'lost' && !alreadyInserted) {
+          const requestInsertData = {
+            rq_name: userInfo.name,
+            rq_phone: cryptoHelper.encrypt(userInfo.mobileNumber.split('-').join('').replace('+82', '0')),
+            rq_nickname: '',
+            rq_family: '',
+            rq_size: profile.size || '',
+            rq_address_brief: profile.address || '',
+            rq_address_detail: '',
+            rq_move_date: '',
+            rq_budget: '',
+            rq_place: '',
+            rq_date: '',
+            rq_time: '',
+            rq_request: '',
+            rq_memo: '',
+            rq_construction_type: '',
+            rq_consulting_result: '',
+            rq_manager: '',
+            rq_site_type: '',
+          }
+          requestInsertData.rq_recency = cur.raw('UNIX_TIMESTAMP() * -1');
+          return cur('request_tbl')
+            .insert(requestInsertData)
+        } else {
+          return response
+        }
       })
       .then((response) => {
         res.json(resHelper.getJson({
@@ -63,7 +105,7 @@ router.get('/channel-list', (req, res) => {
     cur('channel_access_log_tbl')
       .select('*')
       .where('ch_segment', '<>', 'lost')
-      .then((response) => {
+        .then((response) => {
         res.json(resHelper.getJson({
           channel_list: response
         }));
