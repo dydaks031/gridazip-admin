@@ -366,7 +366,7 @@ router.post('/contract/:rqpk([0-9]+)', (req, res) => {
 
         const sendData = {
           pc_name: data.rq_name,
-          pc_phone: data.rq_phone,
+          pc_phone: cryptoHelper.decrypt(data.rq_phone),
           pc_size: data.rq_size,
           pc_address_brief: data.rq_address_brief,
           pc_address_detail: data.rq_address_detail,
@@ -374,6 +374,7 @@ router.post('/contract/:rqpk([0-9]+)', (req, res) => {
           pc_budget: data.rq_budget,
           pc_memo: `${constructionType}${consultingResult}${memo}`
         }
+
         httpClient.post({
           url: 'http://localhost:3000/api/contract',
           form: sendData
