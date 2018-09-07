@@ -1,6 +1,11 @@
 ㄷ<template>
   <div class="column">
     <span class="subtitle">{{model.label}}</span>
+    <p v-show="model.isEnableAddItem" class="add-new-item-btn">
+      <span class="is-block" @click="addNewItems" v-show="!isShowEditView">+</span>
+      <input class="input" type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput" :placeholder="model.label + ' 입력'" autofocus="true" />
+      <button class="button" v-show="isShowEditView" @click="hideEditView">취소</button>
+    </p>
     <draggable v-model="model.data" @end="updateView" element="div" class="list-group">
       <transition-group>
         <div class="list-item" v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
@@ -13,11 +18,6 @@
         </div>
       </transition-group>
     </draggable>
-    <p v-show="model.isEnableAddItem" class="add-new-item-btn">
-      <span class="is-block" @click="addNewItems" v-show="!isShowEditView">+</span>
-      <input class="input" type="text" v-model="newData" v-show="isShowEditView" @keypress.enter.stop="submitNewItems" @input="newItemInput" :placeholder="model.label + ' 입력'" autofocus="true" />
-      <button class="button" v-show="isShowEditView" @click="hideEditView">취소</button>
-    </p>
   </div>
 </template>
 
