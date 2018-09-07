@@ -392,7 +392,7 @@ router.post('/:pcpk([0-9]+)/image', (req, res) => {
 
     Promise.all(promises)
       .then(response => {
-        console.log(response)
+        // console.log(response)
         res.json(
           resHelper.getJson({
             msg: '정상적으로 등록되었습니다.'
@@ -918,11 +918,8 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
             let calcExpression = row.ru_calc_expression;
             const fn = calc.func(`f(x) = ${calcExpression}`);
             let resourceAmount = fn(reqInputValue);
-            if (parseFloat(resourceAmount).toFixed(2) === parseFloat(reqResourceAmount).toFixed(2)) {
-              updateObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
-            } else {
-              updateObj.ed_resource_amount = parseFloat(reqResourceAmount).toFixed(2);
-            }
+
+            updateObj.ed_resource_amount = parseFloat(resourceAmount).toFixed(2);
             updateObj.ed_calculated_amount = parseFloat(resourceAmount).toFixed(2);
           }
 
@@ -1394,6 +1391,7 @@ router.get('/:pcpk([0-9]+)/estimate/labor', (req, res) => {
              cp.cp_pk,
              cpd.cpd_name,
              cpd.cpd_pk,
+             cpd.cpd_unit,
              rt.rt_name,
              rt.rt_sub,
              rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
@@ -1819,6 +1817,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
                  cp.cp_pk,
                  cpd.cpd_name,
                  cpd.cpd_pk,
+                 cpd.cpd_unit,
                  rt.rt_name,
                  rt.rt_sub,
                  rt.rt_extra_labor_costs + cpd.cpd_labor_costs labor_price,
@@ -1914,6 +1913,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   const reqEsPk = req.params.espk || '';
   const reqFullMode = req.query.fullMode || '0';
+  const reqEsIsPre = req.query.es_is_pre === 'true';
 
   knexBuilder.getConnection().then(cur => {
     const subQuery = cur('estimate_tbl').select('es_pcpk').where('es_pk', reqEsPk);
@@ -1922,7 +1922,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
     cur('estimate_tbl')
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
-      .andWhere('es_is_pre', false)
+      .andWhere('es_is_pre', reqEsIsPre)
       .orderBy('es_is_pre', 'es_pk')
       .then(response => {
         if (response.length < 2) {
@@ -1934,7 +1934,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
       })
       .then(() => {
         return cur('proceeding_contract_tbl')
-          .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio')
+          .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
           .where('pc_pk', reqPcPk);
       })
       .then(row => {
@@ -1943,8 +1943,9 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
                  labor_costs,
                  (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
                  (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs
-            FROM (
+                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs` +
+                 (reqEsIsPre === true ? `,\n ${row.pc_discount_amount} as discount_amount\n` : '\n') +
+            `FROM (
               SELECT sum(resource_costs) resource_costs
                 FROM (
                   SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
@@ -2263,7 +2264,7 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
   knexBuilder.getConnection().then(cur => {
 
     cur({cl:'checklist_tbl'})
-      .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource')
+      .select('cl.cl_pk', 'cl.cl_date', 'cl.cl_ctpk', 'ct.ct_name', 'cl.cl_constructor', 'cl.cl_resource', 'cl.cl_memo')
       .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
       .where('cl_pcpk', reqPcPk)
       .andWhere('cl_deleted', 0)
@@ -2290,6 +2291,7 @@ router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
   const reqClDate = req.body.cl_date || 0;
   const reqClConstructor = req.body.cl_constructor || 0;
   const reqClResource = req.body.cl_resource || 0;
+  const reqClMemo = req.body.cl_memo || '';
 
   // console.log(`reqPcPk : [${reqPcPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
 
@@ -2306,6 +2308,7 @@ router.post('/:pcpk([0-9]+)/checklist', (req, res) => {
       o.cl_ctpk = reqCtPk;
       o.cl_constructor = reqClConstructor;
       o.cl_resource = reqClResource;
+      o.cl_memo = reqClMemo;
 
       cur('checklist_tbl')
         .insert(o)
@@ -2332,6 +2335,7 @@ router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
   const reqClDate = req.body.cl_date;
   const reqClConstructor = req.body.cl_constructor;
   const reqClResource = req.body.cl_resource;
+  const reqClMemo = req.body.cl_memo;
 
   // console.log(`reqClPk : [${reqClPk}]  /  reqCtPk  :  [${reqCtPk}]  reqClDate  :  [${reqClDate}]  reqClConstructor  :  [${reqClConstructor}]  reqClResource  :  [${reqClResource}]`)
   knexBuilder.getConnection().then(cur => {
@@ -2340,6 +2344,7 @@ router.put('/:pcpk([0-9]+)/checklist/:clpk([0-9]+)', (req, res) => {
     o.cl_date = reqClDate;
     o.cl_constructor = reqClConstructor;
     o.cl_resource = reqClResource;
+    o.cl_memo = reqClMemo;
 
     const query = cur('checklist_tbl')
       .update(o)
@@ -2422,4 +2427,5 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
     })
   }
 });
-  module.exports = router;
+
+module.exports = router

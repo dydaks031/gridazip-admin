@@ -163,10 +163,7 @@
 
       },
       moveToPagination (index) {
-        console.log('curIndex' + index)
         this.page.setIndex(index)
-        console.log(this.page)
-        console.log(this.filter)
         this.loadData()
       },
       moveToRegister () {
@@ -176,9 +173,6 @@
       }
     },
     beforeRouteUpdate (to, from, next) {
-      // just use `this`
-      console.log(`to: ${to}`)
-      console.log(`from: ${from}`)
       this.loadData()
       next()
     },
