@@ -132,6 +132,7 @@ router.get('/', (req, res) => {
 
 router.get('/:pcpk([0-9]+)', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
+  const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
       .first('*')
@@ -151,6 +152,11 @@ router.get('/:pcpk([0-9]+)', (req, res) => {
           item.pc_etc_costs_ratio = item.pc_etc_costs_ratio * 100 || 0.05 * 100;
           item.pc_design_costs_ratio = item.pc_design_costs_ratio * 100 || 0.10 * 100;
           item.pc_supervision_costs_ratio = item.pc_supervision_costs_ratio * 100 || 0.10 * 100;
+          if (contractFailReasonList.indexOf(item.pc_fail_reason) < 0 && item.pc_fail_reason !== '') {
+            item.pc_fail_reason_text = item.pc_fail_reason;
+            item.pc_fail_reason = '기타'
+          }
+          console.log(item);
           res.json(resHelper.getJson({
             contract: item
           }));
@@ -190,6 +196,7 @@ router.post('/', (req, res) => {
     insertObj.pc_size = req.body.pc_size || '';
     insertObj.pc_address_brief = req.body.pc_address_brief || '';
     insertObj.pc_address_detail = req.body.pc_address_detail || '';
+    insertObj.pc_construction_start_date = req.body.pc_construction_start_date || '';
     insertObj.pc_move_date = req.body.pc_move_date || '';
     insertObj.pc_budget = req.body.pc_budget || '';
     insertObj.pc_memo = req.body.pc_memo || '';
@@ -223,6 +230,9 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   const reqName = req.body.pc_name || '';
   const reqPhone = req.body.pc_phone || '';
+  const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
+  console.log(contractFailReasonList);
+
   if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
   }
@@ -239,6 +249,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_size = req.body.pc_size || '';
     updateObj.pc_address_brief = req.body.pc_address_brief || '';
     updateObj.pc_address_detail = req.body.pc_address_detail || '';
+    updateObj.pc_construction_start_date = req.body.pc_construction_start_date || '';
     updateObj.pc_move_date = req.body.pc_move_date || '';
     updateObj.pc_budget = req.body.pc_budget || '';
     updateObj.pc_memo = req.body.pc_memo || '';
@@ -246,6 +257,10 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_design_costs_ratio = req.body.pc_design_costs_ratio / 100 || 0.10;
     updateObj.pc_supervision_costs_ratio = req.body.pc_supervision_costs_ratio / 100 || 0.10;
     updateObj.pc_discount_amount = req.body.pc_discount_amount || null;
+    updateObj.pc_status = req.body.pc_status || 0;
+    updateObj.pc_fail_reason = (contractFailReasonList.indexOf(req.body.pc_fail_reason) < 0 ? req.body.pc_fail_reason_text : req.body.pc_fail_reason) || '';
+
+
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
@@ -502,7 +517,6 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
   else {
     knexBuilder.getConnection().then(cur => {
       const obj = {};
-
       cur('estimate_tbl')
         .max('es_version as version')
         .where('es_pcpk', reqPcPk)
@@ -529,6 +543,16 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
                         .select(obj.es_pk, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
                     })
                     .transacting(trx)
+                }
+              })
+              .then(() => {
+                if (!reqEsIsPre) {
+                  return cur('proceeding_contract_tbl')
+                    .update('pc_status', 1)
+                    .where('pc_pk', obj.es_pcpk)
+                    .transacting(trx)
+                } else {
+                  return null;
                 }
               })
               .then(trx.commit)
@@ -1465,7 +1489,7 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
         .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
         .where('pc_pk', reqPcPk)
         .then(row => {
-          cur.raw(`
+          return cur.raw(`
           SELECT resource_costs,
                  labor_costs,
                  (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,

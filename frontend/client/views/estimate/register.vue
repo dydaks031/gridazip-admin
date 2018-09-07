@@ -25,6 +25,10 @@
           <p class="control">
             <input class="input" type="text" v-model="data.pc_address_detail" />
           </p>
+          <label class="label">공사시작일</label>
+          <p class="control">
+            <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.pc_construction_start_date"></datepicker>
+          </p>
           <label class="label">이사일</label>
           <p class="control">
              <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.pc_move_date"></datepicker>
