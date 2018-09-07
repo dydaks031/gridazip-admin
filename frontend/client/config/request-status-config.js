@@ -22,29 +22,32 @@ export default {
     }]
   }, {
     label: '상담예약완료'
-  }, {
-    label: '1차제안서완료'
-  }, {
-    label: '1차제안서수정'
-  }, {
-    label: '1차제안부재중'
-  }, {
-    label: '2차제안부재중'
-  }, {
-    label: '계약실패',
-    children: [{
-      label: '견적초과'
-    }, {
-      label: '고객변심'
-    }, {
-      label: '3차제안부재중'
-    }]
-  }, {
-    label: '계약완료'
   }],
   siteTypeList: [{
     label: '주거'
   }, {
     label: '상업'
+  }],
+  contractStatusList: {
+    '-1': '계약 실패',
+    '0': '가견적서 제출',
+    '1': '계약 완료',
+    '2': '공사 중',
+    '3': '공사 종료',
+    '4': '공사 마감'
+  },
+  contractFailReasonList: [{
+    label: '견적 비용 초과'
+  }, {
+    label: '고객 단순 변심'
+  }, {
+    label: '고객 일정 변경'
+  }, {
+    label: '타 업체와 계약'
+  }, {
+    label: '연락 두절'
+  }, {
+    label: '기타',
+    textarea: true
   }]
 }

@@ -33,6 +33,8 @@ const sessionStore = new mysqlSessionStore(Object.assign({
   }
 }, sessConnectionOption));
 
+const contractStatusUpdateBatch = require('./batch/contractStatusUpdateBatch');
+
 const index = require('./routes/index');
 const apiCompany = require('./routes/api/company');
 const apiPortfolio = require('./routes/api/portfolio');

@@ -24,9 +24,24 @@
               <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
               <p class="help is-danger" v-if="!$v.detailData.pc_phone.required">전화번호를 입력해 주십시오.</p>
             </div>
-            <label class="label">접속코드</label>
-            <p class="control" v-text="detailData.pc_password">
+            <label class="label">계약상태</label>
+            <p class="control">
+                {{requestStatusConfig.contractStatusList[detailData.pc_status]}}
+                <button class="button" @click="changeContractStatus(-1)" v-if="detailData.pc_status === 0">계약 실패</button>
+                <button class="button" @click="changeContractStatus(4)" v-if="detailData.pc_status === 3">공사 마감</button>
             </p>
+            <label class="label" v-if="detailData.pc_status === -1">계약 실패사유</label>
+            <div class="select" v-if="detailData.pc_status === -1">
+              <select v-model="detailData.pc_fail_reason">
+                <option value="" selected="selected">선택</option>
+                <option v-for="status in requestStatusConfig.contractFailReasonList" :value="status.label">{{status.label}}</option>
+              </select>
+            </div>
+            <p class="control" v-if="detailData.pc_fail_reason === '기타'">
+              <textarea class="textarea" v-model="detailData.pc_fail_reason_text"></textarea>
+            </p>
+            <label class="label">접속코드</label>
+            <p class="control" v-text="detailData.pc_password"></p>
             <label class="label">평수</label>
             <p class="control">
               <input class="input" type="text" v-model="detailData.pc_size" />
@@ -38,6 +53,10 @@
             <label class="label">상세 주소</label>
             <p class="control">
               <input class="input" type="text" v-model="detailData.pc_address_detail" />
+            </p>
+            <label class="label">공사 시작일</label>
+            <p class="control">
+              <datepicker placeholder="공사 시작일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.pc_construction_start_date"></datepicker>
             </p>
             <label class="label">이사일</label>
             <p class="control">
@@ -268,7 +287,7 @@
                 </td>
                 <td>
                   <div class="select">
-                    <select v-model="newCheckList.ct_pk">
+                    <select v-model="detailData.pc_fail_reason">
                       <option value="">선택</option>
                       <option v-for="construction in currentConstructionList" :value="construction.ct_pk">
                         {{construction.ct_name}}
@@ -321,6 +340,7 @@
   import mixin from '../../services/mixin'
   import EventBus from '../../services/eventBus'
   import moment from 'moment'
+  import requestStatusConfig from '../../config/request-status-config'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -352,6 +372,7 @@
     },
     data () {
       return {
+        requestStatusConfig,
         router,
         moment,
         tabType: {
@@ -750,6 +771,9 @@
           .catch((e) => {
             console.error(e)
           })
+      },
+      changeContractStatus (status) {
+        this.detailData.pc_status = status
       }
     }
   }

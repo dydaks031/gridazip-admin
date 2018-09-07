@@ -10,13 +10,17 @@
               <col width="auto" />
               <col width="auto" />
               <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
             </colgroup>
             <thead>
             <tr>
               <th>고객명</th>
               <th>전화번호</th>
               <th>주소</th>
+              <th>공사시작일자</th>
               <th>이사일자</th>
+              <th>계약상태</th>
               <th></th>
             </tr>
             </thead>
@@ -25,7 +29,9 @@
               <td>{{contract.pc_name}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
+              <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>
               <td>{{getComputedDate(contract.pc_move_date)}}</td>
+              <td>{{requestStatusConfig.contractStatusList[contract.pc_status]}}</td>
             </tr>
             </tbody>
           </table>
@@ -47,6 +53,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
+  import requestStatusConfig from '../../config/request-status-config'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -75,6 +82,7 @@
     mixins: [mixin],
     data () {
       return {
+        requestStatusConfig,
         page: new Pagenation(),
         filter: new Filter(),
         data: {},
