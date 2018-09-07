@@ -62,12 +62,32 @@ router.post('/listener', (req, res) => {
       })
       .then((response) => {
         if (!isUpdate && insertData.ch_segment !== 'lost' && !alreadyInserted) {
+          let size;
+
+          if (profile.hasOwnProperty('size')) {
+            size = '';
+          } else if (profile.size < 20) {
+            size = 'lt20';
+          } else if (profile.size < 30) {
+            size = 'eq20';
+          } else if (profile.size < 40) {
+            size = 'eq30';
+          } else if (profile.size < 50) {
+            size = 'eq40';
+          } else if (profile.size < 60) {
+            size = 'eq50';
+          } else if (profile.size < 70) {
+            size = 'eq60';
+          } else if (profile.size >= 70) {
+            size = 'gte70';
+          }
+
           const requestInsertData = {
             rq_name: userInfo.name,
             rq_phone: cryptoHelper.encrypt(userInfo.mobileNumber.split('-').join('').replace('+82', '0')),
             rq_nickname: '',
             rq_family: '',
-            rq_size: profile.size || '',
+            rq_size: size,
             rq_address_brief: profile.address || '',
             rq_address_detail: '',
             rq_move_date: '',
