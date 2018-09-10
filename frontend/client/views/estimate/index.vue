@@ -1,5 +1,17 @@
 <template>
   <div>
+    <div class="search box">
+      <div class="block">
+        <div class="is-clearfix">
+          <div class="is-pulled-left is-horizontal searchbox">
+            <div class="control is-inline-block">
+              <label class="label">실패 내역 표시</label>
+              <input type="checkbox" class="checkbox" v-model="isShowAllRow"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
@@ -25,7 +37,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="contract in contractList" @click="moveToPage(contract)">
+            <tr v-for="contract in contractList" @click="moveToPage(contract)" v-show="contract.pc_status !== -1 || isShowAllRow">
               <td>{{contract.pc_name}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
@@ -90,7 +102,8 @@
         type: 'resource',
         type_2: 'construction',
         isLoading: false,
-        moment
+        moment,
+        isShowAllRow: false
       }
     },
     methods: {
@@ -158,9 +171,6 @@
           .catch((error) => {
             console.log(error)
           })
-      },
-      doThis () {
-
       },
       moveToPagination (index) {
         this.page.setIndex(index)
