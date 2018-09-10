@@ -4,19 +4,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <p class="title">One</p>
-          <p class="subtitle">Subtitle</p>
-        </article>
-      </div>
-      <div class="tile is-parent">
-        <article class="tile is-child box">
-          <p class="title">Two</p>
-          <p class="subtitle">Subtitle</p>
-        </article>
-      </div>
-      <div class="tile is-parent">
-        <article class="tile is-child box">
-          <p class="title">Three</p>
-          <p class="subtitle">Subtitle</p>
+          <analytics-users-chart :chart-data="lineData"></analytics-users-chart>
         </article>
       </div>
       <div class="tile is-parent">
@@ -106,49 +94,145 @@
 </template>
 
 <script>
-import Chart from 'vue-bulma-chartjs'
+  import AnalyticsUsersChart from './AnalyticsUsersChart'
+  import _ from 'underscore'
+  import moment from 'moment'
 
-export default {
-  components: {
-    Chart
-  },
-
-  data () {
-    return {
-      data: [300, 50, 100]
-    }
-  },
-
-  computed: {
-    chartData () {
+  export default {
+    components: {
+      AnalyticsUsersChart
+    },
+    data () {
       return {
-        labels: [
-          'Red',
-          'Blue',
-          'Yellow'
+        rowDataList: {},
+        labelList: [],
+        backgroundColor_3: [
+          'rgba(31, 200, 219, 1)',
+          'rgba(151, 205, 118, 1)'
         ],
-        datasets: [{
-          data: this.data,
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56'
-          ]
-        }]
+        options_3: {
+          tooltips: {
+            mode: 'label'
+          }
+        },
+        lineData: null
       }
-    }
-  },
+    },
 
-  mounted () {
-    setInterval(() => {
-      // https://github.com/vuejs/vue/issues/2873
-      // Array.prototype.$set/$remove deprecated (use Vue.set or Array.prototype.splice instead)
-      this.data.forEach((item, i) => {
-        this.data.splice(i, 1, Math.ceil(Math.random() * 1000))
-      })
-    }, 1024)
+    computed: {
+    },
+    methods: {
+      queryReports () {
+      // console.log(window.gapi.auth.signIn())
+      // Replace with your view ID.
+
+        window.gapi.client.init({
+          'clientId': '149704865346-ohiqqr8atn0fb4q1rttkelp693b20ea3.apps.googleusercontent.com',
+          'scope': 'https://www.googleapis.com/auth/analytics.readonly'
+        }).then(() => {
+          // Executes an API request, and returns a Promise.
+          // The method name `language.translations.list` comes from the API discovery.
+          var VIEW_ID = '136738850'
+          const GoogleAuth = window.gapi.auth2.getAuthInstance()
+          const isSigned = GoogleAuth.isSignedIn.get()
+
+          if (!isSigned) {
+            GoogleAuth.isSignedIn.listener((data) => {
+              console.log(data)
+            })
+            GoogleAuth.signIn()
+            throw new Error('Not Signed')
+          } else {
+            return window.gapi.client.request({
+              path: '/v4/reports:batchGet',
+              root: 'https://analyticsreporting.googleapis.com/',
+              method: 'POST',
+              body: {
+                reportRequests: [
+                  {
+                    viewId: VIEW_ID,
+                    dateRanges: [
+                      {
+                        startDate: '2018-08-31',
+                        endDate: '2018-09-06'
+                      }
+                    ],
+                    metrics: [
+                      {
+                        expression: 'ga:users'
+                      },
+                      {
+                        expression: 'ga:bounceRate'
+                      },
+                      {
+                        expression: 'ga:avgSessionDuration',
+                        formattingType: 'TIME'
+                      },
+                      {
+                        expression: 'ga:goal1Completions'
+                      }
+                    ],
+                    dimensions: [{
+                      name: 'ga:date'
+                    }]
+                  }
+                ]
+              }
+            })
+          }
+        })
+        .then((response) => {
+          var formattedJson = JSON.parse(JSON.stringify(response.result, null, 2))
+          console.log(formattedJson)
+          const metricsList = ['ga:users', 'ga:bounceRate', 'ga:avgSessionDuration']
+          const dataList = formattedJson.reports[0].data.rows
+
+          for (let i = 0; i < metricsList.length; i++) {
+            const metrics = metricsList[i]
+            this.rowDataList[metrics] = _.map(dataList, (row) => {
+              return row.metrics[0].values[i]
+            })
+            this.labelList = _.map(dataList, (row) => {
+              return moment(row.dimensions[0], 'YYYYMMDD').format('YYYY-MM-DD')
+            })
+          }
+
+          this.getSeriesData('ga:users')
+        })
+        .catch(e => {
+          console.error(e)
+        })
+      },
+      getSeriesData (key) {
+        let data = {
+          labels: this.labelList
+        }
+        const dataSet = this.rowDataList[key]
+        if (!dataSet) {
+          return {
+            labels: this.labelList,
+            datasets: []
+          }
+        }
+        data.datasets = [{
+          data: _.map(this.rowDataList[key], (item) => {
+            return parseInt(item, 10)
+          }),
+          label: key,
+          borderColor: this.backgroundColor_3[0].replace(/1\)$/, '.5)'),
+          pointBackgroundColor: this.backgroundColor_3[0],
+          backgroundColor: this.backgroundColor_3[0].replace(/1\)$/, '.5)')
+        }]
+        this.lineData = data
+        this.$forceUpdate()
+      }
+    },
+    mounted () {
+      setTimeout(() => {
+        this.queryReports()
+      }, 10)
+    }
   }
-}
 </script>
 
 <style lang="scss" scoped>
