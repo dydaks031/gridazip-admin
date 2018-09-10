@@ -152,11 +152,10 @@ router.get('/:pcpk([0-9]+)', (req, res) => {
           item.pc_etc_costs_ratio = item.pc_etc_costs_ratio * 100 || 0.05 * 100;
           item.pc_design_costs_ratio = item.pc_design_costs_ratio * 100 || 0.10 * 100;
           item.pc_supervision_costs_ratio = item.pc_supervision_costs_ratio * 100 || 0.10 * 100;
-          if (contractFailReasonList.indexOf(item.pc_fail_reason) < 0 && item.pc_fail_reason !== '') {
+          if (contractFailReasonList.indexOf(item.pc_fail_reason) < 0 && item.pc_fail_reason !== '' && item.pc_fail_reason !== null) {
             item.pc_fail_reason_text = item.pc_fail_reason;
             item.pc_fail_reason = '기타'
           }
-          console.log(item);
           res.json(resHelper.getJson({
             contract: item
           }));
