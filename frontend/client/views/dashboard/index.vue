@@ -3,32 +3,30 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <p class="title">One</p>
-          <analytics-users-chart :chart-data="lineData"></analytics-users-chart>
+          <p class="title">일별 사용자</p>
+          <analytics-users-chart :chart-data="lineData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
         </article>
       </div>
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <p class="title">Four</p>
-          <p class="subtitle">Subtitle</p>
+          <p class="title">이탈율</p>
+          <analytics-users-chart :chart-data="bounceRateData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+        </article>
+      </div>
+      <div class="tile is-parent">
+        <article class="tile is-child box">
+          <p class="title">세션 시간</p>
+          <analytics-users-chart :chart-data="avgSessionDurationData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
         </article>
       </div>
     </div>
 
     <div class="tile is-ancestor">
-      <div class="tile is-parent is-6">
+      <div class="tile is-parent is-12">
         <article class="tile is-child box">
-          <h4 class="title">Five</h4>
+          <h4 class="title">일별 문의 건수</h4>
           <div class="content">
-            <!--<chart :type="'doughnut'" :data="chartData"></chart>-->
-          </div>
-        </article>
-      </div>
-      <div class="tile is-parent is-6">
-        <article class="tile is-child box">
-          <h4 class="title">Six</h4>
-          <div class="content">
-            <!--<chart :type="'pie'" :data="chartData"></chart>-->
+            <analytics-users-chart :chart-data="completedCountData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
           </div>
         </article>
       </div>
@@ -115,7 +113,12 @@
             mode: 'label'
           }
         },
-        lineData: null
+        dateRange: {},
+        lineData: null,
+        bounceRateData: null,
+        avgSessionDurationData: null,
+        channelUserList: [],
+        completedCountData: null
       }
     },
 
@@ -153,8 +156,8 @@
                     viewId: VIEW_ID,
                     dateRanges: [
                       {
-                        startDate: '2018-08-31',
-                        endDate: '2018-09-06'
+                        startDate: this.dateRange.startDate,
+                        endDate: this.dateRange.endDate
                       }
                     ],
                     metrics: [
@@ -184,7 +187,7 @@
         .then((response) => {
           var formattedJson = JSON.parse(JSON.stringify(response.result, null, 2))
           console.log(formattedJson)
-          const metricsList = ['ga:users', 'ga:bounceRate', 'ga:avgSessionDuration']
+          const metricsList = ['ga:users', 'ga:bounceRate', 'ga:avgSessionDuration', 'ga:goal1Completions']
           const dataList = formattedJson.reports[0].data.rows
 
           for (let i = 0; i < metricsList.length; i++) {
@@ -197,13 +200,42 @@
             })
           }
 
-          this.getSeriesData('ga:users')
+          this.getSeriesData('lineData', 'ga:users')
+          this.getSeriesData('bounceRateData', 'ga:bounceRate')
+          this.getSeriesData('avgSessionDurationData', 'ga:avgSessionDuration')
+
+          return this.$http.get(`/api/webhook/channel/completed-list?start_date=${this.dateRange.startDate}&end_date=${this.dateRange.endDate}`)
+        })
+        .then((response) => {
+          console.log(response)
+          const dateDiff = moment(this.dateRange.endDate, 'YYYY-MM-DD').diff(moment(this.dateRange.startDate, 'YYYY-MM-Dd'), 'days')
+          const channelUserList = response.data.data.channel_list
+
+          console.log(dateDiff)
+          for (let i = 0; i <= dateDiff; i++) {
+            const targetDate = moment(this.dateRange.startDate, 'YYYY-MM-DD').add(i, 'day').format('YYYY-MM-DD')
+            const hasTargetDate = _.find(channelUserList, (item) => {
+              return item.date === targetDate
+            })
+            if (!hasTargetDate) {
+              channelUserList.push({
+                date: targetDate,
+                count: 0
+              })
+            }
+          }
+
+          this.channelUserList = _.sortBy(channelUserList, (item) => {
+            return moment(item.date, 'YYYY-MM-DD').format('X')
+          })
+          console.log(this.channelUserList)
+          this.getCompletedCountData()
         })
         .catch(e => {
           console.error(e)
         })
       },
-      getSeriesData (key) {
+      getSeriesData (basket, key) {
         let data = {
           labels: this.labelList
         }
@@ -223,11 +255,45 @@
           pointBackgroundColor: this.backgroundColor_3[0],
           backgroundColor: this.backgroundColor_3[0].replace(/1\)$/, '.5)')
         }]
-        this.lineData = data
+        this[basket] = data
         this.$forceUpdate()
+      },
+      getCompletedCountData () {
+        const analyticsData = this.rowDataList['ga:goal1Completions']
+
+        const data = {
+          labels: this.labelList
+        }
+
+        data.datasets = []
+
+        data.datasets.push({
+          data: _.map(analyticsData, (item) => {
+            return parseInt(item, 10)
+          }),
+          label: 'Google Analytics Completed User',
+          borderColor: this.backgroundColor_3[0].replace(/1\)$/, '.5)'),
+          pointBackgroundColor: this.backgroundColor_3[0],
+          backgroundColor: this.backgroundColor_3[0].replace(/1\)$/, '.5)')
+        })
+        data.datasets.push({
+          data: _.map(this.channelUserList, (item) => {
+            return parseInt(item.count, 10)
+          }),
+          label: 'Channel Completed User',
+          borderColor: this.backgroundColor_3[1].replace(/1\)$/, '.5)'),
+          pointBackgroundColor: this.backgroundColor_3[1],
+          backgroundColor: this.backgroundColor_3[1].replace(/1\)$/, '.5)')
+        })
+
+        this.completedCountData = data
+        this.$forceUpdate()
+        console.log(data)
       }
     },
     mounted () {
+      this.dateRange.startDate = moment().add(-1, 'week').format('YYYY-MM-DD')
+      this.dateRange.endDate = moment().add(-1, 'days').format('YYYY-MM-DD')
       setTimeout(() => {
         this.queryReports()
       }, 10)

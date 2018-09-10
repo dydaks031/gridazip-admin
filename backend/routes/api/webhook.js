@@ -120,14 +120,26 @@ router.post('/listener', (req, res) => {
   })
 });
 
-router.get('/channel-list', (req, res) => {
+router.get('/channel/completed-list', (req, res) => {
+  const reqStartDate = req.query.start_date
+  const reqEndDate = req.query.end_date
   knexBuilder.getConnection().then(cur => {
-    cur('channel_access_log_tbl')
-      .select('*')
-      .where('ch_segment', '<>', 'lost')
-        .then((response) => {
+    cur.raw(`
+        SELECT
+          DATE_FORMAT(ch_reg_dt, '%Y-%m-%d') as date,
+          COUNT(*) as count
+        FROM
+          channel_access_log_tbl
+        WHERE
+          ch_reg_dt BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
+        GROUP BY
+          DATE_FORMAT(ch_reg_dt, '%Y-%m-%d')
+        ORDER BY date DESC
+      `, [reqStartDate, reqEndDate])
+      .then((response) => {
+        console.log(response)
         res.json(resHelper.getJson({
-          channel_list: response
+          channel_list: response[0]
         }));
       })
   });
