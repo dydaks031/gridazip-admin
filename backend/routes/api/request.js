@@ -194,7 +194,7 @@ router.post('/', (req, res) => {
         .insert(insertObj)
         .then(() => {
           if (process.env.NODE_ENV !== 'development') {
-            const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
+            const msg = `신규 상담건이 들어왔다... 풍악을 울려라아아아아앍\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
             httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
           }
 
