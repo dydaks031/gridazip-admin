@@ -486,6 +486,7 @@
               type: 'success',
               duration: 1500
             })
+            this.detailData.pc_status = response.data.data.data.pc_status
           })
           .catch((error) => {
             console.error(error)
