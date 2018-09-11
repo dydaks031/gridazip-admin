@@ -236,6 +236,10 @@ $main-color: #9dadff;
           font-size: 1.7rem;
           font-weight: 500;
           line-height: 1.5;
+          small {
+            font-size: 1.5rem;
+            padding-left: 1rem;
+          }
         }
         i {
           font-size: 2rem;
