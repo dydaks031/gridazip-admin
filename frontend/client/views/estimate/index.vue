@@ -1,5 +1,17 @@
 <template>
   <div>
+    <div class="search box">
+      <div class="block">
+        <div class="is-clearfix">
+          <div class="is-pulled-left is-horizontal searchbox">
+            <div class="control is-inline-block">
+              <label class="label">실패 내역 표시</label>
+              <input type="checkbox" class="checkbox" v-model="isShowAllRow"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
@@ -10,22 +22,28 @@
               <col width="auto" />
               <col width="auto" />
               <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
             </colgroup>
             <thead>
             <tr>
               <th>고객명</th>
               <th>전화번호</th>
               <th>주소</th>
+              <th>공사시작일자</th>
               <th>이사일자</th>
+              <th>계약상태</th>
               <th></th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="contract in contractList" @click="moveToPage(contract)">
+            <tr v-for="contract in contractList" @click="moveToPage(contract)" v-show="contract.pc_status !== -1 || isShowAllRow">
               <td>{{contract.pc_name}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
+              <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>
               <td>{{getComputedDate(contract.pc_move_date)}}</td>
+              <td>{{requestStatusConfig.contractStatusList[contract.pc_status]}}</td>
             </tr>
             </tbody>
           </table>
@@ -47,6 +65,7 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
+  import requestStatusConfig from '../../config/request-status-config'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -75,6 +94,7 @@
     mixins: [mixin],
     data () {
       return {
+        requestStatusConfig,
         page: new Pagenation(),
         filter: new Filter(),
         data: {},
@@ -82,7 +102,8 @@
         type: 'resource',
         type_2: 'construction',
         isLoading: false,
-        moment
+        moment,
+        isShowAllRow: false
       }
     },
     methods: {
@@ -150,9 +171,6 @@
           .catch((error) => {
             console.log(error)
           })
-      },
-      doThis () {
-
       },
       moveToPagination (index) {
         this.page.setIndex(index)
