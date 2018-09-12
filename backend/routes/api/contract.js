@@ -550,13 +550,12 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
                     .first('pc_construction_start_date', 'pc_move_date')
                     .where('pc_pk', obj.es_pcpk)
                     .then(row => {
-                      return getContractStatus(row.pc_construction_start_date, row.pc_move_date, row.pc_status);
+                      return getContractStatus(row.pc_construction_start_date, row.pc_move_date, 1);
                     })
                     .then(constractStatus => {
                       return cur('proceeding_contract_tbl')
                         .update('pc_status', constractStatus)
                         .where('pc_pk', obj.es_pcpk)
-                        .transacting(trx)
                     })
                 } else {
                   return null;
