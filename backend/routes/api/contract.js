@@ -6,6 +6,7 @@ const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const smsHelper = require('../../services/sms/helper');
+const moment = require('moment');
 const calc = require('calculator');
 
 
@@ -226,7 +227,6 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:pcpk([0-9]+)', (req, res) => {
-  const moment = require('moment');
   const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
   const reqPcPk = req.params.pcpk || '';
   const reqName = req.body.pc_name || '';
@@ -259,26 +259,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_status = req.body.pc_status || 0;
     updateObj.pc_fail_reason = (contractFailReasonList.indexOf(req.body.pc_fail_reason) < 0 ? req.body.pc_fail_reason_text : req.body.pc_fail_reason) || '';
 
-    if (updateObj.pc_construction_start_date) {
-      // 공사시작일자가 현재시간 이전이면(오늘자가 공사시작일자를 지났을 때)
-      if (moment(updateObj.pc_construction_start_date, 'YYYY-MM-DD').diff(moment()) < 0) {
-        if (updateObj.pc_status === 1) updateObj.pc_status = 2;
-        if (updateObj.pc_move_date) {
-          // 이사일자가 현재시간 이전이면
-          if (moment(updateObj.pc_move_date, 'YYYY-MM-DD').diff(moment()) < 0) {
-            if (updateObj.pc_status === 1 || updateObj.pc_status === 2) updateObj.pc_status = 3;
-          }
-          // 이사일자가 현재시간 이후이면
-          else {
-            if (updateObj.pc_status === 3) updateObj.pc_status = 2;
-          }
-        }
-      }
-      // 공사시작일자가 현재시간 이후이면
-      else {
-        if (updateObj.pc_status === 2 || updateObj.pc_status === 3) updateObj.pc_status = 1;
-      }
-    }
+    updateObj.pc_status = getContractStatus(updateObj.pc_construction_start_date, updateObj.pc_move_date, updateObj.pc_status);
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
@@ -565,10 +546,18 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
               })
               .then(() => {
                 if (!reqEsIsPre) {
-                  return cur('proceeding_contract_tbl')
-                    .update('pc_status', 1)
+                  cur('proceeding_contract_tbl')
+                    .first('pc_construction_start_date', 'pc_move_date')
                     .where('pc_pk', obj.es_pcpk)
-                    .transacting(trx)
+                    .then(row => {
+                      return getContractStatus(row.pc_construction_start_date, row.pc_move_date, row.pc_status);
+                    })
+                    .then(constractStatus => {
+                      return cur('proceeding_contract_tbl')
+                        .update('pc_status', constractStatus)
+                        .where('pc_pk', obj.es_pcpk)
+                        .transacting(trx)
+                    })
                 } else {
                   return null;
                 }
@@ -2446,4 +2435,28 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
   }
 });
 
-module.exports = router
+function getContractStatus(constructionStartDate, moveDate, contractStatus) {
+  let rtnStatus;
+  if (constructionStartDate) {
+    // 공사시작일자가 현재시간 이전이면(오늘자가 공사시작일자를 지났을 때)
+    if (moment(constructionStartDate, 'YYYY-MM-DD').diff(moment()) < 0) {
+      if (contractStatus === 1) rtnStatus = 2;
+      if (moveDate) {
+        // 이사일자가 현재시간 이전이면
+        if (moment(moveDate, 'YYYY-MM-DD').diff(moment()) < 0) {
+          if (contractStatus === 1 || contractStatus === 2) rtnStatus = 3;
+        }
+        // 이사일자가 현재시간 이후이면
+        else {
+          if (contractStatus === 3) rtnStatus = 2;
+        }
+      }
+    }
+    // 공사시작일자가 현재시간 이후이면
+    else {
+      if (contractStatus === 2 || contractStatus === 3) rtnStatus = 1;
+    }
+  }
+  return rtnStatus;
+}
+module.exports = router;
