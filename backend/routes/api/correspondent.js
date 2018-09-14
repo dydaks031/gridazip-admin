@@ -59,7 +59,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('거래처 목록을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -113,7 +113,7 @@ router.get('/:pk([0-9]+)', (req, res) => {
         }
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('거래처 상세를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -269,7 +269,7 @@ router.get('/:copk([0-9]+)/item', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('거래처 취급 항목 목록을 조회하는 중 오류가 발생하였습니다.')
         );

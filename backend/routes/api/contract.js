@@ -314,16 +314,39 @@ router.delete('/:pcpk([0-9]+)', (req, res) => {
 router.post('/:pcpk([0-9]+)/sms', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
-    cur('proceeding_contract_tbl')
-      .first('pc_name', 'pc_phone', 'pc_password')
-      .where('pc_pk', reqPcPk)
-      .then(row => {
-        const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
-        smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
-          .then(response => {
-            res.json(
-              resHelper.getJson(response)
-            );
+    cur('estimate_tbl')
+      .count({count: 'es_pk'})
+      .where('es_pcpk', reqPcPk)
+      .then(response => {
+        return response[0].count;
+      })
+      .then(count => {
+        let smsMsg = '';
+        cur('proceeding_contract_tbl')
+          .first('pc_name', 'pc_phone', 'pc_password')
+          .where('pc_pk', reqPcPk)
+          .then(row => {
+            if (count > 1) smsMsg = '견적서가 수정되었습니다. goo.gl/DU4v61 에서 변경사항을 확인해보세요.';
+            else smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
+            smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
+              .then(() => {
+                return cur('proceeding_contract_tbl')
+                  .update('pc_status', 2)
+                  .where('pc_pk', reqPcPk)
+              })
+              .then(() => {
+                res.json(
+                  resHelper.getJson({
+                    msg: 'ok'
+                  })
+                );
+              })
+              .catch(error => {
+                console.error(error);
+                res.json(
+                  resHelper.getError(error)
+                );
+              });
           })
           .catch(error => {
             console.error(error);
@@ -332,12 +355,7 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
             );
           });
       })
-      .catch(error => {
-        console.error(error);
-        res.json(
-          resHelper.getError(error)
-        );
-      });
+
   });
 });
 
@@ -546,18 +564,16 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
               })
               .then(() => {
                 if (!reqEsIsPre) {
-                  cur('proceeding_contract_tbl')
+                  return cur('proceeding_contract_tbl')
                     .first('pc_construction_start_date', 'pc_move_date')
                     .where('pc_pk', obj.es_pcpk)
                     .then(row => {
-                      return getContractStatus(row.pc_construction_start_date, row.pc_move_date, 1);
-                    })
-                    .then(constractStatus => {
                       return cur('proceeding_contract_tbl')
-                        .update('pc_status', constractStatus)
-                        .where('pc_pk', obj.es_pcpk)
+                        .update('pc_status', getContractStatus(row.pc_construction_start_date, row.pc_move_date, 3))
+                        .where('pc_pk', obj.es_pcpk);
                     })
                 } else {
+                  changeContractStatusWhenPre(reqEsPk);
                   return null;
                 }
               })
@@ -832,7 +848,7 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
         })
         .then(row => {
           labor_costs = row.cpd_labor_costs;
-
+          changeContractStatusWhenPre(reqEsPk);
           return cur('resource_type_tbl')
             .first('rt_extra_labor_costs')
             .where({
@@ -864,6 +880,7 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
 
 router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
+  const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
   const reqCpPk = req.body.ed_cppk || '';
@@ -943,7 +960,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
         })
         .then(row => {
           labor_costs = row.cpd_labor_costs;
-
+          changeContractStatusWhenPre(reqEsPk);
           return cur('resource_type_tbl')
             .first('rt_extra_labor_costs')
             .where({
@@ -974,6 +991,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
 
 router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
+  const reqEsPk = req.params.espk || '';
   if (reqEdPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -983,6 +1001,7 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
         .del()
         .where('ed_pk', reqEdPk)
         .then(() => {
+          changeContractStatusWhenPre(reqEsPk);
           res.json(resHelper.getJson({
             msg: '상세견적 건이 정상적으로 삭제되었습니다.'
           }));
@@ -2435,27 +2454,47 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
 });
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
-  let rtnStatus;
+  let rtnStatus = contractStatus;
+  if (constructionStartDate === '0000-00-00') constructionStartDate = null;
+  if (moveDate === '0000-00-00') constructionStartDate = null;
+
   if (constructionStartDate) {
     // 공사시작일자가 현재시간 이전이면(오늘자가 공사시작일자를 지났을 때)
     if (moment(constructionStartDate, 'YYYY-MM-DD').diff(moment()) < 0) {
-      if (contractStatus === 1) rtnStatus = 2;
+      if (contractStatus === 3) rtnStatus = 4;
       if (moveDate) {
         // 이사일자가 현재시간 이전이면
         if (moment(moveDate, 'YYYY-MM-DD').diff(moment()) < 0) {
-          if (contractStatus === 1 || contractStatus === 2) rtnStatus = 3;
+          if (contractStatus === 3 || contractStatus === 4) rtnStatus = 5;
         }
         // 이사일자가 현재시간 이후이면
         else {
-          if (contractStatus === 3) rtnStatus = 2;
+          if (contractStatus === 5) rtnStatus = 4;
         }
       }
     }
     // 공사시작일자가 현재시간 이후이면
     else {
-      if (contractStatus === 2 || contractStatus === 3) rtnStatus = 1;
+      if (contractStatus === 4 || contractStatus === 5) rtnStatus = 3;
     }
   }
   return rtnStatus;
+}
+
+function changeContractStatusWhenPre(esPk) {
+  if (!esPk) return null;
+  knexBuilder.getConnection().then(cur => {
+    return cur('estimate_tbl')
+      .first('es_is_pre', 'es_pcpk')
+      .where('es_pk', esPk)
+      .then(row => {
+        if (row.es_is_pre === 1) {
+          return cur('proceeding_contract_tbl')
+            .update('pc_status', 1)
+            .where('pc_pk', row.es_pcpk)
+        }
+        else return null;
+      })
+  })
 }
 module.exports = router;
