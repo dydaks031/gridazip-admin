@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 
 
 
-const ContractStatusUpdateBatch = schedule.scheduleJob('0 * * * * *', today => {
+const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
   console.log(today);
   knexBuilder.getConnection().then(cur => {
     let moveDateExpiredPks = [];
