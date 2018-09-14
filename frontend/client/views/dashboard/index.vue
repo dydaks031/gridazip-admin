@@ -1,20 +1,26 @@
 <template>
   <div>
+    <div class="datepicker-view">
+      <datepicker v-model="dateRange.startDate" class="datepicker"/>
+      ~
+      <datepicker v-model="dateRange.endDate" class="datepicker"/>
+      <button class="search-btn button" @click="queryReports">조회</button>
+    </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent">
-        <article class="tile is-child box">
+        <article class="tile is-child box" style="width:25vw;">
           <p class="title">일별 사용자</p>
           <analytics-users-chart :chart-data="lineData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
         </article>
       </div>
       <div class="tile is-parent">
-        <article class="tile is-child box">
+        <article class="tile is-child box" style="width:25vw;">
           <p class="title">이탈율</p>
           <analytics-users-chart :chart-data="bounceRateData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
         </article>
       </div>
       <div class="tile is-parent">
-        <article class="tile is-child box">
+        <article class="tile is-child box" style="width:25vw;">
           <p class="title">세션 시간</p>
           <analytics-users-chart :chart-data="avgSessionDurationData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
         </article>
@@ -31,63 +37,6 @@
         </article>
       </div>
     </div>
-
-    <div class="tile is-ancestor">
-      <div class="tile is-vertical is-9">
-        <div class="tile">
-          <div class="tile is-parent">
-            <article class="tile is-child box">
-              <p class="title">Seven</p>
-              <p class="subtitle">Subtitle</p>
-              <div class="content">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa sem. Etiam finibus odio quis feugiat facilisis.</p>
-              </div>
-            </article>
-          </div>
-          <div class="tile is-8 is-parent">
-            <article class="tile is-child box">
-              <p class="title">Eight</p>
-              <p class="subtitle">Subtitle</p>
-              <div class="content">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa sem. Etiam finibus odio quis feugiat facilisis.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="tile">
-          <div class="tile is-8 is-parent">
-            <article class="tile is-child box">
-              <p class="title">Nine</p>
-              <p class="subtitle">Subtitle</p>
-              <div class="content">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa sem. Etiam finibus odio quis feugiat facilisis.</p>
-              </div>
-            </article>
-          </div>
-          <div class="tile is-parent">
-            <article class="tile is-child box">
-              <p class="title">Ten</p>
-              <p class="subtitle">Subtitle</p>
-              <div class="content">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa sem. Etiam finibus odio quis feugiat facilisis.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </div>
-      <div class="tile is-parent">
-        <article class="tile is-child box">
-          <div class="content">
-            <p class="title">Eleven</p>
-            <p class="subtitle">Subtitle</p>
-            <div class="content">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit. Vestibulum volutpat tellus diam, consequat gravida libero rhoncus ut. Morbi maximus, leo sit amet vehicula eleifend, nunc dui porta orci, quis semper odio felis ut quam.</p>
-              <p>Integer sollicitudin, tortor a mattis commodo, velit urna rhoncus erat, vitae congue lectus dolor consequat libero. Donec leo ligula, maximus et pellentesque sed, gravida a metus. Cras ullamcorper a nunc ac porta. Aliquam ut aliquet lacus, quis faucibus libero. Quisque non semper leo.</p>
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -95,10 +44,12 @@
   import AnalyticsUsersChart from './AnalyticsUsersChart'
   import _ from 'underscore'
   import moment from 'moment'
+  import datepicker from 'vue-bulma-datepicker'
 
   export default {
     components: {
-      AnalyticsUsersChart
+      AnalyticsUsersChart,
+      datepicker
     },
     data () {
       return {
@@ -186,7 +137,6 @@
         })
         .then((response) => {
           var formattedJson = JSON.parse(JSON.stringify(response.result, null, 2))
-          console.log(formattedJson)
           const metricsList = ['ga:users', 'ga:bounceRate', 'ga:avgSessionDuration', 'ga:goal1Completions']
           const dataList = formattedJson.reports[0].data.rows
 
@@ -207,11 +157,9 @@
           return this.$http.get(`/api/webhook/channel/completed-list?start_date=${this.dateRange.startDate}&end_date=${this.dateRange.endDate}`)
         })
         .then((response) => {
-          console.log(response)
           const dateDiff = moment(this.dateRange.endDate, 'YYYY-MM-DD').diff(moment(this.dateRange.startDate, 'YYYY-MM-Dd'), 'days')
           const channelUserList = response.data.data.channel_list
 
-          console.log(dateDiff)
           for (let i = 0; i <= dateDiff; i++) {
             const targetDate = moment(this.dateRange.startDate, 'YYYY-MM-DD').add(i, 'day').format('YYYY-MM-DD')
             const hasTargetDate = _.find(channelUserList, (item) => {
@@ -302,4 +250,11 @@
 </script>
 
 <style lang="scss" scoped>
+  .datepicker-view {
+    margin-bottom: 1rem;
+    .datepicker {
+      width: auto;
+      display: inline-block;
+    }
+  }
 </style>
