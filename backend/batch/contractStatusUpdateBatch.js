@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 
 
 
-const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
+const ContractStatusUpdateBatch = schedule.scheduleJob('0 * * * * *', today => {
   console.log(today);
   knexBuilder.getConnection().then(cur => {
     let moveDateExpiredPks = [];
@@ -14,12 +14,12 @@ const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
     cur('proceeding_contract_tbl')
       .select('pc_pk')
       .where('pc_deleted', false)
-      .andWhere('pc_status', 2)
+      .andWhere('pc_status', 4)
       .andWhere('pc_move_date', '<=', today)
       .then(response => {
         moveDateExpiredPks = response.map(o => o.pc_pk);
         return cur('proceeding_contract_tbl')
-          .update('pc_status', 3)
+          .update('pc_status', 5)
           .whereIn('pc_pk', moveDateExpiredPks);
       })
       .then(count => {
@@ -27,7 +27,7 @@ const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
         const query = cur('proceeding_contract_tbl')
           .select('pc_pk')
           .where('pc_deleted', false)
-          .andWhere('pc_status', 1)
+          .andWhere('pc_status', 3)
           .andWhere('pc_construction_start_date', '<=', today);
         console.log(query.toSQL().toNative());
         return query;
@@ -35,7 +35,7 @@ const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
       .then(response => {
         constructionStartPks = response.map(o => o.pc_pk);
         return cur('proceeding_contract_tbl')
-          .update('pc_status', 2)
+          .update('pc_status', 4)
           .whereIn('pc_pk', constructionStartPks);
       })
       .then(count => {
