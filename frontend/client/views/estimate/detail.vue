@@ -294,7 +294,7 @@
                 </td>
                 <td>
                   <div class="select">
-                    <select v-model="detailData.pc_fail_reason">
+                    <select v-model="newCheckList.ct_pk">
                       <option value="">선택</option>
                       <option v-for="construction in currentConstructionList" :value="construction.ct_pk">
                         {{construction.ct_name}}
