@@ -83,7 +83,6 @@ router.get('/', (req, res) => {
     if (pageData.point !== null) {
       query = query.where('rq_pk', '<=', pageData.point);
     }
-    console.log(req.query.rq_manager)
     if (req.query.rq_manager.trim()) {
       query = query.where('rq_manager', 'like', `%${req.query.rq_manager}%`)
     }
@@ -96,14 +95,11 @@ router.get('/', (req, res) => {
       query = query.whereBetween('rq_reg_dt', [rqStartDt, rqEndDt])
     }
 
-    console.log(query.toSQL().toNative())
-
     let list = [];
     return query
       .clone()
       .count('* as count')
       .then(response => {
-        console.log(response)
         pageInst.setCount(response[0].count);
         return query
           .select('*')
@@ -141,7 +137,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상담요청 정보를 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
         )

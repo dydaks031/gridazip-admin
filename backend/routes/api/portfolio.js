@@ -423,7 +423,7 @@ router.post('/', (req, res) => {
           );
         })
         .catch(reason => {
-          console.log(reason)
+          console.error(reason)
           res.json(
             resHelper.getError(reason)
           );

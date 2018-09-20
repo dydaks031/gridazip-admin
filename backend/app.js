@@ -129,7 +129,7 @@ app.use(function (err, req, res) {
 
   // render the error page
   res.status(err.status || 500);
-  console.log(err.message);
+  console.error(err.message);
   res.json({
     error: err.message,
     code: err.status || 500
