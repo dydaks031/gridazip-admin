@@ -18,7 +18,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -324,7 +324,7 @@ router.get('/process', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('공사를 조회하는 중 오류가 발생하였습니다.')
           );
@@ -435,7 +435,7 @@ router.get('/process/detail', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('상세공정을 조회하는 중 오류가 발생하였습니다.')
           );

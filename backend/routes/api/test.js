@@ -5,6 +5,7 @@ const resHelper = require('../../services/response/helper');
 const moment = require('moment');
 const calc = require('calculator');
 const httpClient = require('request');
+const _ = require('underscore')
 
 router.post('/moment', (req, res) => {
   let now = moment();
@@ -419,11 +420,7 @@ router.get('/qt', (req,res) => {
           .select(1, 'ed_place_pk', 'ed_detail_place', 'ed_ctpk', 'ed_cppk', 'ed_cpdpk', 'ed_rtpk', 'ed_rspk', 'ed_input_value', 'ed_resource_amount', 'ed_calculated_amount', 'ed_alias', cur.raw('UNIX_TIMESTAMP() * -1'))
       });
 
-    console.log(query.toString());
-
   })
 });
-
-
 
 module.exports = router;
