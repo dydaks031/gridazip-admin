@@ -354,7 +354,6 @@
 
         this.completedCountData = data
         this.$forceUpdate()
-        console.log(data)
       },
       getConstructionDashboardData () {
         this.$http.get(`/api/dashboard/construction?date=${this.constructionDate}`)
@@ -419,7 +418,7 @@
   .traffic-data-view {
     .tile {
       &.is-child {
-        width:25vw;
+        width: 25vw;
       }
     }
   }
