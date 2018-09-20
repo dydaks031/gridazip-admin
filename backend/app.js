@@ -50,6 +50,7 @@ const apiTest = require('./routes/api/test');
 const apiConstructor = require('./routes/api/constructor');
 const apiCorrespondent = require('./routes/api/correspondent');
 const apiWebhook = require('./routes/api/webhook');
+const apiDashboard = require('./routes/api/dashboard');
 
 const authMiddleware = require('./middlewares/auth');
 
@@ -110,6 +111,7 @@ app.use('/api/test', apiTest);
 app.use('/api/constructor', apiConstructor);
 app.use('/api/correspondent', apiCorrespondent);
 app.use('/api/webhook', apiWebhook);
+app.use('/api/dashboard', apiDashboard);
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {
@@ -127,7 +129,7 @@ app.use(function (err, req, res) {
 
   // render the error page
   res.status(err.status || 500);
-  console.log(err.message);
+  console.error(err.message);
   res.json({
     error: err.message,
     code: err.status || 500

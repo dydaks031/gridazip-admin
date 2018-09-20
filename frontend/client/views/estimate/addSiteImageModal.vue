@@ -16,7 +16,7 @@
             </span>
             <span class="input-group">
               <button v-on:click="callFileUpload('file_upload_new')">신규 이미지 업로드</button>
-              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" />
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple/>
             </span>
           </div>
         </div>
@@ -72,30 +72,38 @@
         }
       },
       onFileChanged (event, index) {
-        const formData = new FormData()
-        formData.append('file_upload_path', 'portfolio')
-        formData.append('filedata', event.target.files[0])
+        const files = event.target.files
+        console.log(files)
+        for (let i = 0; i < files.length; i++) {
+          const formData = new FormData()
+          formData.append('file_upload_path', 'portfolio')
+          formData.append('filedata', files[i])
 
-        this.$http.post(fileUploadApi, formData)
-          .then((response) => {
-            // if ()
-            var responseData = response.data
+          this.$http.post(fileUploadApi, formData)
+            .then((response) => {
+              var responseData = response.data
 
-            if (responseData.code === 200) {
-              const imageData = responseData.data
-              if (index === 'new') {
-                index = this.siteImageList.length
+              if (responseData.code === 200) {
+                const imageData = responseData.data
+                if (index === 'new') {
+                  this.siteImageList.push({
+                    si_description: '',
+                    si_url: imageData.value
+                  })
+                } else {
+                  this.siteImageList[index] = {
+                    si_description: '',
+                    si_url: imageData.value
+                  }
+                }
+
+                this.$forceUpdate()
               }
-              this.siteImageList[index] = {
-                si_description: '',
-                si_url: imageData.value
-              }
-              this.$forceUpdate()
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
+            })
+            .catch((error) => {
+              console.log(error)
+            })
+        }
       },
       deletedImage (index) {
         this.siteImageList.splice(index, 1)

@@ -19,7 +19,7 @@ router.get('/category', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('자재 분류를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -46,7 +46,6 @@ router.post('/category', (req, res) => {
             })
             .returning('rc_pk')
             .then((response) => {
-              console.log(response);
               res.json(resHelper.getJson({
                 msg: '자재 분류가 정상적으로 추가되었습니다.',
                 data: {
@@ -185,7 +184,7 @@ router.get('/type', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('자재군 목록을 조회하는 중 오류가 발생하였습니다.')
           );
@@ -352,7 +351,7 @@ router.get('/', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('자재 목록을 조회하는 중 오류가 발생하였습니다.')
           );
@@ -477,7 +476,7 @@ router.get('/unit', (req, res) => {
           );
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           res.json(
             resHelper.getError('자재단위를 조회하는 중 오류가 발생하였습니다.')
           );
