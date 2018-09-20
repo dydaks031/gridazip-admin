@@ -321,6 +321,7 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
         const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
         smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
           .then(response => {
+            console.log(response)
             res.json(
               resHelper.getJson(response)
             );

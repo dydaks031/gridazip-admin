@@ -7,10 +7,20 @@
       </ul>
     </div>
     <div class="construction-info-view" v-if="tabInfo.constructionData">
+      <div class="datepicker-view">
+        <datepicker v-model="constructionDate" class="datepicker" :config="{dateFormat:'Y-m'}"/>
+        <button class="search-btn button" @click="getConstructionDashboardData">조회</button>
+      </div>
       <div class="tile is-ancestor">
         <div class="tile is-parent">
           <article class="tile is-child box">
             <p class="title">진행중인 공사 목록</p>
+            <div class="construction-info">
+              <p>총 공사 건수: {{constructionData.length}} 건</p>
+            </div>
+            <div class="construction-info">
+              <p>총 매출: {{addCommas(constructionSales)}} 만원</p>
+            </div>
             <div class="construction-wrapper is-flex">
               <div class="construction-item" v-for="construction in constructionData">
                   <h3 class="subtitle">{{construction.pc_name}}</h3>
@@ -21,40 +31,42 @@
                         <progress :value="construction.completedPercentage" max="100" class="progress"></progress>
                       </div>
                     </div>
-                    <div class="checklist">
-                      <table class="table is-striped">
-                        <thead>
-                        <tr>
-                          <th>공사</th>
-                          <th>자재</th>
-                          <th>인력</th>
-                          <th>메모</th>
-                        </tr>
-                        </thead>
-                        <tbody v-for="(checkListByDate, index) in construction.checkList">
-                          <tr class="date-header">
-                            <th colspan="4">{{index}}</th>
-                          </tr>
-                          <tr>
-                          <tr v-for="checkListItem in checkListByDate">
-                            <td>
-                              <span>{{checkListItem.ct_name}}</span>
-                            </td>
-                            <td>
-                              <input type="checkbox" class="checkbox" v-model="checkListItem.cl_resource" @change="updateCheckListStatus(checkListItem)" />
-                            </td>
-                            <td>
-                              <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(checkListItem)" />
-                            </td>
-                            <td>
-                              <span >{{checkListItem.cl_memo}}</span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-
                   </div>
+                <div class="checklist" v-if="Object.keys(construction.checkList).length > 0">
+                  <table class="table is-striped">
+                    <thead>
+                    <tr>
+                      <th>공사</th>
+                      <th>자재</th>
+                      <th>인력</th>
+                      <th>메모</th>
+                    </tr>
+                    </thead>
+                    <tbody v-for="(checkListByDate, index) in construction.checkList">
+                    <tr class="date-header">
+                      <th colspan="4">{{index}}</th>
+                    </tr>
+                    <tr>
+                    <tr v-for="checkListItem in checkListByDate">
+                      <td>
+                        <span>{{checkListItem.ct_name}}</span>
+                      </td>
+                      <td>
+                        <input type="checkbox" class="checkbox" v-model="checkListItem.cl_resource" @change="updateCheckListStatus(construction.pc_pk, checkListItem)" />
+                      </td>
+                      <td>
+                        <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(construction.pc_pk, checkListItem)" />
+                      </td>
+                      <td>
+                        <span >{{checkListItem.cl_memo}}</span>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="none-checklist-data" v-else>
+                  <span>체크리스트가 없습니다.</span>
+                </div>
               </div>
             </div>
           </article>
@@ -64,26 +76,26 @@
 
     <div class="traffic-data-view" v-if="tabInfo.trafficData">
       <div class="datepicker-view">
-        <datepicker v-model="dateRange.startDate" class="datepicker"/>
+        <datepicker v-model="dateRange.startDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
         ~
-        <datepicker v-model="dateRange.endDate" class="datepicker"/>
+        <datepicker v-model="dateRange.endDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
         <button class="search-btn button" @click="queryReports">조회</button>
       </div>
       <div class="tile is-ancestor">
         <div class="tile is-parent">
-          <article class="tile is-child box" style="width:25vw;">
+          <article class="tile is-child box">
             <p class="title">일별 사용자</p>
             <analytics-users-chart :chart-data="lineData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
           </article>
         </div>
         <div class="tile is-parent">
-          <article class="tile is-child box" style="width:25vw;">
+          <article class="tile is-child box">
             <p class="title">이탈율</p>
             <analytics-users-chart :chart-data="bounceRateData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
           </article>
         </div>
         <div class="tile is-parent">
-          <article class="tile is-child box" style="width:25vw;">
+          <article class="tile is-child box">
             <p class="title">세션 시간</p>
             <analytics-users-chart :chart-data="avgSessionDurationData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
           </article>
@@ -109,12 +121,32 @@
   import _ from 'underscore'
   import moment from 'moment'
   import datepicker from 'vue-bulma-datepicker'
+  import Vue from 'vue'
+  import Notification from 'vue-bulma-notification'
+  import mixin from '../../services/mixin'
+
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   export default {
     components: {
       AnalyticsUsersChart,
       datepicker
     },
+    mixins: [mixin],
     data () {
       return {
         rowDataList: {},
@@ -139,7 +171,8 @@
           constructionData: false,
           trafficData: true
         },
-        constructionData: []
+        constructionData: [],
+        constructionSales: 0
       }
     },
 
@@ -330,13 +363,36 @@
             for (let i = 0; i < this.constructionData.length; i++) {
               this.constructionData[i].checkList = _.groupBy(this.constructionData[i].checkList, 'cl_date')
             }
+
+            return this.$http.get(`/api/dashboard/construction/budget?date=${this.constructionDate}`)
+          })
+          .then((response) => {
+            this.constructionSales = response.data.data.sales
+            console.log(this.constructionSales)
           })
           .catch((e) => {
             console.error(e)
           })
       },
-      updateCheckListStatus () {
-
+      updateCheckListStatus (id, item) {
+        item.cl_date = moment(item.cl_date, 'YYYY-MM-DD').format('X')
+        console.log(item)
+        this.$http.put(`/api/contract/${id}/checklist/${item.cl_pk}`, item)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '체크리스트가 수정 중 이상이 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '체크리스트가 정상적으로 수정되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+          })
       }
     },
     mounted () {
@@ -360,16 +416,45 @@
     }
   }
 
+  .traffic-data-view {
+    .tile {
+      &.is-child {
+        width:25vw;
+      }
+    }
+  }
+
   .construction-info-view {
     .construction-wrapper {
       overflow-x: auto;
       flex-wrap: nowrap;
 
       .construction-item {
-        flex: 0 0 30rem;
-        border: 1px solid #7d7d7d;
+        flex: 0 0 25rem;
+        border: 1px solid #dbdbdb;
         padding: 0.5rem;
         margin: 0.5rem;
+      }
+    }
+  }
+
+  .none-checklist-data {
+    width: 100%;
+    min-height: 15rem;
+    text-align: center;
+    /* line-height: 1.1; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // mobile
+  @media screen and (max-width: 999px) {
+    .traffic-data-view {
+      .tile {
+        &.is-child {
+          width: auto;
+        }
       }
     }
   }
