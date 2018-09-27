@@ -1,5 +1,5 @@
 <template>
-  <modal name="addSiteImageModal" height="auto" width="60%" @before-close="beforeClose">
+  <modal name="addSiteImageModal" :classes="['add-site-image-view']" :width="modalWidth" :height="'auto'" @before-close="beforeClose" @before-open="beforeOpen">
     <div class="add-site-image-modal">
       <div class="modal-card-head">
         <h1 class="modal-card-title">현장사진 등록</h1>
@@ -11,12 +11,12 @@
             <span class="input-group" v-for="(siteImage, index) in siteImageList">
               <img :src=siteImage.si_url v-on:click="callFileUpload('file_upload_' + index)" class="site-image"/>
               <button class="button delete-btn" @click="deletedImage(index)">삭제</button>
-              <input type="file" :name='"portfolio_after[" + index + "]"' placeholder="After" style="display:none;" :ref='"file_upload_" + index' v-on:change="onFileChanged($event, index)" />
+              <input type="file" :name='"portfolio_after[" + index + "]"' placeholder="After" style="display:none;" :ref='"file_upload_" + index' v-on:change="onFileChanged($event, index)" accept="image/*,.jpg,.gif,.png,.jpeg"/>
               <input type="text" class="input" v-model="siteImage.si_description" placeholder="설명 입력" />
             </span>
             <span class="input-group">
               <button v-on:click="callFileUpload('file_upload_new')">신규 이미지 업로드</button>
-              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple/>
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple accept="image/*,.jpg,.gif,.png,.jpeg"/>
             </span>
           </div>
         </div>
@@ -30,6 +30,7 @@
   import FormData from 'form-data'
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
+  import mixin from '../../services/mixin'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -52,6 +53,7 @@
 
   export default {
     name: 'add-site-image-modal',
+    mixins: [mixin],
     props: {
       id: String,
       beforeClose: Function
@@ -59,7 +61,8 @@
     data () {
       return {
         siteImageList: [],
-        newDescription: ''
+        newDescription: '',
+        modalWidth: 650
       }
     },
     methods: {
@@ -135,6 +138,23 @@
         .catch((e) => {
           console.log(e)
         })
+      },
+      beforeOpen () {
+        if (this.isMobile()) {
+          this.modalWidth = '90%'
+        } else {
+          this.modalWidth = 650
+        }
+        console.log(this.modalWidth)
+      }
+    },
+    mounted () {
+    },
+    created () {
+      if (this.isMobile()) {
+        this.modalWidth = '90%'
+      } else {
+        this.modalWidth = 650
       }
     }
   }
@@ -156,5 +176,13 @@
   }
   .site-image {
     width:250px;
+  }
+</style>
+
+<style lang="scss">
+  .add-site-image-view {
+    max-width: 90%;
+    margin: 0 25%;
+    left: 0 !important;
   }
 </style>
