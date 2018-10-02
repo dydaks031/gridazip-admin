@@ -27,7 +27,7 @@
               </p>
             </div>
             <div class="control is-inline-block">
-              <label class="label">상담&계약 실패 내역 표시</label>
+              <label class="label">상담완료, 상담&계약실패 내역 표시</label>
               <input type="checkbox" class="checkbox" v-model="isShowAllRow"/>
             </div>
           </div>
@@ -291,7 +291,7 @@
         this.$refs.start_datepicker.selectedDates = null
       },
       isFailedStatus (item) {
-        const failedStatus = ['상담실패', '계약실패']
+        const failedStatus = ['상담실패', '계약실패', '상담완료']
         if (failedStatus.indexOf(item.rq_process_status) < 0) {
           return true
         }
