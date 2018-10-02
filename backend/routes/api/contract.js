@@ -2453,6 +2453,123 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
   }
 });
 
+router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  knexBuilder.getConnection().then(cur => {
+    let receipt;
+    cur({rc:'receipt_tbl'})
+      .first(
+        'rc_pk',
+        'rc_pcpk',
+        'rc_ctpk',
+        'ct_name',
+        'rc_date',
+        'rc_type',
+        'rc_contents',
+        'rc_price',
+        'rc_account_bank',
+        'rc_account_holder',
+        'rc_account_number',
+        'rc_is_emergency',
+        'rc_status',
+        'rc_is_vat_included',
+        'rc_memo')
+      .where('rc_pcpk', reqPcPk)
+      .leftJoin({ct: 'construction_tbl'}, 'rc.rc_ctpk', 'ct.ct_pk')
+      .then(row => {
+        receipt = row;
+        return cur('receipt_attached_tbl')
+          .select('*')
+          .where('ra_rcpk', row.rc_pk)
+      })
+      .then(response => {
+        receipt.attachedList = response;
+        res.json(
+          resHelper.getJson({
+            receipt
+          })
+        );
+      })
+      .catch(err => {
+      console.error(err);
+      res.json(
+        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.')
+      );
+    })
+  });
+});
+
+router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
+  if ( (req.body.rc_type === undefined || !req.body.rc_type.toString().trim() )
+    || !req.body.rc_ctpk
+    || !req.body.rc_date
+    || !req.body.rc_price
+    || !req.body.rc_account_bank
+    || !req.body.rc_account_holder
+    || !req.body.rc_account_number
+    || ( req.body.rc_is_vat_included === undefined || !req.body.rc_is_vat_included.toString().trim() )
+  ) {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  }
+  else {
+    const attachedList = req.body.attachedList || [];
+    knexBuilder.getConnection().then(cur => {
+      let obj = {};
+      obj.rc_pcpk = req.params.pcpk;
+      obj.rc_ctpk = req.body.rc_ctpk;
+      obj.rc_date = req.body.rc_date;
+      obj.rc_type = req.body.rc_type;
+      obj.rc_contents = req.body.rc_contents;
+      obj.rc_price = req.body.rc_price;
+      obj.rc_account_bank = req.body.rc_account_bank;
+      obj.rc_account_holder = req.body.rc_account_holder;
+      obj.rc_account_number = req.body.rc_account_number;
+      obj.rc_is_emergency = req.body.rc_is_emergency;
+      obj.rc_is_deposited = req.body.rc_is_deposited;
+      obj.rc_is_vat_included = req.body.rc_is_vat_included;
+      obj.rc_memo = req.body.rc_memo;
+
+      cur.transaction(trx => {
+        cur('receipt_tbl')
+          .insert(obj)
+          .returning('rc_pk')
+          .transacting(trx)
+          .then(response => {
+            const rcPk = response[0];
+            const query = [];
+            attachedList.forEach(obj => {
+              query.push(
+                cur.table('receipt_attached_tbl')
+                  .insert({
+                    ...obj,
+                    ra_rcpk: rcPk
+                  })
+                  .transacting(trx));
+            });
+
+            Promise.all(query)
+              .then(trx.commit)
+              .catch(trx.rollback);
+          })
+          .catch(trx.rollback);
+      })
+        .then(() => {
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
+        })
+        .catch(err => {
+          console.error(err);
+          res.json(resHelper.getError('구매품의를 등록하는 중 오류가 발생하였습니다.'));
+        })
+
+    })
+  }
+});
+
+
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
   let rtnStatus = contractStatus;
   if (constructionStartDate === '0000-00-00') constructionStartDate = null;
