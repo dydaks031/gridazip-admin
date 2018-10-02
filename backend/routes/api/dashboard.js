@@ -22,7 +22,10 @@ router.get('/construction', (req, res) => {
         ) AND
         (
           DATE_FORMAT(?, '%Y%m') >= DATE_FORMAT(pc.pc_construction_start_date, '%Y%m') AND
-          DATE_FORMAT(?, '%Y%m') >= DATE_FORMAT(pc.pc_move_date, '%Y%m')
+          DATE_FORMAT(?, '%Y%m') <= DATE_FORMAT(pc.pc_move_date, '%Y%m')
+        ) AND
+        (
+          pc.pc_status = 4 or pc.pc_status = 5
         )
       ORDER BY pc.pc_reg_dt desc;
     `, [reqDate, reqDate])
