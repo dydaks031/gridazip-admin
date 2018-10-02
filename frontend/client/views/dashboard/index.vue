@@ -391,6 +391,7 @@
               type: 'success',
               duration: 1500
             })
+            this.getConstructionDashboardData()
           })
       }
     },

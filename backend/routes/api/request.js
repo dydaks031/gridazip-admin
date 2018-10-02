@@ -368,10 +368,10 @@ router.post('/contract/:rqpk([0-9]+)', (req, res) => {
             const sendData = {
               pc_name: data.rq_name,
               pc_phone: cryptoHelper.decrypt(data.rq_phone),
-              pc_size: data.rq_size,
+              pc_size: request_size_map[data.rq_size],
               pc_address_brief: data.rq_address_brief,
               pc_address_detail: data.rq_address_detail,
-              pc_move_date: data.rq_date,
+              pc_move_date: '',
               pc_budget: data.rq_budget,
               pc_memo: `${constructionType}${consultingResult}${memo}`
             }
