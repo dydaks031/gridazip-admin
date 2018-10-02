@@ -386,7 +386,7 @@
         },
         isFoldStatus: {
           general: false,
-          labor: true,
+          labor: false,
           resource: false
         },
         siteImageList: {},

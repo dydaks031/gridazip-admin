@@ -355,49 +355,55 @@ router.post('/contract/:rqpk([0-9]+)', (req, res) => {
             resHelper.getError('해당 상담 요청이 존재하지 않습니다.')
           );
         }
-        const data = response[0]
-        const constructionType = data.rq_construction_type ? `${data.rq_construction_type}\n` : ''
-        const consultingResult = data.rq_consulting_result ? `${data.rq_consulting_result}\n` : ''
-        const memo = data.rq_memo ? `${data.rq_memo}\n` : ''
 
-        const sendData = {
-          pc_name: data.rq_name,
-          pc_phone: cryptoHelper.decrypt(data.rq_phone),
-          pc_size: data.rq_size,
-          pc_address_brief: data.rq_address_brief,
-          pc_address_detail: data.rq_address_detail,
-          pc_move_date: data.rq_date,
-          pc_budget: data.rq_budget,
-          pc_memo: `${constructionType}${consultingResult}${memo}`
-        }
+        cur('request_tbl')
+          .where('rq_pk', rq_pk)
+          .update({rq_process_status: '상담완료'})
+          .then(result => {
+            const data = response[0]
+            const constructionType = data.rq_construction_type ? `${data.rq_construction_type}\n` : ''
+            const consultingResult = data.rq_consulting_result ? `${data.rq_consulting_result}\n` : ''
+            const memo = data.rq_memo ? `${data.rq_memo}\n` : ''
 
-        httpClient.post({
-          url: 'http://localhost:3000/api/contract',
-          form: sendData
-        }, (err, response, body) => {
-          let returnData
-          try {
-            returnData = JSON.parse(body)
-          }
-          catch (e) {
-            res.json(
-              resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
-            );
-            return;
-          }
+            const sendData = {
+              pc_name: data.rq_name,
+              pc_phone: cryptoHelper.decrypt(data.rq_phone),
+              pc_size: request_size_map[data.rq_size],
+              pc_address_brief: data.rq_address_brief,
+              pc_address_detail: data.rq_address_detail,
+              pc_move_date: '',
+              pc_budget: data.rq_budget,
+              pc_memo: `${constructionType}${consultingResult}${memo}`
+            }
 
-          if (returnData.code !== 200) {
-            res.json(
-              resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
-            );
-            return;
-          }
+            httpClient.post({
+              url: 'http://localhost:3000/api/contract',
+              form: sendData
+            }, (err, response, body) => {
+              let returnData
+              try {
+                returnData = JSON.parse(body)
+              }
+              catch (e) {
+                res.json(
+                  resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
+                );
+                return;
+              }
 
-          res.json(
-            resHelper.getJson({
-              msg: 'ok'
-            })
-          );
+              if (returnData.code !== 200) {
+                res.json(
+                  resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
+                );
+                return;
+              }
+
+              res.json(
+                resHelper.getJson({
+                  msg: 'ok'
+                })
+              );
+          });
         })
       })
   });

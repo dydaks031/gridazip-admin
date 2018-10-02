@@ -22,6 +22,8 @@ export default {
     }]
   }, {
     label: '상담예약완료'
+  }, {
+    label: '상담완료'
   }],
   siteTypeList: [{
     label: '주거'
