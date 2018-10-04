@@ -2492,10 +2492,7 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         .where('rc_pcpk', reqPcPk)
         .leftJoin({ct: 'construction_tbl'}, 'rc.rc_ctpk', 'ct.ct_pk');
 
-      if (userInfo.user_permit === 'A') {
-        query.whereIn('rc_status', [0,1,2])
-        //where('rc_user_pk', userInfo.user_pk);
-      }
+      if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
       else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
       else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
 
@@ -2590,47 +2587,56 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
   const reqPcPk = req.params.pcpk;
   const reqRcPk = req.params.rcpk;
   const jwtToken = req.token;
-  const reqRcStatus = req.body.rc_status;
+  const reqRcStatus = parseInt(req.body.rc_status);
 
   console.log(jwtToken);
-  console.log();
+  console.log(typeof reqRcStatus);
   let errorMsg = null;
   jwtHelper.verify(jwtToken).then(userInfo => {
-    if ([-2,-1,0,1,2].indexOf(reqRcStatus) < 0) {
+    if ([-1,0,1,2,3].indexOf(reqRcStatus) < 0) {
       errorMsg = '파라메터가 올바르지 않습니다.'
     }
     else {
       if (userInfo.user_permit === 'A') {
-        if ([-2,-1,0].indexOf(reqRcStatus) < 0) {
+        if ([-1].indexOf(reqRcStatus) < 0) {
           errorMsg = '권한이 없습니다.'
         }
       }
       else if (userInfo.user_permit === 'B') {
-        if ([-1,1].indexOf(reqRcStatus) < 0) {
+        if ([0,2].indexOf(reqRcStatus) < 0) {
           errorMsg = '권한이 없습니다.'
         }
       }
       else if (userInfo.user_permit === 'C') {
-        if ([-1,2].indexOf(reqRcStatus) < 0) {
+        if ([0,3].indexOf(reqRcStatus) < 0) {
           errorMsg = '권한이 없습니다.'
         }
       }
     }
 
     if (errorMsg !== null) {
-      res.json(
-        resHelper.getError(errorMsg)
-      );
+      throw new Error(errorMsg);
     }
     else {
-      knexBuilder.getConnection().then(cur => {
-        cur('receipt_tbl')
-          .update('rc_status', reqRcStatus)
-          .where('rc_pk', reqRcPk)
-      })
+      return knexBuilder.getConnection();
     }
   })
+    .then(cur => {
+      return cur('receipt_tbl')
+        .update('rc_status', reqRcStatus)
+        .where('rc_pk', reqRcPk)
+    })
+    .then(() => {
+      res.json(resHelper.getJson({
+        msg: 'ok'
+      }));
+    })
+    .catch(err => {
+      res.json(resHelper.getError(err.toString()));
+    })
 });
+
+
 
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
