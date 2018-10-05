@@ -144,6 +144,15 @@ export default new Router({
             authRedirect: 'login'
           }
         },
+        {
+          name: '결재 등록',
+          path: 'estimate/:id/receipt/register',
+          component: require('../views/estimate/contractReceiptRegister'),
+          meta: {
+            auth: true,
+            authRedirect: 'login'
+          }
+        },
         ...generateRoutesFromMenu(menuModule.state.items),
         {
           path: '*',

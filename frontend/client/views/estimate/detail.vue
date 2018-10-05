@@ -8,6 +8,7 @@
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
         <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
         <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>체크리스트</a></li>
+        <li @click="activeView(tabType.contractReceipt)" :class="{'is-active': currentTab === tabType.contractReceipt}"><a>결재 요청내역</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -320,6 +321,114 @@
           </table>
           </div>
         </article>
+        <article class="tile is-child box contract-receipt-wrappe is-clearfixr" v-show="currentTab === tabType.contractReceipt">
+          <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
+          <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">이동</a>
+          <div>
+            <table class="table is-bordered contract-receipt is-hidden-touch">
+              <colgroup>
+              </colgroup>
+              <tbody v-for="receipt in contractReceiptList">
+              <tr>
+                <th>날짜</th>
+                <td>{{moment(receipt.rc_date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <th>공사</th>
+                <td>{{receipt.ct_name}}</td>
+                <th>구분</th>
+                <td colspan="2">{{receipt.rc_type === 1 ? '자재비' : '인건비'}}</td>
+                <th>내용</th>
+                <td>{{receipt.rc_contents}}</td>
+                <th>금액</th>
+                <td>{{addCommas(receipt.rc_price)}}</td>
+                <th>부가세</th>
+                <td>{{receipt.rc_is_vat_included === 0 ? '미포함' : '포함'}}</td>
+                <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                  <button class="button is-danger is-medium" @click="changeReceiptStatus()">반려</button>
+                  <button class="button is-primary is-medium" @click="changeReceiptStatus()">승인</button>
+                </td>
+              </tr>
+              <tr>
+                <th>은행명</th>
+                <td>{{receipt.rc_account_bank}}</td>
+                <th>예금주</th>
+                <td>{{receipt.rc_account_holder}}</td>
+                <th>계좌번호</th>
+                <td colspan="2">{{receipt.rc_account_number}}</td>
+                <th>첨부서류</th>
+                <td><a href="#">링크</a></td>
+                <th>진행상태</th>
+                <td>{{receipt.rc_status_name}}</td>
+                <th>메모</th>
+                <td colspan="1">{{receipt.rc_memo}}</td>
+              </tr>
+              </tbody>
+            </table>
+            <table class="table is-bordered contract-receipt is-hidden-desktop">
+              <tbody v-for="receipt in contractReceiptList">
+              <tr>
+                <th>날짜</th>
+                <td>{{moment(receipt.rc_date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+              </tr>
+              <tr>
+                <th>공사</th>
+                <td>{{receipt.ct_name}}</td>
+              </tr>
+              <tr>
+                <th>구분</th>
+                <td>{{receipt.rc_type === 1 ? '자재비' : '인건비'}}</td>
+              </tr>
+              <tr>
+                <th>내용</th>
+                <td>{{receipt.rc_contents}}</td>
+              </tr>
+              <tr>
+                <th>금액</th>
+                <td>{{addCommas(receipt.rc_price)}}</td>
+              </tr>
+              <tr>
+                <th>부가세</th>
+                <td>{{receipt.rc_is_vat_included === 0 ? '미포함' : '포함'}}</td>
+              </tr>
+              <tr>
+                <th>은행명</th>
+                <td>{{receipt.rc_account_bank}}</td>
+              </tr>
+              <tr>
+                <th>예금주</th>
+                <td>{{receipt.rc_account_holder}}</td>
+              </tr>
+              <tr>
+                <th>계좌번호</th>
+                <td>{{receipt.rc_account_number}}</td>
+              </tr>
+              <tr>
+                <th>첨부서류</th>
+                <td><a href="#">링크</a></td>
+              </tr>
+              <tr>
+                <th>진행상태</th>
+                <td>{{receipt.rc_status_name}}</td>
+              </tr>
+              <tr>
+                <th>메모</th>
+                <td>{{receipt.rc_memo}}</td>
+              </tr>
+              <tr v-if="receipt.rc_reject_reason">
+                <th>반려사유</th>
+                <td>{{receipt.rc_reject_reason}}</td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle;" colspan="2">
+                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
+                  <button class="button is-danger is-medium" v-if="receipt.rc_status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'B'" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
       </div>
     </div>
     <add-partners-modal
@@ -391,7 +500,8 @@
           managerAndShop: 'managerAndShop',
           preEstimateView: 'preEstimateView',
           siteImage: 'siteImage',
-          checkList: 'checkList'
+          checkList: 'checkList',
+          contractReceipt: 'contractReceipt'
         },
         currentTab: '',
         param: {},
@@ -423,7 +533,10 @@
         newCheckList: {
           ct_pk: ''
         },
-        wantMoveDate: ''
+        wantMoveDate: '',
+        /* 결재 요청내역 */
+        contractReceiptList: [],
+        userPermit: ''
       }
     },
     validations: {
@@ -440,6 +553,7 @@
       this.currentTab = this.tabType.info
       this.param = this.$route.params
       this.loadDetail()
+      this.checkPermission()
     },
     computed: {
       getFullAddress () {
@@ -467,6 +581,9 @@
             break
           case this.tabType.checkList:
             this.loadCheckList()
+            break
+          case this.tabType.contractReceipt:
+            this.loadContractReceipt()
             break
         }
       },
@@ -788,6 +905,55 @@
       },
       changeContractStatus (status) {
         this.detailData.pc_status = status
+      },
+      /* 결재 영수 조회 */
+      loadContractReceipt () {
+        const id = this.param.id
+        this.checkPermission()
+        this.$http.get(`${queryApi}/${id}/receipt`)
+          .then((response) => {
+            this.contractReceiptList = response.data.data.response
+
+            this.contractReceiptList.map((item) => {
+              let statusName = ''
+              switch (item.rc_status) {
+                case -1:
+                  statusName = '삭제'
+                  break
+                case 0:
+                  statusName = '반려'
+                  break
+                case 1:
+                  statusName = '대기'
+                  break
+                case 2:
+                  statusName = '승인'
+                  break
+                case 3:
+                  statusName = '입금완료'
+                  break
+              }
+              item.rc_status_name = statusName
+            })
+          })
+      },
+      changeReceiptStatus (item, status) {
+        this.checkPermission()
+        const id = this.param.id
+        this.$http.put(`${queryApi}/${id}/receipt/${item.rc_pk}`, {
+          rc_status: status
+        })
+        .then((response) => {
+          console.log(response.data.data)
+        })
+      },
+      moveToRegisterReceipt () {
+        router.push({
+          path: `/private/estimate/${this.param.id}/receipt/register`
+        })
+      },
+      checkPermission () {
+        this.userPermit = this.$auth.user().user_permit
       }
     }
   }
@@ -805,6 +971,30 @@
       cursor: pointer;
     }
   }
+
+  .contract-receipt{
+
+    tbody {
+      &:before {
+        content: '';
+        display: block;
+        height: 20px;
+      }
+
+      th {
+        background: #dfdfdf;
+        color: black;
+        border: 1px solid #bbbbbb;
+      }
+      td {
+        border: 1px solid #bbbbbb;
+
+        button.is-primary {
+          background: #4285F4;
+        }
+      }
+    }
+  }
 </style>
 
 <style scoped lang="scss">
@@ -819,6 +1009,16 @@
           padding: 0.5rem;
         }
       }
+    }
+    .contract-receipt-wrapper {
+      > div {
+        overflow-x: auto;
+      }
+
+      /*> p {*/
+        /*float: none;*/
+        /*padding: 0.5rem;*/
+      /*}*/
     }
   }
 
