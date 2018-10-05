@@ -2458,10 +2458,16 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
 
 router.get('/receipt', (req, res) => {
   const jwtToken = req.token;
+  const reqStatus = req.query.status;
   let userInfo;
+  let availableStatus;
+
   jwtHelper.verify(jwtToken)
     .then(plain => {
       userInfo = plain;
+      if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
+      else if (userInfo.user_permit === 'B') availableStatus = [1,2];
+      else if (userInfo.user_permit === 'C') availableStatus = [2];
       return knexBuilder.getConnection()
     })
     .then(cur => {
@@ -2486,14 +2492,17 @@ router.get('/receipt', (req, res) => {
           'ra_url as _attachment__url',
           'ra_memo as _attachment__memo')
         // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
-        .where('rc_pcpk', reqPcPk)
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .orderBy('rc_date');
-
-      if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
-      else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
-      else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
+        .orderBy('rc_staus', 'rc_date');
+      if (!req.query.status) {
+        query.whereIn('rc_status', availableStatus);
+        if (userInfo.user_permit === 'A') ;
+        else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
+        else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
+      } else {
+        if (availableStatus.indexOf(reqStatus))
+      }
       console.log(query.toSQL().toNative());
       return knexnest(query);
     })
@@ -2546,7 +2555,7 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         .where('rc_pcpk', reqPcPk)
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .orderBy('rc_date');
+        .orderBy('rc_status', 'rc_date');
 
       if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
       else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
