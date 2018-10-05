@@ -9,6 +9,7 @@ const smsHelper = require('../../services/sms/helper');
 const jwtHelper = require('../../services/jwt/helper');
 const moment = require('moment');
 const calc = require('calculator');
+const knexnest = require('knexnest');
 
 
 
@@ -2471,37 +2472,42 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
       return knexBuilder.getConnection()
     })
     .then(cur => {
-      const query = cur({rc:'receipt_tbl'})
+      const query = cur('receipt_tbl as rc')
         .select(
-          'rc_pk',
-          'rc_pcpk',
-          'rc_ctpk',
-          'ct_name',
-          'rc_date',
-          'rc_type',
-          'rc_contents',
-          'rc_price',
-          'rc_account_bank',
-          'rc_account_holder',
-          'rc_account_number',
-          'rc_is_emergency',
-          'rc_status',
-          'rc_is_vat_included',
-          'rc_memo')
-        .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
+          'rc_pk as _pk',
+          'rc_pcpk as _pcPk',
+          'rc_ctpk as _ctPk',
+          'ct_name as _ctName',
+          'rc_date as _date',
+          'rc_type as _type',
+          'rc_contents as _contents',
+          'rc_price as _price',
+          'rc_account_bank as _accountBank',
+          'rc_account_holder as _accountHolder',
+          'rc_account_number as _accountNumber',
+          'rc_is_emergency as _isEmergency',
+          'rc_status as _status',
+          'rc_is_vat_included as _isVatIncluded',
+          'rc_memo as _memo',
+          'ra_pk as _attachment__pk',
+          'ra_url as _attachment__url',
+          'ra_memo as _attachment__memo')
+        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
         .where('rc_pcpk', reqPcPk)
-        .leftJoin({ct: 'construction_tbl'}, 'rc.rc_ctpk', 'ct.ct_pk');
+        .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .options({rowMode: 'array' });
 
       if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
       else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
       else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
-
-      return query;
+      console.log(query.toSQL().toNative());
+      return knexnest(query);
     })
     .then(response => {
       res.json(
         resHelper.getJson({
-          response
+          receipts: response
         })
       );
     })
@@ -2514,14 +2520,13 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
 });
 
 router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
-  if ( (req.body.rc_type === undefined || !req.body.rc_type.toString().trim() )
-    || !req.body.rc_ctpk
-    || !req.body.rc_date
-    || !req.body.rc_price
-    || !req.body.rc_account_bank
-    || !req.body.rc_account_holder
-    || !req.body.rc_account_number
-    || ( req.body.rc_is_vat_included === undefined || !req.body.rc_is_vat_included.toString().trim() )
+  if ( (req.body.type === undefined || !req.body.type.toString().trim() )
+    || !req.body.ctPk
+    || !req.body.price
+    || !req.body.accountBank
+    || !req.body.accountHolder
+    || !req.body.accountNumber
+    || ( req.body.isVatIncluded === undefined || !req.body.isVatIncluded.toString().trim() )
   ) {
     res.json(
       resHelper.getError('파라메터가 올바르지 않습니다.')
@@ -2532,18 +2537,18 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
     knexBuilder.getConnection().then(cur => {
       let obj = {};
       obj.rc_pcpk = req.params.pcpk;
-      obj.rc_ctpk = req.body.rc_ctpk;
-      obj.rc_date = req.body.rc_date;
-      obj.rc_type = req.body.rc_type;
-      obj.rc_contents = req.body.rc_contents;
-      obj.rc_price = req.body.rc_price;
-      obj.rc_account_bank = req.body.rc_account_bank;
-      obj.rc_account_holder = req.body.rc_account_holder;
-      obj.rc_account_number = req.body.rc_account_number;
-      obj.rc_is_emergency = req.body.rc_is_emergency;
-      obj.rc_status = req.body.rc_status;
-      obj.rc_is_vat_included = req.body.rc_is_vat_included;
-      obj.rc_memo = req.body.rc_memo;
+      obj.rc_ctpk = req.body.ctPk;
+      obj.rc_date = moment().format('YYYY-MM-DD');
+      obj.rc_type = req.body.type;
+      obj.rc_contents = req.body.contents;
+      obj.rc_price = req.body.price;
+      obj.rc_account_bank = req.body.accountBank;
+      obj.rc_account_holder = req.body.accountHolder;
+      obj.rc_account_number = req.body.accountNumber;
+      obj.rc_is_emergency = req.body.isEmergency;
+      obj.rc_status = req.body.status;
+      obj.rc_is_vat_included = req.body.isVatIncluded;
+      obj.rc_memo = req.body.memo;
 
       cur.transaction(trx => {
         cur('receipt_tbl')
@@ -2554,12 +2559,13 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
             const rcPk = response[0];
             const query = [];
             attachedList.forEach(obj => {
+              let attachment = {};
+              attachment.ra_url = obj.url;
+              attachment.ra_memo = obj.memo;
+              attachment.ra_rcpk = rcPk;
               query.push(
                 cur.table('receipt_attachment_tbl')
-                  .insert({
-                    ...obj,
-                    ra_rcpk: rcPk
-                  })
+                  .insert(attachment)
                   .transacting(trx));
             });
 
@@ -2584,13 +2590,10 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
 });
 
 router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
-  const reqPcPk = req.params.pcpk;
   const reqRcPk = req.params.rcpk;
   const jwtToken = req.token;
-  const reqRcStatus = parseInt(req.body.rc_status);
+  const reqRcStatus = parseInt(req.body.status);
 
-  console.log(jwtToken);
-  console.log(typeof reqRcStatus);
   let errorMsg = null;
   jwtHelper.verify(jwtToken).then(userInfo => {
     if ([-1,0,1,2,3].indexOf(reqRcStatus) < 0) {
@@ -2635,8 +2638,6 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
       res.json(resHelper.getError(err.toString()));
     })
 });
-
-
 
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
