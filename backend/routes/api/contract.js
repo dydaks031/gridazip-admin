@@ -2563,6 +2563,9 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
       return knexnest(query);
     })
     .then(response => {
+      if (!response) {
+        response = []
+      }
       res.json(
         resHelper.getJson({
           receipts: response
