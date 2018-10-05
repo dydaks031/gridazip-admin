@@ -2455,19 +2455,12 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
   }
 });
 
-router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
-  const reqPcPk = req.params.pcpk;
+
+router.get('/receipt', (req, res) => {
   const jwtToken = req.token;
   let userInfo;
   jwtHelper.verify(jwtToken)
     .then(plain => {
-      // { user_permit: 'A',
-      //   user_name: '오현우',
-      //   user_id: 'ohw@gridazip.com',
-      //   iat: 1538612744,
-      //   exp: 1538699144,
-      //   iss: 'admin.gridazip.com',
-      //   sub: 'userInfo' }
       userInfo = plain;
       return knexBuilder.getConnection()
     })
@@ -2496,12 +2489,68 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         .where('rc_pcpk', reqPcPk)
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .options({rowMode: 'array' });
+        .orderBy('rc_date');
 
       if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
       else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
       else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
       console.log(query.toSQL().toNative());
+      return knexnest(query);
+    })
+    .then(response => {
+      res.json(
+        resHelper.getJson({
+          receipts: response
+        })
+      );
+    })
+    .catch(err => {
+      console.error(err);
+      res.json(
+        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.')
+      );
+    })
+});
+
+router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  const jwtToken = req.token;
+  let userInfo;
+  jwtHelper.verify(jwtToken)
+    .then(plain => {
+      userInfo = plain;
+      return knexBuilder.getConnection()
+    })
+    .then(cur => {
+      const query = cur('receipt_tbl as rc')
+        .select(
+          'rc_pk as _pk',
+          'rc_pcpk as _pcPk',
+          'rc_ctpk as _ctPk',
+          'ct_name as _ctName',
+          'rc_date as _date',
+          'rc_type as _type',
+          'rc_contents as _contents',
+          'rc_price as _price',
+          'rc_account_bank as _accountBank',
+          'rc_account_holder as _accountHolder',
+          'rc_account_number as _accountNumber',
+          'rc_is_emergency as _isEmergency',
+          'rc_status as _status',
+          'rc_is_vat_included as _isVatIncluded',
+          'rc_memo as _memo',
+          'ra_pk as _attachment__pk',
+          'ra_url as _attachment__url',
+          'ra_memo as _attachment__memo')
+        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
+        .where('rc_pcpk', reqPcPk)
+        .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .orderBy('rc_date');
+
+      if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
+      else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
+      else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
       return knexnest(query);
     })
     .then(response => {
@@ -2638,6 +2687,8 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
       res.json(resHelper.getError(err.toString()));
     })
 });
+
+
 
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
