@@ -1,93 +1,97 @@
 <template>
   <div>
     <div class="tile is-ancestor">
-      <table class="table is-bordered contract-receipt is-hidden-desktop">
+      <table class="table is-bordered contract-receipt">
         <tbody>
         <tr>
           <th>긴급여부</th>
           <td>
-            <input class="checkbox" type="checkbox" v-model="receipt.rc_is_emergency" />
+            <input class="checkbox" type="checkbox" v-model="receipt.isEmergency" />
           </td>
         </tr>
         <tr>
           <th>공사</th>
           <td>
-            <div class="select" :class="{'is-danger': $v.receipt.rc_ctpk.$invalid }">
-              <select v-model="receipt.rc_ctpk" >
+            <div class="select" :class="{'is-danger': $v.receipt.ctPk.$invalid }">
+              <select v-model="receipt.ctPk" >
                 <option value="" disabled class="disabled">선택</option>
                 <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
               </select>
             </div>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_ctpk.required">공사를 선택해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.ctPk.required">공사를 선택해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
           <th>구분</th>
           <td>
-            <label>인건비</label><input class="radio" type="radio" v-model="receipt.rc_type" value="0" name="rc_type" :class="{'is-danger': $v.receipt.rc_type.$invalid }"/>
-            <label>자재비</label><input class="radio" type="radio" v-model="receipt.rc_type" value="1" name="rc_type" :class="{'is-danger': $v.receipt.rc_type.$invalid }"/>
+            <label>인건비</label><input class="radio" type="radio" v-model="receipt.type" value="0" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
+            <label>자재비</label><input class="radio" type="radio" v-model="receipt.type" value="1" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_type.required">공사를 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.type.required">공사를 입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
           <th>내용</th>
-          <td><input class="input" type="text" v-model="receipt.rc_contents" /></td>
+          <td><input class="input" type="text" v-model="receipt.contents" /></td>
         </tr>
         <tr>
           <th>금액</th>
           <td>
-            <input class="input" type="text" v-model="receipt.rc_price" :class="{'is-danger': $v.receipt.rc_price.$invalid }"/>
+            <input class="input" type="text" v-model="receipt.price" :class="{'is-danger': $v.receipt.price.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_price.required">금액을 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.price.required">금액을 입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
           <th>부가세</th>
           <td>
-            <input class="checkbox" name="rc_is_vat_included" type="checkbox" v-model="receipt.rc_is_vat_included"/>
+            <input class="checkbox" name="isVatIncluded" type="checkbox" v-model="receipt.isVatIncluded" />
           </td>
         </tr>
         <tr>
           <th>은행명</th>
           <td>
-            <input class="input" type="text" v-model="receipt.rc_account_bank" :class="{'is-danger': $v.receipt.rc_account_bank.$invalid }"/>
+            <input class="input" type="text" v-model="receipt.accountBank" :class="{'is-danger': $v.receipt.accountBank.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_account_bank.required">은행을 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountBank.required">은행을 입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
           <th>예금주</th>
           <td>
-            <input class="input" type="text" v-model="receipt.rc_account_holder" :class="{'is-danger': $v.receipt.rc_account_holder.$invalid }"/>
+            <input class="input" type="text" v-model="receipt.accountHolder" :class="{'is-danger': $v.receipt.accountHolder.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_account_holder.required">예금주를 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountHolder.required">예금주를 입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
           <th>계좌번호</th>
           <td>
-            <input class="input" type="text" v-model="receipt.rc_account_number" :class="{'is-danger': $v.receipt.rc_account_number.$invalid }"/>
+            <input class="input" type="text" v-model="receipt.accountNumber" :class="{'is-danger': $v.receipt.accountNumber.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.rc_account_number.required">계좌번호를 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountNumber.required">계좌번호를 입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
         <tr>
-          <th>첨부서류</th>
-          <td>
-            <button class="button">업로드</button>
-          </td>
+          <th>메모</th>
+          <td><input class="input" type="text" v-model="receipt.memo" /></td>
         </tr>
         <tr>
-          <th>메모</th>
-          <td><input class="input" type="text" v-model="receipt.rc_memo" /></td>
+          <th>첨부서류</th>
+          <td>
+            <span class="input-group">
+              <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple accept="image/*,.jpg,.gif,.png,.jpeg"/>
+            </span>
+            <img v-for="image in imageList" :src="image.url" />
+          </td>
         </tr>
         <tr>
           <td style="text-align: center; vertical-align: middle;" colspan="2">
@@ -104,8 +108,11 @@
   import { required } from 'vuelidate/lib/validators'
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
+  import FormData from 'form-data'
 
   const queryApi = '/api/contract'
+  const fileUploadApi = '/api/file/upload'
+
   const NotificationComponent = Vue.extend(Notification)
 
   const openNotification = (propsData = {
@@ -128,39 +135,38 @@
       return {
         receipt: {},
         id: '',
-        constructionList: []
+        constructionList: [],
+        imageList: []
       }
     },
     validations: {
       receipt: {
-        rc_type: {
+        type: {
           required
         },
-        rc_ctpk: {
+        ctPk: {
           required
         },
-        rc_date: {
+        price: {
           required
         },
-        rc_price: {
+        accountBank: {
           required
         },
-        rc_account_bank: {
+        accountHolder: {
           required
         },
-        rc_account_holder: {
+        accountNumber: {
           required
         },
-        rc_account_number: {
-          required
-        },
-        rc_is_vat_included: {
+        isVatIncluded: {
           required
         }
       }
     },
     methods: {
       registerReceipt () {
+        this.receipt.attachment = this.imageList
         this.$http.post(`${queryApi}/${this.id}/receipt`, this.receipt)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -182,6 +188,48 @@
           .catch((error) => {
             console.error(error)
           })
+      },
+      callFileUpload (index) {
+        const currentTarget = this.$refs[index]
+        if (currentTarget.length > 0) {
+          currentTarget[0].click()
+        } else {
+          currentTarget.click()
+        }
+      },
+      onFileChanged (event, index) {
+        const files = event.target.files
+        console.log(files)
+        for (let i = 0; i < files.length; i++) {
+          const formData = new FormData()
+          formData.append('file_upload_path', 'portfolio')
+          formData.append('filedata', files[i])
+
+          this.$http.post(fileUploadApi, formData)
+            .then((response) => {
+              var responseData = response.data
+
+              if (responseData.code === 200) {
+                const imageData = responseData.data
+                if (index === 'new') {
+                  this.imageList.push({
+                    url: imageData.value,
+                    memo: ''
+                  })
+                } else {
+                  this.imageList[index] = {
+                    url: imageData.value,
+                    memo: ''
+                  }
+                }
+
+                this.$forceUpdate()
+              }
+            })
+            .catch((error) => {
+              console.log(error)
+            })
+        }
       }
     },
     mounted () {

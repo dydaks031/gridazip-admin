@@ -321,14 +321,16 @@
           </table>
           </div>
         </article>
-        <article class="tile is-child box contract-receipt-wrappe is-clearfixr" v-show="currentTab === tabType.contractReceipt">
-          <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
-          <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">이동</a>
+        <article class="tile is-child box contract-receipt-wrapper" v-show="currentTab === tabType.contractReceipt">
+          <div class="is-clearfix">
+            <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
+            <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
+          </div>
           <div>
-            <table class="table is-bordered contract-receipt is-hidden-touch">
+            <table class="table is-bordered contract-receipt is-hidden-touch" v-if="contractReceiptList.length !== 0">
               <colgroup>
               </colgroup>
-              <tbody v-for="receipt in contractReceiptList">
+              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status === -1" >
               <tr>
                 <th>날짜</th>
                 <td>{{moment(receipt.rc_date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
@@ -357,49 +359,49 @@
                 <th>첨부서류</th>
                 <td><a href="#">링크</a></td>
                 <th>진행상태</th>
-                <td>{{receipt.rc_status_name}}</td>
+                <td>{{receipt.status_name}}</td>
                 <th>메모</th>
                 <td colspan="1">{{receipt.rc_memo}}</td>
               </tr>
               </tbody>
             </table>
-            <table class="table is-bordered contract-receipt is-hidden-desktop">
-              <tbody v-for="receipt in contractReceiptList">
+            <table class="table is-bordered contract-receipt is-hidden-desktop" v-if="contractReceiptList.length !== 0">
+              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status">
               <tr>
                 <th>날짜</th>
-                <td>{{moment(receipt.rc_date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
               </tr>
               <tr>
                 <th>공사</th>
-                <td>{{receipt.ct_name}}</td>
+                <td>{{receipt.ctName}}</td>
               </tr>
               <tr>
                 <th>구분</th>
-                <td>{{receipt.rc_type === 1 ? '자재비' : '인건비'}}</td>
+                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
               </tr>
               <tr>
                 <th>내용</th>
-                <td>{{receipt.rc_contents}}</td>
+                <td>{{receipt.contents}}</td>
               </tr>
               <tr>
                 <th>금액</th>
-                <td>{{addCommas(receipt.rc_price)}}</td>
+                <td>{{addCommas(receipt.price)}}</td>
               </tr>
               <tr>
                 <th>부가세</th>
-                <td>{{receipt.rc_is_vat_included === 0 ? '미포함' : '포함'}}</td>
+                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
               </tr>
               <tr>
                 <th>은행명</th>
-                <td>{{receipt.rc_account_bank}}</td>
+                <td>{{receipt.accountBank}}</td>
               </tr>
               <tr>
                 <th>예금주</th>
-                <td>{{receipt.rc_account_holder}}</td>
+                <td>{{receipt.accountHolder}}</td>
               </tr>
               <tr>
                 <th>계좌번호</th>
-                <td>{{receipt.rc_account_number}}</td>
+                <td>{{receipt.accountNumber}}</td>
               </tr>
               <tr>
                 <th>첨부서류</th>
@@ -407,26 +409,29 @@
               </tr>
               <tr>
                 <th>진행상태</th>
-                <td>{{receipt.rc_status_name}}</td>
+                <td>{{receipt.statusName}}</td>
               </tr>
               <tr>
                 <th>메모</th>
-                <td>{{receipt.rc_memo}}</td>
+                <td>{{receipt.memo}}</td>
               </tr>
-              <tr v-if="receipt.rc_reject_reason">
+              <tr v-if="receipt.rejectReason">
                 <th>반려사유</th>
-                <td>{{receipt.rc_reject_reason}}</td>
+                <td>{{receipt.rejectReason}}</td>
               </tr>
               <tr>
                 <td style="text-align: center; vertical-align: middle;" colspan="2">
                   <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
-                  <button class="button is-danger is-medium" v-if="receipt.rc_status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                  <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
                   <button class="button is-primary is-medium" v-if="userPermit === 'B'" @click="changeReceiptStatus(receipt, 2)">승인</button>
                   <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
                 </td>
               </tr>
               </tbody>
             </table>
+            <div v-if="contractReceiptList.length === 0">
+              <span class="no-results">결재 요청이 없습니다.</span>
+            </div>
           </div>
         </article>
       </div>
@@ -912,11 +917,11 @@
         this.checkPermission()
         this.$http.get(`${queryApi}/${id}/receipt`)
           .then((response) => {
-            this.contractReceiptList = response.data.data.response
+            this.contractReceiptList = response.data.data.receipts
 
             this.contractReceiptList.map((item) => {
               let statusName = ''
-              switch (item.rc_status) {
+              switch (item.status) {
                 case -1:
                   statusName = '삭제'
                   break
@@ -933,18 +938,18 @@
                   statusName = '입금완료'
                   break
               }
-              item.rc_status_name = statusName
+              item.statusName = statusName
             })
           })
       },
       changeReceiptStatus (item, status) {
         this.checkPermission()
         const id = this.param.id
-        this.$http.put(`${queryApi}/${id}/receipt/${item.rc_pk}`, {
-          rc_status: status
+        this.$http.put(`${queryApi}/${id}/receipt/${item.pk}`, {
+          status: status
         })
         .then((response) => {
-          console.log(response.data.data)
+          this.loadContractReceipt()
         })
       },
       moveToRegisterReceipt () {
@@ -1004,7 +1009,7 @@
     /*}*/
     .estimate-detail {
       .tile {
-        padding: 0.25rem;
+        padding: 0.5rem;
         > div {
           padding: 0.5rem;
         }

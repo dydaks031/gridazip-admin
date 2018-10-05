@@ -2547,13 +2547,15 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
         .orderBy('rc_date');
-
       if (userInfo.user_permit === 'A') query.whereIn('rc_status', [0,1,2]);
       else if (userInfo.user_permit === 'B') query.whereIn('rc_status', [1,2]);
       else if (userInfo.user_permit === 'C') query.where('rc_status', 2);
       return knexnest(query);
     })
     .then(response => {
+      if (!response) {
+        response = []
+      }
       res.json(
         resHelper.getJson({
           receipts: response
