@@ -359,7 +359,7 @@
                 <th>계좌번호</th>
                 <td colspan="2">{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
-                <td><a href="#">링크</a></td>
+                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
                 <th v-if="!receipt.rejectReason">메모</th>
@@ -409,7 +409,7 @@
               </tr>
               <tr>
                 <th>첨부서류</th>
-                <td><a href="#">링크</a></td>
+                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
               </tr>
               <tr>
                 <th>진행상태</th>
@@ -451,6 +451,14 @@
     <add-site-image-modal
       :id="param.id"
       :beforeClose="loadSiteImage" />
+
+    <ImageEnlargedView
+      :image="enlargedImage.image"
+      :imageGroup="enlargedImage.imageGroup"
+      :index="enlargedImage.index"
+      :isReceipt="true"
+    />
+
   </div>
 </template>
 
@@ -469,6 +477,7 @@
   import EventBus from '../../services/eventBus'
   import moment from 'moment'
   import requestStatusConfig from '../../config/request-status-config'
+  import ImageEnlargedView from '../customer/ImageEnlargedView'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -496,7 +505,8 @@
       addPartnersModal,
       addSiteImageModal,
       StarRating,
-      Datepicker
+      Datepicker,
+      ImageEnlargedView
     },
     data () {
       return {
@@ -545,7 +555,14 @@
         wantMoveDate: '',
         /* 결재 요청내역 */
         contractReceiptList: [],
-        userPermit: ''
+        userPermit: '',
+
+        /* 이미지 팝업 */
+        enlargedImage: {
+          image: {},
+          imageGroup: [],
+          index: 0
+        }
       }
     },
     validations: {
@@ -965,6 +982,22 @@
         router.push({
           path: `/private/estimate/${this.param.id}/receipt/register`
         })
+      },
+      openImageEnlargedView (receipt) {
+        const imageGroup = []
+        _.forEach(receipt.attachment, (item) => {
+          imageGroup.push({
+            si_url: item.url
+          })
+        })
+
+        if (imageGroup.length > 0) {
+          this.enlargedImage.image = imageGroup[0]
+          this.enlargedImage.index = 0
+          this.enlargedImage.imageGroup = imageGroup
+
+          this.$modal.show('imageEnlargedView')
+        }
       },
       checkPermission () {
         this.userPermit = this.$auth.user().user_permit
