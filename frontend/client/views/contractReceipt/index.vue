@@ -14,7 +14,7 @@
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
               <div class="select">
-                <select>
+                <select v-model="searchOptions.status">
                   <option value="" selected="selected">선택</option>
                   <option value="-1">삭제</option>
                   <option value="0">반려</option>
@@ -26,7 +26,7 @@
             </div>
           </div>
           <div class="is-pulled-right search-btn">
-            <a class="button is-info">검색</a>
+            <a class="button is-info" @click="loadContractReceipt">검색</a>
           </div>
         </div>
       </div>
@@ -58,9 +58,11 @@
                 <td>{{addCommas(receipt.price)}}</td>
                 <th>부가세</th>
                 <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-                <td rowspan="2" style="text-align: center; vertical-align: middle;">
-                  <button class="button is-danger is-medium" @click="changeReceiptStatus()">반려</button>
-                  <button class="button is-primary is-medium" @click="changeReceiptStatus()">승인</button>
+                <td rowspan="2" class="receipt-button-wrapper">
+                  <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
+                  <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
                 </td>
               </tr>
               <tr>
@@ -71,11 +73,13 @@
                 <th>계좌번호</th>
                 <td colspan="1">{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
-                <td><a href="#">링크</a></td>
+                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
-                <th>메모</th>
-                <td colspan="3">{{receipt.memo}}</td>
+                <th v-if="!receipt.rejectReason">메모</th>
+                <td v-if="!receipt.rejectReason" colspan="3">{{receipt.memo}}</td>
+                <th v-if="receipt.rejectReason">반려사유</th>
+                <td v-if="receipt.rejectReason" colspan="3">{{receipt.rejectReason}}</td>
               </tr>
               </tbody>
             </table>
@@ -87,7 +91,7 @@
               </tr>
               <tr>
                 <th>공사</th>
-                <td>{{receipt.constructiontName}}</td>
+                <td>{{receipt.constructionName}}</td>
               </tr>
               <tr>
                 <th>구분</th>
@@ -119,13 +123,13 @@
               </tr>
               <tr>
                 <th>첨부서류</th>
-                <td><a href="#">링크</a></td>
+                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
               </tr>
               <tr>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
               </tr>
-              <tr>
+              <tr v-if="!receipt.rejectReason">
                 <th>메모</th>
                 <td>{{receipt.memo}}</td>
               </tr>
@@ -134,10 +138,10 @@
                 <td>{{receipt.rejectReason}}</td>
               </tr>
               <tr>
-                <td style="text-align: center; vertical-align: middle;" colspan="2">
-                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
+                <td class="receipt-button-wrapper" colspan="2">
+                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' && (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
                   <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'B'" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
                   <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
                 </td>
               </tr>
@@ -153,6 +157,12 @@
     <div>
       <!--<pagination-vue :options="page" :page-click="moveToPagination" />-->
     </div>
+    <ImageEnlargedView
+      :image="enlargedImage.image"
+      :imageGroup="enlargedImage.imageGroup"
+      :index="enlargedImage.index"
+      :isReceipt="true"
+    />
   </div>
 </template>
 
@@ -166,6 +176,8 @@
   import Datepicker from 'vue-bulma-datepicker'
   import router from '../../router'
   import moment from 'moment'
+  import ImageEnlargedView from '../customer/ImageEnlargedView'
+  import _ from 'underscore'
 
   const queryApi = '/api/contract'
 
@@ -175,7 +187,8 @@
       PrivateWrapper,
       PaginationVue,
       Notification,
-      Datepicker
+      Datepicker,
+      ImageEnlargedView
     },
     mixins: [mixin],
     data () {
@@ -185,15 +198,28 @@
         filter: new Filter(),
         /* 결재 요청내역 */
         contractReceiptList: [],
-        userPermit: ''
+        userPermit: '',
+        searchOptions: {
+          status: ''
+        },
+        enlargedImage: {
+          image: {},
+          imageGroup: [],
+          index: 0
+        }
       }
     },
     methods: {
       /* 결재 영수 조회 */
       loadContractReceipt () {
         this.checkPermission()
-        this.$http.get(`${queryApi}/receipt`)
+        this.$http.get(`${queryApi}/receipt?status=${this.searchOptions.status}`)
           .then((response) => {
+            if (response.data.code !== 200) {
+              this.contractReceiptList = []
+              return
+            }
+
             this.contractReceiptList = response.data.data.receipts
 
             this.contractReceiptList.map((item) => {
@@ -222,8 +248,17 @@
       changeReceiptStatus (item, status) {
         this.checkPermission()
         const id = item.pcPk
+        let rejectReason
+        if (status === 0) {
+          rejectReason = window.prompt('반려사유를 입력해 주십시오.')
+          if (!rejectReason) {
+            return
+          }
+        }
+
         this.$http.put(`${queryApi}/${id}/receipt/${item.pk}`, {
-          status: status
+          status: status,
+          rejectReason
         })
           .then((response) => {
             this.loadContractReceipt()
@@ -236,6 +271,22 @@
       },
       checkPermission () {
         this.userPermit = this.$auth.user().user_permit
+      },
+      openImageEnlargedView (receipt) {
+        const imageGroup = []
+        _.forEach(receipt.attachment, (item) => {
+          imageGroup.push({
+            si_url: item.url
+          })
+        })
+
+        if (imageGroup.length > 0) {
+          this.enlargedImage.image = imageGroup[0]
+          this.enlargedImage.index = 0
+          this.enlargedImage.imageGroup = imageGroup
+
+          this.$modal.show('imageEnlargedView')
+        }
       }
     },
     mounted () {
@@ -276,10 +327,6 @@
     .contract-receipt-wrapper {
       > div {
         overflow-x: auto;
-
-        .contract-receipt {
-          min-width: 1280px;
-        }
       }
 
       > p {
@@ -309,6 +356,11 @@
 
         button.is-primary {
           background: #4285F4;
+        }
+
+        &.receipt-button-wrapper {
+          text-align: center;
+          vertical-align: middle;
         }
       }
     }

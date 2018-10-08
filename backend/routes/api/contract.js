@@ -114,6 +114,7 @@ router.get('/', (req, res) => {
               contractList: list
             })
           );
+          throw new Error('Ignore')
         } else {
           pageInst.setPage(pageData.page += list.length);
           pageInst.setLimit(pageData.limit);
@@ -136,6 +137,9 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
+        if (err.message === 'Ignore') {
+          return
+        }
         console.error(err);
         res.json(
           resHelper.getError('진행계약 목록을 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
@@ -2498,6 +2502,7 @@ router.get('/receipt', (req, res) => {
           'rc_status as _status',
           'rc_is_vat_included as _isVatIncluded',
           'rc_memo as _memo',
+          'rc_reject_reason as _rejectReason',
           'ra_pk as _attachment__pk',
           'ra_url as _attachment__url',
           'ra_memo as _attachment__memo')
@@ -2668,6 +2673,7 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
   const reqRcPk = req.params.rcpk;
   const jwtToken = req.token;
   const reqRcStatus = parseInt(req.body.status);
+  const reqRcRejectReason = req.body.rejectReason;
 
   let errorMsg = null;
   jwtHelper.verify(jwtToken).then(userInfo => {
@@ -2700,9 +2706,15 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
     }
   })
     .then(cur => {
-      return cur('receipt_tbl')
+      let query = cur('receipt_tbl')
         .update('rc_status', reqRcStatus)
         .where('rc_pk', reqRcPk)
+
+      if (reqRcStatus === 0) {
+        query = query.update('rc_reject_reason', reqRcRejectReason)
+      }
+
+      return query
     })
     .then(() => {
       res.json(resHelper.getJson({

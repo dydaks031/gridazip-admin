@@ -166,7 +166,7 @@
     },
     methods: {
       registerReceipt () {
-        this.receipt.attachment = this.imageList
+        this.receipt.attachedList = this.imageList
         this.$http.post(`${queryApi}/${this.id}/receipt`, this.receipt)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -245,6 +245,28 @@
   }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  table {
+    tbody {
+      th {
+        width:20%;
+      }
+      img {
+        max-width:60%;
+      }
+    }
+  }
 
+  @media screen and (max-width: 768px) {
+    table {
+      tbody {
+        th {
+          width:20%;
+        }
+        img {
+          max-width:100%;
+        }
+      }
+    }
+  }
 </style>

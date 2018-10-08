@@ -13,7 +13,7 @@
           <th>현장</th>
           <td>
             <div class="select" :class="{'is-danger': $v.receipt.pcPk.$invalid }">
-              <select v-model="receipt.pcPk">
+              <select v-model="receipt.pcPk" @change="loadContractConstruction">
                 <option value="" disabled class="disabled">선택</option>
                 <option v-for="contract in contractList" :value="contract.pc_pk">{{contract.pc_name}}</option>
               </select>
@@ -104,7 +104,7 @@
               <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
               <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple accept="image/*,.jpg,.gif,.png,.jpeg"/>
             </span>
-            <img v-for="image in imageList" :src="image.url" />
+            <img v-for="image in imageList" :src="image.url"/>
           </td>
         </tr>
         <tr>
@@ -124,7 +124,7 @@
   import Vue from 'vue'
   import FormData from 'form-data'
 
-  const constructionQueryApi = '/api/construction'
+  // const constructionQueryApi = '/api/construction'
   const contractQueryApi = '/api/contract'
   const fileUploadApi = '/api/file/upload'
 
@@ -196,8 +196,21 @@
             console.log(error)
           })
       },
+      loadContractConstruction () {
+        this.receipt.ctPk = ''
+        this.constructionList.length = 0
+        this.constructionList = []
+
+        this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/construction`)
+          .then((response) => {
+            this.constructionList = response.data.data.constructionList
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      },
       registerReceipt () {
-        this.receipt.attachment = this.imageList
+        this.receipt.attachedList = this.imageList
         if (!this.receipt.isVatIncluded) {
           this.receipt.isVatIncluded = false
         }
@@ -267,19 +280,33 @@
       }
     },
     mounted () {
-      this.id = this.$route.params.id
-      this.$http.get(`${constructionQueryApi}`)
-        .then((response) => {
-          this.constructionList = response.data.data.constructionList
-          this.loadProceedingContract()
-        })
-        .catch((error) => {
-          console.error(error)
-        })
+      this.loadProceedingContract()
     }
   }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  table {
+    tbody {
+      th {
+        width:20%;
+      }
+      img {
+        max-width:60%;
+      }
+    }
+  }
 
+  @media screen and (max-width: 768px) {
+    table {
+      tbody {
+        th {
+          width:20%;
+        }
+        img {
+          max-width:100%;
+        }
+      }
+    }
+  }
 </style>

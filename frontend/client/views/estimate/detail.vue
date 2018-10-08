@@ -335,7 +335,7 @@
                 <th>날짜</th>
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
                 <th>공사</th>
-                <td>{{receipt.constructiontName}}</td>
+                <td>{{receipt.constructionName}}</td>
                 <th>구분</th>
                 <td colspan="2">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>내용</th>
@@ -345,8 +345,10 @@
                 <th>부가세</th>
                 <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
                 <td rowspan="2" style="text-align: center; vertical-align: middle;">
-                  <button class="button is-danger is-medium" @click="changeReceiptStatus()">반려</button>
-                  <button class="button is-primary is-medium" @click="changeReceiptStatus()">승인</button>
+                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
+                  <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
                 </td>
               </tr>
               <tr>
@@ -360,8 +362,10 @@
                 <td><a href="#">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
-                <th>메모</th>
-                <td colspan="1">{{receipt.memo}}</td>
+                <th v-if="!receipt.rejectReason">메모</th>
+                <td v-if="!receipt.rejectReason" colspan="1">{{receipt.memo}}</td>
+                <th v-if="receipt.rejectReason">반려사유</th>
+                <td v-if="receipt.rejectReason" colspan="1">{{receipt.rejectReason}}</td>
               </tr>
               </tbody>
             </table>
@@ -373,7 +377,7 @@
               </tr>
               <tr>
                 <th>공사</th>
-                <td>{{receipt.constructiontName}}</td>
+                <td>{{receipt.constructionName}}</td>
               </tr>
               <tr>
                 <th>구분</th>
@@ -411,7 +415,7 @@
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
               </tr>
-              <tr>
+              <tr v-if="!receipt.rejectReason">
                 <th>메모</th>
                 <td>{{receipt.memo}}</td>
               </tr>
@@ -423,7 +427,7 @@
                 <td style="text-align: center; vertical-align: middle;" colspan="2">
                   <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
                   <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'B'" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
                   <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
                 </td>
               </tr>
@@ -917,6 +921,10 @@
         this.checkPermission()
         this.$http.get(`${queryApi}/${id}/receipt`)
           .then((response) => {
+            if (response.data.code !== 200) {
+              this.contractReceiptList = []
+              return
+            }
             this.contractReceiptList = response.data.data.receipts
 
             this.contractReceiptList.map((item) => {
@@ -945,6 +953,7 @@
       changeReceiptStatus (item, status) {
         this.checkPermission()
         const id = this.param.id
+
         this.$http.put(`${queryApi}/${id}/receipt/${item.pk}`, {
           status: status
         })
