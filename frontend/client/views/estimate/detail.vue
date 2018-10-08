@@ -335,7 +335,7 @@
                 <th>날짜</th>
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
                 <th>공사</th>
-                <td>{{receipt.ctName}}</td>
+                <td>{{receipt.constructiontName}}</td>
                 <th>구분</th>
                 <td colspan="2">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>내용</th>
@@ -373,7 +373,7 @@
               </tr>
               <tr>
                 <th>공사</th>
-                <td>{{receipt.ctName}}</td>
+                <td>{{receipt.constructiontName}}</td>
               </tr>
               <tr>
                 <th>구분</th>

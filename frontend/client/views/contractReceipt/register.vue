@@ -10,6 +10,20 @@
           </td>
         </tr>
         <tr>
+          <th>현장</th>
+          <td>
+            <div class="select" :class="{'is-danger': $v.receipt.pcPk.$invalid }">
+              <select v-model="receipt.pcPk">
+                <option value="" disabled class="disabled">선택</option>
+                <option v-for="contract in contractList" :value="contract.pc_pk">{{contract.pc_name}}</option>
+              </select>
+            </div>
+            <div>
+              <p class="help is-danger" v-if="!$v.receipt.pcPk.required">현장을 선택해 주십시오.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
           <th>공사</th>
           <td>
             <div class="select" :class="{'is-danger': $v.receipt.ctPk.$invalid }">
@@ -110,7 +124,8 @@
   import Vue from 'vue'
   import FormData from 'form-data'
 
-  const queryApi = '/api/contract'
+  const constructionQueryApi = '/api/construction'
+  const contractQueryApi = '/api/contract'
   const fileUploadApi = '/api/file/upload'
 
   const NotificationComponent = Vue.extend(Notification)
@@ -136,12 +151,16 @@
         receipt: {},
         id: '',
         constructionList: [],
+        contractList: [],
         imageList: []
       }
     },
     validations: {
       receipt: {
         type: {
+          required
+        },
+        pcPk: {
           required
         },
         ctPk: {
@@ -165,9 +184,24 @@
       }
     },
     methods: {
+      loadProceedingContract () {
+        this.$http.get(`${contractQueryApi}?isPage=false`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            const dataList = response.data.data
+            this.contractList = dataList.contractList
+          }).catch((error) => {
+            console.log(error)
+          })
+      },
       registerReceipt () {
         this.receipt.attachment = this.imageList
-        this.$http.post(`${queryApi}/${this.id}/receipt`, this.receipt)
+        if (!this.receipt.isVatIncluded) {
+          this.receipt.isVatIncluded = false
+        }
+        this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
@@ -234,9 +268,10 @@
     },
     mounted () {
       this.id = this.$route.params.id
-      this.$http.get(`${queryApi}/${this.id}/construction`)
+      this.$http.get(`${constructionQueryApi}`)
         .then((response) => {
           this.constructionList = response.data.data.constructionList
+          this.loadProceedingContract()
         })
         .catch((error) => {
           console.error(error)

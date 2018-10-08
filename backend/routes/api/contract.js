@@ -57,6 +57,7 @@ router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
   let point = req.query.point;
   let pageIndex = req.query.page;
+  let isNotUsingPage = req.query.isPage === false || req.query.isPage === 'false';
   let pageInst = new paginationService();
   let pageData = pageInst.get();
   if (pageInst.isEnd() === true) {
@@ -82,12 +83,14 @@ router.get('/', (req, res) => {
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
 
-    query = query
-      .limit(pageData.limit)
-      .offset(pageData.page);
+    if (!isNotUsingPage) {
+      query = query
+        .limit(pageData.limit)
+        .offset(pageData.page);
 
-    if (pageData.point !== null) {
-      query = query.where('pc_pk', '<=', pageData.point);
+      if (pageData.point !== null) {
+        query = query.where('pc_pk', '<=', pageData.point);
+      }
     }
 
     let list = [];
@@ -105,14 +108,22 @@ router.get('/', (req, res) => {
           item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
           return item;
         });
-        pageInst.setPage(pageData.page += list.length);
-        pageInst.setLimit(pageData.limit);
+        if (isNotUsingPage) {
+          res.json(
+            resHelper.getJson({
+              contractList: list
+            })
+          );
+        } else {
+          pageInst.setPage(pageData.page += list.length);
+          pageInst.setLimit(pageData.limit);
 
-        if (list.length < pageInst.limit) {
-          pageInst.setEnd(true);
+          if (list.length < pageInst.limit) {
+            pageInst.setEnd(true);
+          }
+
+          return cur('proceeding_contract_tbl').count('* as count');
         }
-
-        return cur('proceeding_contract_tbl').count('* as count');
       })
       .then(response => {
         pageInst.setCount(response[0].count);

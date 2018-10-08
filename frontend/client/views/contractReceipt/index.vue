@@ -16,15 +16,13 @@
               <div class="select">
                 <select>
                   <option value="" selected="selected">선택</option>
-                  <option value="" selected="selected">기안</option>
-                  <option value="" selected="selected">승인</option>
-                  <option value="" selected="selected">입금완료</option>
+                  <option value="-1">삭제</option>
+                  <option value="0">반려</option>
+                  <option value="1">기안</option>
+                  <option value="2">승인</option>
+                  <option value="3">입금완료</option>
                 </select>
               </div>
-            </div>
-            <div class="control is-inline-block">
-              <label class="label">입금 완료 내역 표시</label>
-              <input type="checkbox" class="checkbox" />
             </div>
           </div>
           <div class="is-pulled-right search-btn">
@@ -48,10 +46,12 @@
               <tr>
                 <th>날짜</th>
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <th>현장</th>
+                <td>{{receipt.contractName}}</td>
                 <th>공사</th>
-                <td>{{receipt.ctName}}</td>
+                <td>{{receipt.constructionName}}</td>
                 <th>구분</th>
-                <td colspan="2">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                <td colspan="1">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>내용</th>
                 <td>{{receipt.contents}}</td>
                 <th>금액</th>
@@ -69,13 +69,13 @@
                 <th>예금주</th>
                 <td>{{receipt.accountHolder}}</td>
                 <th>계좌번호</th>
-                <td colspan="2">{{receipt.accountNumber}}</td>
+                <td colspan="1">{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
                 <td><a href="#">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
                 <th>메모</th>
-                <td colspan="1">{{receipt.memo}}</td>
+                <td colspan="3">{{receipt.memo}}</td>
               </tr>
               </tbody>
             </table>
@@ -87,7 +87,7 @@
               </tr>
               <tr>
                 <th>공사</th>
-                <td>{{receipt.ctName}}</td>
+                <td>{{receipt.constructiontName}}</td>
               </tr>
               <tr>
                 <th>구분</th>
@@ -164,7 +164,7 @@
   import mixin from '../../services/mixin'
   import PrivateWrapper from '../components/PrivateWrapper'
   import Datepicker from 'vue-bulma-datepicker'
-  import router from 'vue-router'
+  import router from '../../router'
   import moment from 'moment'
 
   const queryApi = '/api/contract'
@@ -231,7 +231,7 @@
       },
       moveToRegisterReceipt () {
         router.push({
-          path: `/private/estimate/${this.param.id}/receipt/register`
+          path: `/private/receipt/register`
         })
       },
       checkPermission () {
