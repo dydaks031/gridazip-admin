@@ -2476,7 +2476,6 @@ router.get('/receipt', (req, res) => {
           'rc_pk as _pk',
           'rc_pcpk as _pcPk',
           'rc_ctpk as _ctPk',
-          'ct_name as _ctName',
           'rc_date as _date',
           'rc_type as _type',
           'rc_contents as _contents',
@@ -2491,8 +2490,8 @@ router.get('/receipt', (req, res) => {
           'ra_pk as _attachment__pk',
           'ra_url as _attachment__url',
           'ra_memo as _attachment__memo')
-        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
-        .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .select(cur.raw('(select pc_name from proceeding_contract_tbl where pc_pk = rc.rc_pcpk) as _contractName'))
+        .select(cur.raw('(select ct_name from construction_tbl where ct_pk = rc.rc_ctpk) as _constructionName'))
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
         .orderBy('rc_status', 'rc_date');
       if (!req.query.status) {
