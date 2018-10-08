@@ -330,20 +330,20 @@
             <table class="table is-bordered contract-receipt is-hidden-touch" v-if="contractReceiptList.length !== 0">
               <colgroup>
               </colgroup>
-              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status === -1" >
+              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1" >
               <tr>
                 <th>날짜</th>
-                <td>{{moment(receipt.rc_date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
                 <th>공사</th>
-                <td>{{receipt.ct_name}}</td>
+                <td>{{receipt.ctName}}</td>
                 <th>구분</th>
-                <td colspan="2">{{receipt.rc_type === 1 ? '자재비' : '인건비'}}</td>
+                <td colspan="2">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>내용</th>
-                <td>{{receipt.rc_contents}}</td>
+                <td>{{receipt.contents}}</td>
                 <th>금액</th>
-                <td>{{addCommas(receipt.rc_price)}}</td>
+                <td>{{addCommas(receipt.price)}}</td>
                 <th>부가세</th>
-                <td>{{receipt.rc_is_vat_included === 0 ? '미포함' : '포함'}}</td>
+                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
                 <td rowspan="2" style="text-align: center; vertical-align: middle;">
                   <button class="button is-danger is-medium" @click="changeReceiptStatus()">반려</button>
                   <button class="button is-primary is-medium" @click="changeReceiptStatus()">승인</button>
@@ -351,22 +351,22 @@
               </tr>
               <tr>
                 <th>은행명</th>
-                <td>{{receipt.rc_account_bank}}</td>
+                <td>{{receipt.accountBank}}</td>
                 <th>예금주</th>
-                <td>{{receipt.rc_account_holder}}</td>
+                <td>{{receipt.accountHolder}}</td>
                 <th>계좌번호</th>
-                <td colspan="2">{{receipt.rc_account_number}}</td>
+                <td colspan="2">{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
                 <td><a href="#">링크</a></td>
                 <th>진행상태</th>
-                <td>{{receipt.status_name}}</td>
+                <td>{{receipt.statusName}}</td>
                 <th>메모</th>
-                <td colspan="1">{{receipt.rc_memo}}</td>
+                <td colspan="1">{{receipt.memo}}</td>
               </tr>
               </tbody>
             </table>
             <table class="table is-bordered contract-receipt is-hidden-desktop" v-if="contractReceiptList.length !== 0">
-              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status">
+              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1">
               <tr>
                 <th>날짜</th>
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
@@ -980,6 +980,10 @@
   .contract-receipt{
 
     tbody {
+      &.is-emergency {
+        background: #FF6F5F;
+      }
+
       &:before {
         content: '';
         display: block;
@@ -1018,13 +1022,7 @@
     .contract-receipt-wrapper {
       > div {
         overflow-x: auto;
-      }
-
-      /*> p {*/
-        /*float: none;*/
-        /*padding: 0.5rem;*/
-      /*}*/
-    }
+      } }
   }
 
   .cl-memo {
