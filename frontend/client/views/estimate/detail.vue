@@ -336,10 +336,10 @@
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
                 <th>공사</th>
                 <td>{{receipt.constructionName}}</td>
-                <th>구분</th>
-                <td colspan="2">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>내용</th>
-                <td>{{receipt.contents}}</td>
+                <td colspan="2">{{receipt.contents}}</td>
+                <th>구분</th>
+                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <th>금액</th>
                 <td>{{addCommas(receipt.price)}}</td>
                 <th>부가세</th>

@@ -4,19 +4,19 @@
       <div class="block">
         <div class="is-clearfix">
           <div class="is-pulled-left is-horizontal searchbox">
-            <div class="control is-inline-block">
-              <label class="label">날짜</label>
-              <p class="control">
-                <datepicker />
-                <button class="button">초기화</button>
-              </p>
-            </div>
+            <!--<div class="control is-inline-block">-->
+              <!--<label class="label">날짜</label>-->
+              <!--<p class="control">-->
+                <!--<datepicker />-->
+                <!--<button class="button">초기화</button>-->
+              <!--</p>-->
+            <!--</div>-->
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
               <div class="select">
                 <select v-model="searchOptions.status">
                   <option value="" selected="selected">선택</option>
-                  <option value="-1">삭제</option>
+                  <!--<option value="-1">삭제</option>-->
                   <option value="0">반려</option>
                   <option value="1">기안</option>
                   <option value="2">승인</option>
@@ -50,10 +50,10 @@
                 <td>{{receipt.contractName}}</td>
                 <th>공사</th>
                 <td>{{receipt.constructionName}}</td>
+                <th>내용</th>
+                <td colspan="2">{{receipt.contents}}</td>
                 <th>구분</th>
                 <td colspan="1">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
-                <th>내용</th>
-                <td>{{receipt.contents}}</td>
                 <th>금액</th>
                 <td>{{addCommas(receipt.price)}}</td>
                 <th>부가세</th>
@@ -73,7 +73,7 @@
                 <th>계좌번호</th>
                 <td colspan="1">{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
-                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
+                <td colspan="2"><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
                 <th v-if="!receipt.rejectReason">메모</th>
@@ -170,7 +170,6 @@
   import Pagenation from '../../services/pagination'
   import Filter from '../../services/filter'
   import PaginationVue from '../components/pagination'
-  import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
   import PrivateWrapper from '../components/PrivateWrapper'
   import Datepicker from 'vue-bulma-datepicker'
@@ -178,8 +177,26 @@
   import moment from 'moment'
   import ImageEnlargedView from '../customer/ImageEnlargedView'
   import _ from 'underscore'
+  import Notification from 'vue-bulma-notification'
+  import Vue from 'vue'
 
   const queryApi = '/api/contract'
+
+  const NotificationComponent = Vue.extend(Notification)
+
+  const openNotification = (propsData = {
+    title: '',
+    message: '',
+    type: '',
+    direction: '',
+    duration: 4500,
+    container: '.notifications'
+  }) => {
+    return new NotificationComponent({
+      el: document.createElement('div'),
+      propsData
+    })
+  }
 
   export default {
     name: 'contractReceiptIndex',
@@ -217,6 +234,11 @@
           .then((response) => {
             if (response.data.code !== 200) {
               this.contractReceiptList = []
+              openNotification({
+                message: response.data.data.msg,
+                type: 'danger',
+                duration: 1500
+              })
               return
             }
 
