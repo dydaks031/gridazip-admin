@@ -6,8 +6,10 @@ const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const smsHelper = require('../../services/sms/helper');
+const jwtHelper = require('../../services/jwt/helper');
 const moment = require('moment');
 const calc = require('calculator');
+const knexnest = require('knexnest');
 
 
 
@@ -55,6 +57,7 @@ router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
   let point = req.query.point;
   let pageIndex = req.query.page;
+  let isNotUsingPage = req.query.isPage === false || req.query.isPage === 'false';
   let pageInst = new paginationService();
   let pageData = pageInst.get();
   if (pageInst.isEnd() === true) {
@@ -80,12 +83,14 @@ router.get('/', (req, res) => {
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
 
-    query = query
-      .limit(pageData.limit)
-      .offset(pageData.page);
+    if (!isNotUsingPage) {
+      query = query
+        .limit(pageData.limit)
+        .offset(pageData.page);
 
-    if (pageData.point !== null) {
-      query = query.where('pc_pk', '<=', pageData.point);
+      if (pageData.point !== null) {
+        query = query.where('pc_pk', '<=', pageData.point);
+      }
     }
 
     let list = [];
@@ -103,14 +108,23 @@ router.get('/', (req, res) => {
           item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
           return item;
         });
-        pageInst.setPage(pageData.page += list.length);
-        pageInst.setLimit(pageData.limit);
+        if (isNotUsingPage) {
+          res.json(
+            resHelper.getJson({
+              contractList: list
+            })
+          );
+          throw new Error('Ignore')
+        } else {
+          pageInst.setPage(pageData.page += list.length);
+          pageInst.setLimit(pageData.limit);
 
-        if (list.length < pageInst.limit) {
-          pageInst.setEnd(true);
+          if (list.length < pageInst.limit) {
+            pageInst.setEnd(true);
+          }
+
+          return cur('proceeding_contract_tbl').count('* as count');
         }
-
-        return cur('proceeding_contract_tbl').count('* as count');
       })
       .then(response => {
         pageInst.setCount(response[0].count);
@@ -123,6 +137,9 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
+        if (err.message === 'Ignore') {
+          return
+        }
         console.error(err);
         res.json(
           resHelper.getError('진행계약 목록을 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
@@ -2452,6 +2469,265 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
     })
   }
 });
+
+
+router.get('/receipt', (req, res) => {
+  const jwtToken = req.token;
+  const reqStatus = parseInt(req.query.status);
+  let userInfo;
+  let availableStatus;
+
+  jwtHelper.verify(jwtToken)
+    .then(plain => {
+      userInfo = plain;
+      if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
+      else if (userInfo.user_permit === 'B') availableStatus = [1,2];
+      else if (userInfo.user_permit === 'C') availableStatus = [2];
+      return knexBuilder.getConnection()
+    })
+    .then(cur => {
+      const query = cur('receipt_tbl as rc')
+        .select(
+          'rc_pk as _pk',
+          'rc_pcpk as _pcPk',
+          'rc_ctpk as _ctPk',
+          'rc_date as _date',
+          'rc_type as _type',
+          'rc_contents as _contents',
+          'rc_price as _price',
+          'rc_account_bank as _accountBank',
+          'rc_account_holder as _accountHolder',
+          'rc_account_number as _accountNumber',
+          'rc_is_emergency as _isEmergency',
+          'rc_status as _status',
+          'rc_is_vat_included as _isVatIncluded',
+          'rc_memo as _memo',
+          'rc_reject_reason as _rejectReason',
+          'ra_pk as _attachment__pk',
+          'ra_url as _attachment__url',
+          'ra_memo as _attachment__memo')
+        .select(cur.raw('(select pc_name from proceeding_contract_tbl where pc_pk = rc.rc_pcpk) as _contractName'))
+        .select(cur.raw('(select ct_name from construction_tbl where ct_pk = rc.rc_ctpk) as _constructionName'))
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .orderBy('rc_status', 'rc_date');
+      if (!req.query.status) {
+        query.whereIn('rc_status', availableStatus);
+      } else {
+        if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
+        else  throw new Error('NO_AUTHORITY');
+      }
+      // console.log(query.toSQL().toNative());
+      return knexnest(query);
+    })
+    .then(response => {
+      res.json(
+        resHelper.getJson({
+          receipts: response
+        })
+      );
+    })
+    .catch(err => {
+
+      switch (err.message) {
+        case 'NO_AUTHORITY': err.message = '올바르지 않은 조회 조건입니다.';
+          break;
+        default: err.message = '진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.';
+        break;
+      }
+      console.error(err);
+      res.json(resHelper.getError(err.message));
+    })
+});
+
+router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  const jwtToken = req.token;
+  let userInfo;
+  let availableStatus;
+  jwtHelper.verify(jwtToken)
+    .then(plain => {
+      userInfo = plain;
+      if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
+      else if (userInfo.user_permit === 'B') availableStatus = [1,2];
+      else if (userInfo.user_permit === 'C') availableStatus = [2];
+      return knexBuilder.getConnection()
+    })
+    .then(cur => {
+      const query = cur('receipt_tbl as rc')
+        .select(
+          'rc_pk as _pk',
+          'rc_pcpk as _pcPk',
+          'rc_ctpk as _ctPk',
+          'ct_name as _ctName',
+          'rc_date as _date',
+          'rc_type as _type',
+          'rc_contents as _contents',
+          'rc_price as _price',
+          'rc_account_bank as _accountBank',
+          'rc_account_holder as _accountHolder',
+          'rc_account_number as _accountNumber',
+          'rc_is_emergency as _isEmergency',
+          'rc_status as _status',
+          'rc_is_vat_included as _isVatIncluded',
+          'rc_memo as _memo',
+          'ra_pk as _attachment__pk',
+          'ra_url as _attachment__url',
+          'ra_memo as _attachment__memo')
+        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
+        .where('rc_pcpk', reqPcPk)
+        .whereIn('rc_status', availableStatus)
+        .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .orderBy('rc_status', 'rc_date');
+      return knexnest(query);
+    })
+    .then(response => {
+      if (!response) {
+        response = []
+      }
+      res.json(
+        resHelper.getJson({
+          receipts: response
+        })
+      );
+    })
+    .catch(err => {
+      console.error(err);
+      res.json(
+        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.')
+      );
+    })
+});
+
+router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
+  if ( (req.body.type === undefined || !req.body.type.toString().trim() )
+    || !req.body.ctPk
+    || !req.body.price
+    || !req.body.accountBank
+    || !req.body.accountHolder
+    || !req.body.accountNumber
+    || ( req.body.isVatIncluded === undefined || !req.body.isVatIncluded.toString().trim() )
+  ) {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  }
+  else {
+    const attachedList = req.body.attachedList || [];
+    knexBuilder.getConnection().then(cur => {
+      let obj = {};
+      obj.rc_pcpk = req.params.pcpk;
+      obj.rc_ctpk = req.body.ctPk;
+      obj.rc_date = moment().format('YYYY-MM-DD');
+      obj.rc_type = req.body.type;
+      obj.rc_contents = req.body.contents;
+      obj.rc_price = req.body.price;
+      obj.rc_account_bank = req.body.accountBank;
+      obj.rc_account_holder = req.body.accountHolder;
+      obj.rc_account_number = req.body.accountNumber;
+      obj.rc_is_emergency = req.body.isEmergency;
+      obj.rc_status = req.body.status;
+      obj.rc_is_vat_included = req.body.isVatIncluded;
+      obj.rc_memo = req.body.memo;
+
+      cur.transaction(trx => {
+        cur('receipt_tbl')
+          .insert(obj)
+          .returning('rc_pk')
+          .transacting(trx)
+          .then(response => {
+            const rcPk = response[0];
+            const query = [];
+            attachedList.forEach(obj => {
+              let attachment = {};
+              attachment.ra_url = obj.url;
+              attachment.ra_memo = obj.memo;
+              attachment.ra_rcpk = rcPk;
+              query.push(
+                cur.table('receipt_attachment_tbl')
+                  .insert(attachment)
+                  .transacting(trx));
+            });
+
+            Promise.all(query)
+              .then(trx.commit)
+              .catch(trx.rollback);
+          })
+          .catch(trx.rollback);
+      })
+        .then(() => {
+          res.json(resHelper.getJson({
+            msg: 'ok'
+          }));
+        })
+        .catch(err => {
+          console.error(err);
+          res.json(resHelper.getError('구매품의를 등록하는 중 오류가 발생하였습니다.'));
+        })
+
+    })
+  }
+});
+
+router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
+  const reqRcPk = req.params.rcpk;
+  const jwtToken = req.token;
+  const reqRcStatus = parseInt(req.body.status);
+  const reqRcRejectReason = req.body.rejectReason;
+
+  let errorMsg = null;
+  jwtHelper.verify(jwtToken).then(userInfo => {
+    if ([-1,0,1,2,3].indexOf(reqRcStatus) < 0) {
+      errorMsg = '파라메터가 올바르지 않습니다.'
+    }
+    else {
+      if (userInfo.user_permit === 'A') {
+        if ([-1].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+      else if (userInfo.user_permit === 'B') {
+        if ([0,2].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+      else if (userInfo.user_permit === 'C') {
+        if ([0,3].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+    }
+
+    if (errorMsg !== null) {
+      throw new Error(errorMsg);
+    }
+    else {
+      return knexBuilder.getConnection();
+    }
+  })
+    .then(cur => {
+      let query = cur('receipt_tbl')
+        .update('rc_status', reqRcStatus)
+        .where('rc_pk', reqRcPk)
+
+      if (reqRcStatus === 0) {
+        query = query.update('rc_reject_reason', reqRcRejectReason)
+      }
+
+      return query
+    })
+    .then(() => {
+      res.json(resHelper.getJson({
+        msg: 'ok'
+      }));
+    })
+    .catch(err => {
+      res.json(resHelper.getError(err.message));
+    })
+});
+
+
+
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
   let rtnStatus = contractStatus;

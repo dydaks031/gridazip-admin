@@ -36,26 +36,20 @@ router.post('/login', (req, res) => {
       .then(response => {
         if (response.length > 0) {
           userResult = response[0];
-          if ( userResult.user_permit === 'A' ) {
-            return appHelper.setUser(userResult, session)
-              .then((result) => {
-                return jwtHelper.sign({
-                  user_permit: userResult.user_permit,
-                  user_name: userResult.user_name,
-                  user_id,
-                })
+          return appHelper.setUser(userResult, session)
+            .then(() => {
+              return jwtHelper.sign({
+                user_pk: userResult.user_pk,
+                user_permit: userResult.user_permit,
+                user_name: userResult.user_name,
+                user_id,
               })
-
-              .catch(() => {
-                return res.json(
-                  resHelper.getError('로그인 처리 중 알수 없는 오류가 발생하였습니다.')
-                )
-              })
-          } else {
-            return res.json(
-              resHelper.getError('권한이 없습니다.')
-            )
-          }
+            })
+            .catch(() => {
+              return res.json(
+                resHelper.getError('로그인 처리 중 알수 없는 오류가 발생하였습니다.')
+              )
+            })
         }
         else {
           return res.json(
