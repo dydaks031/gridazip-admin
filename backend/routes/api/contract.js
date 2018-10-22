@@ -217,6 +217,7 @@ router.post('/', (req, res) => {
     insertObj.pc_move_date = req.body.pc_move_date || '';
     insertObj.pc_budget = req.body.pc_budget || '';
     insertObj.pc_memo = req.body.pc_memo || '';
+    insertObj.pc_nickname = req.body.pc_nickname || '';
     insertObj.pc_password = makeRandomNumber(4);
 
     knexBuilder.getConnection().then(cur => {
@@ -2604,6 +2605,7 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
 });
 
 router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
+  let userPk;
   if ( (req.body.type === undefined || !req.body.type.toString().trim() )
     || !req.body.ctPk
     || !req.body.price
@@ -2618,58 +2620,62 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
   }
   else {
     const attachedList = req.body.attachedList || [];
-    knexBuilder.getConnection().then(cur => {
-      let obj = {};
-      obj.rc_pcpk = req.params.pcpk;
-      obj.rc_ctpk = req.body.ctPk;
-      obj.rc_date = moment().format('YYYY-MM-DD');
-      obj.rc_type = req.body.type;
-      obj.rc_contents = req.body.contents;
-      obj.rc_price = req.body.price;
-      obj.rc_account_bank = req.body.accountBank;
-      obj.rc_account_holder = req.body.accountHolder;
-      obj.rc_account_number = req.body.accountNumber;
-      obj.rc_is_emergency = req.body.isEmergency;
-      obj.rc_status = req.body.status;
-      obj.rc_is_vat_included = req.body.isVatIncluded;
-      obj.rc_memo = req.body.memo;
-
-      cur.transaction(trx => {
-        cur('receipt_tbl')
-          .insert(obj)
-          .returning('rc_pk')
-          .transacting(trx)
-          .then(response => {
-            const rcPk = response[0];
-            const query = [];
-            attachedList.forEach(obj => {
-              let attachment = {};
-              attachment.ra_url = obj.url;
-              attachment.ra_memo = obj.memo;
-              attachment.ra_rcpk = rcPk;
-              query.push(
-                cur.table('receipt_attachment_tbl')
-                  .insert(attachment)
-                  .transacting(trx));
-            });
-
-            Promise.all(query)
-              .then(trx.commit)
-              .catch(trx.rollback);
-          })
-          .catch(trx.rollback);
-      })
-        .then(() => {
-          res.json(resHelper.getJson({
-            msg: 'ok'
-          }));
-        })
-        .catch(err => {
-          console.error(err);
-          res.json(resHelper.getError('구매품의를 등록하는 중 오류가 발생하였습니다.'));
-        })
-
+    jwtHelper.verify(req.token)
+      .then(userInfo => {
+      userPk = userInfo.user_pk;
+      return knexBuilder.getConnection();
     })
+      .then(cur => {
+        let obj = {};
+        obj.rc_pcpk = req.params.pcpk;
+        obj.rc_ctpk = req.body.ctPk;
+        obj.rc_date = moment().format('YYYY-MM-DD');
+        obj.rc_type = req.body.type;
+        obj.rc_contents = req.body.contents;
+        obj.rc_price = req.body.price;
+        obj.rc_account_bank = req.body.accountBank;
+        obj.rc_account_holder = req.body.accountHolder;
+        obj.rc_account_number = req.body.accountNumber;
+        obj.rc_is_emergency = req.body.isEmergency;
+        obj.rc_status = req.body.status;
+        obj.rc_is_vat_included = req.body.isVatIncluded;
+        obj.rc_memo = req.body.memo;
+
+        cur.transaction(trx => {
+          cur('receipt_tbl')
+            .insert(obj)
+            .returning('rc_pk')
+            .transacting(trx)
+            .then(response => {
+              const rcPk = response[0];
+              const query = [];
+              attachedList.forEach(obj => {
+                let attachment = {};
+                attachment.ra_url = obj.url;
+                attachment.ra_memo = obj.memo;
+                attachment.ra_rcpk = rcPk;
+                query.push(
+                  cur.table('receipt_attachment_tbl')
+                    .insert(attachment)
+                    .transacting(trx));
+              });
+
+              Promise.all(query)
+                .then(trx.commit)
+                .catch(trx.rollback);
+            })
+            .catch(trx.rollback);
+        })
+          .then(() => {
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
+          })
+          .catch(err => {
+            console.error(err);
+            res.json(resHelper.getError('구매품의를 등록하는 중 오류가 발생하였습니다.'));
+          })
+      })
   }
 });
 

@@ -20,6 +20,10 @@
               <input class="input" type="text" v-model="detailData.pc_name" :class="{'is-danger': $v.detailData.pc_name.$invalid }" />
               <p class="help is-danger" v-if="!$v.detailData.pc_name.required">고객명을 입력해 주십시오.</p>
             </div>
+            <label class="label">별칭</label>
+            <div class="control">
+              <input class="input" type="text" v-model="detailData.pc_nickname" />
+            </div>
             <label class="label">연락처</label>
             <div class="control">
               <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
@@ -28,7 +32,7 @@
             <label class="label">계약상태</label>
             <p class="control">
                 {{requestStatusConfig.contractStatusList[detailData.pc_status]}}
-                <button class="button" @click="changeContractStatus(-1)" v-if="detailData.pc_status === 0">계약 실패</button>
+                <button class="button" @click="changeContractStatus(-1)" v-if="[0, 1, 2].indexOf(detailData.pc_status) > 0">계약 실패</button>
                 <button class="button" @click="changeContractStatus(9)" v-if="detailData.pc_status === 5">공사 마감</button>
             </p>
             <label class="label" v-if="detailData.pc_status === -1">계약 실패사유</label>
@@ -270,7 +274,6 @@
                   <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(checkListItem)" />
                 </td>
                 <td>
-
                   <span v-if="!checkListItem.isModify">{{checkListItem.cl_memo}}</span>
                   <textarea class="textarea cl-memo" v-model="checkListItem.cl_memo" v-if="checkListItem.isModify"></textarea>
                 </td>

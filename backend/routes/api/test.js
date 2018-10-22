@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
+const cryptoHelper = require('../../services/crypto/helper');
 const moment = require('moment');
 const calc = require('calculator');
 const httpClient = require('request');
@@ -421,6 +422,12 @@ router.get('/qt', (req,res) => {
       });
 
   })
+});
+
+router.get('/crypt', (req,res) => {
+  res.json(
+    resHelper.getJson(cryptoHelper.encrypt(req.query.msg))
+  );
 });
 
 module.exports = router;
