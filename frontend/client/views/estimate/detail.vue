@@ -28,7 +28,7 @@
             <label class="label">계약상태</label>
             <p class="control">
                 {{requestStatusConfig.contractStatusList[detailData.pc_status]}}
-                <button class="button" @click="changeContractStatus(-1)" v-if="detailData.pc_status === 0">계약 실패</button>
+                <button class="button" @click="changeContractStatus(-1)" v-if="[0, 1, 2].indexOf(detailData.pc_status) > 0">계약 실패</button>
                 <button class="button" @click="changeContractStatus(9)" v-if="detailData.pc_status === 5">공사 마감</button>
             </p>
             <label class="label" v-if="detailData.pc_status === -1">계약 실패사유</label>
