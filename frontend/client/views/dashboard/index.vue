@@ -168,8 +168,8 @@
         channelUserList: [],
         completedCountData: null,
         tabInfo: {
-          constructionData: false,
-          trafficData: true
+          constructionData: true,
+          trafficData: false
         },
         constructionData: [],
         constructionSales: 0

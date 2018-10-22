@@ -55,7 +55,7 @@
     <div class="tile is-ancestor" v-show="currentTab === tabType.preview">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn=true :estimateIsPre="true" :estimateCurrentTabs="estimateTabList" />
+          <estimate-sheet :estimateData.sync="estimateData" :deleteRegisterBtn=true :estimateIsPre="estimateIsPre" :estimateCurrentTabs="estimateTabList" />
         </article>
       </div>
     </div>
@@ -96,7 +96,7 @@
     },
     mounted () {
       this.currentTab = this.tabType.register
-      this.estimateIsPre = this.$route.query.es_is_pre
+      this.estimateIsPre = this.$route.query.es_is_pre === 'true'
       this.loadData()
     },
     methods: {

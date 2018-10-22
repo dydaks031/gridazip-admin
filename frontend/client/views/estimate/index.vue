@@ -32,6 +32,7 @@
             <thead>
             <tr>
               <th>고객명</th>
+              <th>별칭</th>
               <th>전화번호</th>
               <th>주소</th>
               <th>공사시작일자</th>
@@ -43,6 +44,7 @@
             <tbody>
             <tr v-for="contract in contractList" @click="moveToPage(contract)" v-show="contract.pc_status !== -1 || isShowAllRow">
               <td>{{contract.pc_name}}</td>
+              <td>{{contract.pc_nickname}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
               <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>
