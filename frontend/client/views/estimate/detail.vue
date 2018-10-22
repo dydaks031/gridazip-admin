@@ -20,6 +20,10 @@
               <input class="input" type="text" v-model="detailData.pc_name" :class="{'is-danger': $v.detailData.pc_name.$invalid }" />
               <p class="help is-danger" v-if="!$v.detailData.pc_name.required">고객명을 입력해 주십시오.</p>
             </div>
+            <label class="label">별칭</label>
+            <div class="control">
+              <input class="input" type="text" v-model="detailData.pc_nickname" />
+            </div>
             <label class="label">연락처</label>
             <div class="control">
               <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
@@ -270,7 +274,6 @@
                   <input type="checkbox" class="checkbox" v-model="checkListItem.cl_constructor" @change="updateCheckListStatus(checkListItem)" />
                 </td>
                 <td>
-
                   <span v-if="!checkListItem.isModify">{{checkListItem.cl_memo}}</span>
                   <textarea class="textarea cl-memo" v-model="checkListItem.cl_memo" v-if="checkListItem.isModify"></textarea>
                 </td>
