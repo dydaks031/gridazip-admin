@@ -276,6 +276,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_discount_amount = req.body.pc_discount_amount || null;
     updateObj.pc_status = req.body.pc_status || 0;
     updateObj.pc_fail_reason = (contractFailReasonList.indexOf(req.body.pc_fail_reason) < 0 ? req.body.pc_fail_reason_text : req.body.pc_fail_reason) || '';
+    updateObj.pc_nickname = req.body.pc_nickname || '';
 
     updateObj.pc_status = getContractStatus(updateObj.pc_construction_start_date, updateObj.pc_move_date, updateObj.pc_status);
 
