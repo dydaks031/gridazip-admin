@@ -255,7 +255,7 @@ router.get('/:crpk([0-9]+)/skill', (req, res) => {
       )
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
       .where('cs_crpk', reqCrPk)
-      .orderBy('ct.ct_pk', 'cr.cr_name')
+      .orderBy(['ct.ct_pk', 'cr.cr_name'])
       .then(response => {
         res.json(
           resHelper.getJson({
