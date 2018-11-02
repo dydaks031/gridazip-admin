@@ -37,6 +37,7 @@
           <div class="is-clearfix">
             <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
             <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
+            <button class="button is-info is-pulled-right is-medium" style="margin-right:1rem;" @click="excelExport('xlsx')">엑셀 다운로드</button>
           </div>
           <div>
             <table class="table is-bordered contract-receipt is-hidden-touch" v-if="contractReceiptList.length !== 0">
@@ -50,10 +51,10 @@
                 <td>{{receipt.contractName}}</td>
                 <th>공사</th>
                 <td>{{receipt.constructionName}}</td>
-                <th>내용</th>
-                <td colspan="2">{{receipt.contents}}</td>
                 <th>구분</th>
-                <td colspan="1">{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                <th>내용</th>
+                <td>{{receipt.contents}}</td>
                 <th>금액</th>
                 <td>{{addCommas(receipt.price)}}</td>
                 <th>부가세</th>
@@ -71,9 +72,9 @@
                 <th>예금주</th>
                 <td>{{receipt.accountHolder}}</td>
                 <th>계좌번호</th>
-                <td colspan="1">{{receipt.accountNumber}}</td>
+                <td>{{receipt.accountNumber}}</td>
                 <th>첨부서류</th>
-                <td colspan="2"><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
+                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
                 <th>진행상태</th>
                 <td>{{receipt.statusName}}</td>
                 <th v-if="!receipt.rejectReason">메모</th>
@@ -88,6 +89,10 @@
               <tr>
                 <th>날짜</th>
                 <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+              </tr>
+              <tr>
+                <th>현장</th>
+                <td>{{receipt.contractName}}</td>
               </tr>
               <tr>
                 <th>공사</th>
@@ -147,9 +152,46 @@
               </tr>
               </tbody>
             </table>
-            <div v-if="contractReceiptList.length === 0">
-              <span class="no-results">결재 요청이 없습니다.</span>
-            </div>
+            <table class="table is-bordered contract-receipt" v-show="false" id="receiptTable">
+              <colgroup>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>날짜</th>
+                  <th>현장</th>
+                  <th>공사</th>
+                  <th>구분</th>
+                  <th>내용</th>
+                  <th>금액</th>
+                  <th>부가세</th>
+                  <th>은행명</th>
+                  <th>예금주</th>
+                  <th>계좌번호</th>
+                  <!--<th>첨부서류</th>-->
+                  <th>진행상태</th>
+                  <th>메모</th>
+                  <th>반려사유</th>
+                </tr>
+              </thead>
+              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1" >
+              <tr>
+                <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <td>{{receipt.contractName}}</td>
+                <td>{{receipt.constructionName}}</td>
+                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                <td>{{receipt.contents}}</td>
+                <td>{{addCommas(receipt.price)}}</td>
+                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+                <td>{{receipt.accountBank}}</td>
+                <td>{{receipt.accountHolder}}</td>
+                <td t="s">{{receipt.accountNumber}}</td>
+                <!--<td><img v-for="image in getAttachmentUrl(receipt)" :src="image" /></td>-->
+                <td>{{receipt.statusName}}</td>
+                <td>{{receipt.memo}}</td>
+                <td>{{receipt.rejectReason}}</td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </article>
       </div>
@@ -179,6 +221,7 @@
   import _ from 'underscore'
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
+  import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
 
   const queryApi = '/api/contract'
 
@@ -309,6 +352,38 @@
 
           this.$modal.show('imageEnlargedView')
         }
+      },
+      excelExport (type, fn) {
+        const receiptTable = document.getElementById('receiptTable')
+        const exportWb = XLSX.utils.book_new()
+        const receiptTableWs = XLSX.utils.table_to_sheet(receiptTable)
+        receiptTableWs['!cols'] = [
+          {wch: 10},
+          {wch: 20},
+          {wch: 10},
+          {wch: 10},
+          {wch: 25},
+          {wch: 15},
+          {wch: 10},
+          {wch: 10},
+          {wch: 20},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10}
+        ]
+        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, '결재목록')
+        return XLSX.writeFile(exportWb, fn || `결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+      },
+      getAttachmentUrl (receipt) {
+        const attachment = receipt.attachment
+        const attachmentList = []
+        _.forEach(attachment, (item) => {
+          attachmentList.push(item.url)
+        })
+
+        return attachmentList
       }
     },
     mounted () {
