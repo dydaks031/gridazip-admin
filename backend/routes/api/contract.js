@@ -671,7 +671,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
       .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
       .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
       .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
-      .orderBy('ed.ed_place_pk', 'ed_pk')
+      .orderBy(['ed.ed_place_pk', 'ed_pk'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -1686,7 +1686,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1844,7 +1844,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1908,7 +1908,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/resource', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1967,7 +1967,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', reqEsIsPre)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -2312,7 +2312,7 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
       .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
       .where('cl_pcpk', reqPcPk)
       .andWhere('cl_deleted', 0)
-      .orderBy('cl.cl_date', 'cl.cl_ctpk')
+      .orderBy(['cl.cl_date', 'cl.cl_ctpk'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -2511,17 +2511,19 @@ router.get('/receipt', (req, res) => {
         .select(cur.raw('(select pc_name from proceeding_contract_tbl where pc_pk = rc.rc_pcpk) as _contractName'))
         .select(cur.raw('(select ct_name from construction_tbl where ct_pk = rc.rc_ctpk) as _constructionName'))
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .orderBy('rc_status', 'rc_date');
+        .orderBy(['rc_status', 'rc_date']);
       if (!req.query.status) {
         query.whereIn('rc_status', availableStatus);
       } else {
         if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
         else  throw new Error('NO_AUTHORITY');
       }
-      // console.log(query.toSQL().toNative());
+      console.log(query.toSQL().toNative());
+
       return knexnest(query);
     })
     .then(response => {
+      // console.log(response)
       if (!response) {
         response = []
       }
@@ -2584,7 +2586,7 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         .whereIn('rc_status', availableStatus)
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .orderBy('rc_status', 'rc_date');
+        .orderBy(['rc_status', 'rc_date']);
       return knexnest(query);
     })
     .then(response => {
@@ -2628,6 +2630,7 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
     })
       .then(cur => {
         let obj = {};
+        obj.rc_user_pk = userPk;
         obj.rc_pcpk = req.params.pcpk;
         obj.rc_ctpk = req.body.ctPk;
         obj.rc_date = moment().format('YYYY-MM-DD');
@@ -2680,7 +2683,7 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
   }
 });
 
-router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
+router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
   const reqRcPk = req.params.rcpk;
   const jwtToken = req.token;
   const reqRcStatus = parseInt(req.body.status);
@@ -2717,15 +2720,17 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9])+', (req, res) => {
     }
   })
     .then(cur => {
-      let query = cur('receipt_tbl')
-        .update('rc_status', reqRcStatus)
-        .where('rc_pk', reqRcPk)
-
+      console.log(reqRcStatus);
+      console.log(reqRcPk);
+      let obj = {};
+      obj.rc_status = reqRcStatus;
       if (reqRcStatus === 0) {
-        query = query.update('rc_reject_reason', reqRcRejectReason)
+        obj.rc_reject_reason = reqRcRejectReason;
       }
 
-      return query
+      return cur('receipt_tbl')
+        .update(obj)
+        .where('rc_pk', reqRcPk)
     })
     .then(() => {
       res.json(resHelper.getJson({
