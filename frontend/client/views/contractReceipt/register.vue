@@ -102,7 +102,7 @@
           <td>
             <span class="input-group">
               <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
-              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple accept="image/*,.jpg,.gif,.png,.jpeg"/>
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" accept="image/*" multiple/>
             </span>
             <img v-for="image in imageList" :src="image.url"/>
           </td>
