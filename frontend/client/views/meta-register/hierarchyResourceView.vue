@@ -9,7 +9,7 @@
     <draggable v-model="model.data" @end="updateView" element="div" class="list-group">
       <transition-group>
         <div class="list-item" v-for="data in model.data" @dblclick.stop="changedEditView(data)" @click.stop="itemClickEvent(data)" :class="{active: data.isSelected}" :key="data[keyList.id]">
-          <span v-show="data.is_modify !== true">{{data[keyList.name]}}</span>
+          <span v-show="data.is_modify !== true">{{data[keyList.name]}} <span class="resource-code" v-show="data[keyList.code]">{{data[keyList.code] ? `(${data[keyList.code]})` : ''}}</span></span>
           <input type="text" v-model="data[keyList.name]" v-show="data.is_modify === true" @keypress.enter.stop="modifyData(data)" class="input" />
           <div class="is-clearfix">
             <button class="button is-pulled-left" v-show="data.is_modify === true" @click="deleteData(data)">삭제</button>
@@ -200,6 +200,11 @@
       &.active {
         background-color: grey;
         color: white;
+      }
+
+      .resource-code {
+        display:inline-block;
+        font-size:0.9rem;
       }
 
       input {
