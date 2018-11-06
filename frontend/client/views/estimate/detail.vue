@@ -287,7 +287,7 @@
             </tbody>
             <tbody>
               <tr v-show="!isAddCheckList">
-                <td colspan="7" class="has-text-centered" @click="isAddCheckList = true;">+</td>
+                <td colspan="7" class="has-text-centered" @click="isAddCheckList = true">+</td>
               </tr>
               <tr v-show="isAddCheckList">
                 <td>
@@ -317,7 +317,7 @@
                 </td>
                 <td>
                   <button class="button" @click="registerCheckList">등록</button>
-                  <button class="button is-danger" @click="isAddCheckList = false;">취소</button>
+                  <button class="button is-danger" @click="isAddCheckList = false">취소</button>
                 </td>
               </tr>
             </tbody>
@@ -652,7 +652,7 @@
           })
       },
       deleteContract () {
-        if (window.confirm('정말정말 삭제할꼬얌?')) {
+        if (window.confirm('진행 계약을 삭제하시겠습니까?')) {
           const id = this.param.id
 
           this.$http.delete(`${queryApi}/${id}`)
@@ -674,7 +674,6 @@
       },
       loadPartner () {
         const id = this.param.id
-
         this.$http.get(`${queryApi}/${id}/constructor`)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -692,7 +691,6 @@
           })
           .then((response) => {
             this.partners.construction = response.data.data.constructionList
-            // return this.$http.get(`${queryApi}/resource/category`)
             return this.$http.get(`${queryApi}/${id}/resource`)
           })
           .then((response) => {
@@ -797,6 +795,7 @@
           })
       },
       moveToDate () {
+        // 체크된 체크리스트의 cl_pk를 가져오기 위한 로직
         const isCheckedCheckList = _.chain(this.checkList)
           .values()
           .flatten()
@@ -850,7 +849,7 @@
       },
       registerCheckList () {
         this.newCheckList.cl_date = moment(this.newCheckList.date, 'YYYY-MM-DD').format('X')
-        console.log(this.newCheckList)
+
         if (!this.newCheckList.date) {
           window.alert('날짜를 입력해 주십시오.')
           return
