@@ -401,7 +401,7 @@
 
       this.constructionDate = moment().format('YYYY-MM-DD')
       setTimeout(() => {
-        this.queryReports()
+        this.getConstructionDashboardData()
       }, 10)
     }
   }
