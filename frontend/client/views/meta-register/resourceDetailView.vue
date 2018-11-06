@@ -43,6 +43,10 @@
                 <input type="radio" value="3" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
                 인
               </label>
+              <label class="radio">
+                <input type="radio" value="4" name="cpd_unit" v-model="data.cpd_unit" @keypress.enter.stop="registerData($v.constructionProcessDetail)"/>
+                평
+              </label>
               <p class="help is-danger" v-if="!$v.data.cpd_unit.required">단위를 선택 해 주십시오.</p>
             </div>
           </div>
