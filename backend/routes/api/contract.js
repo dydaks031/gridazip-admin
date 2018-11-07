@@ -2448,7 +2448,8 @@ router.get('/receipt', (req, res) => {
           'pc_name as _name',
           'pc_nickname as _nickname',
           'rc.rc_pk as _receipt__pk',
-          'rc.rc_ctpk as _receipt__pk',
+          'ct.ct_name as _receipt__ctName',
+          'user.user_name as _receipt__drafter',
           'ct.ct_name as receipt__ctName',
           'rc.rc_date as _receipt__date',
           'rc.rc_type as _receipt__type',
@@ -2469,12 +2470,15 @@ router.get('/receipt', (req, res) => {
           'ct.ct_name as _price__ctName')
         .select(cur.raw('ifnull(sum(labor.rc_price),0) as _price__laborPrice'))
         .select(cur.raw('ifnull(sum(resource.rc_price),0) as _price__resourcePrice'))
-        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0) as _price__totalPrice'))
+        .select(cur.raw('ifnull(sum(etc.rc_price),0) as _price__etcPrice'))
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0)+ ifnull(sum(etc.rc_price),0) as _price__totalPrice'))
         .innerJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .innerJoin('user_tbl as user', 'rc_user_pk', 'user_pk')
         .innerJoin('proceeding_contract_tbl as pc', 'rc.rc_pcpk', 'pc.pc_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 0 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk')
-        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 1 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 0 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 1 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 2 group by rc_pcpk, rc_ctpk) etc on rc.rc_pcpk = etc.rc_pcpk and rc.rc_ctpk = etc.rc_ctpk')
         .groupBy(['pc_pk', 'rc.rc_ctpk', 'ra_pk'])
         .orderBy(['pc_pk', 'rc_status', 'rc_date']);
       if (!req.query.status) {
@@ -2498,20 +2502,21 @@ router.get('/receipt', (req, res) => {
         const totalCosts = await getContractTotalCosts(responseData.cur, o.pk, 0);
         let result = totalCosts[0][0];
         o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
+        // console.log(receiptTotalQuery.toSQL().toNative());
         const receiptTotalCosts = await responseData.cur('receipt_tbl').select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price')).where('rc_pcpk', o.pk).catch(e => e.name = 'dbError');
-        if (!receiptTotalCosts instanceof Error) {
+        if (!(receiptTotalCosts instanceof Error)) {
           o.receiptTotalCosts = receiptTotalCosts.rc_price;
         } else {
           o.receiptTotalCosts = 0;
         }
         return o;
       })
-        .then(calculateResponse => {
+        .then(response => {
           res.json(
             resHelper.getJson({
-              contract: calculateResponse
+              contract: response
             })
-          )
+          );
         })
     })
     .catch(err => {
@@ -2665,51 +2670,6 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
       })
   }
 });
-
-router.get('/:pcpk([0-9]+)/receipt/isExist', (req, res) => {
-  let userPk;
-  const reqPcpk = req.params.pcpk;
-  const reqCtPk = req.query.ctPk;
-  const reqPrice = req.query.price;
-  const reqAccountNumber = req.query.accountNumber;
-
-  if (!reqPcpk || !reqCtPk || !reqPrice || !reqAccountNumber) {
-    res.json(
-      resHelper.getError('파라메터가 올바르지 않습니다.')
-    );
-  } else {
-    jwtHelper.verify(req.token)
-      .then(userInfo => {
-        userPk = userInfo.user_pk;
-        return knexBuilder.getConnection();
-      })
-      .then(cur => {
-        cur('receipt_tbl')
-          .select('*')
-          .where({
-            rc_pcpk: reqPcpk,
-            rc_ctpk: reqCtPk,
-            rc_account_number: reqAccountNumber,
-            rc_price: reqPrice
-          })
-          .then(response => {
-            if (response.length > 0) {
-              res.json(resHelper.getJson({
-                isExist: true
-              }));
-            } else {
-              res.json(resHelper.getJson({
-                isExist: false
-              }));
-            }
-          })
-          .catch(err => {
-            console.error(err)
-          })
-      })
-  }
-});
-
 
 router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
   const reqRcPk = req.params.rcpk;
