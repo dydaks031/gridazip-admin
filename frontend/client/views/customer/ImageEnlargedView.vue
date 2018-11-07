@@ -1,5 +1,5 @@
 <template>
-  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="modalWidth" :height="'auto'" :clickToClose="true" @before-open="beforeOpen">
+  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="modalWidth" :height="'auto'" :clickToClose="true" @before-open="beforeOpen" @before-close="beforeClose">
     <div class="modal-card-head" @click="$modal.hide('imageEnlargedView')">
       <span class="close"></span>
     </div>
@@ -33,12 +33,14 @@
       return {
         modalWidth: 650,
         currentIndex: 0,
-        currentImage: {}
+        currentImage: {},
+        isOpen: false
       }
     },
     methods: {
       beforeOpen () {
-        console.log(this.$modal)
+        // Anti Pattern
+        window.document.querySelector('html').classList.add('scroll-block')
         if (this.isMobile()) {
           this.modalWidth = '90%'
         } else {
@@ -60,6 +62,11 @@
 
         this.currentIndex = this.currentIndex + 1
         this.currentImage = this.imageGroup[this.currentIndex]
+      },
+      beforeClose () {
+        this.isOpen = false
+        // Anti Pattern
+        window.document.querySelector('html').classList.remove('scroll-block')
       }
     },
     watch: {
@@ -102,8 +109,9 @@
     background:transparent;
     text-align: center;
     height: 70vh;
-    overflow: hidden;
-
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     img {
       max-height: 100%;
     }

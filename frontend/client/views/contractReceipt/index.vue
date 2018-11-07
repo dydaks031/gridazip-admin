@@ -57,6 +57,9 @@
                   <td>{{account.accountHolder}}</td>
                   <td>{{account.price}}</td>
                 </tr>
+                <tr v-if="receiptAccount.length === 0">
+                  <td colspan="4" class="no-data">입금할 내역이 없습니다.</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -210,6 +213,44 @@
                 </table>
               </li>
             </ul>
+            <table class="table is-bordered contract-receipt" v-show="false" id="receiptTable">
+              <thead>
+              <tr>
+                <th>날짜</th>
+                <th>현장</th>
+                <th>공사</th>
+                <th>구분</th>
+                <th>내용</th>
+                <th>금액</th>
+                <th>부가세</th>
+                <th>은행명</th>
+                <th>예금주</th>
+                <th>계좌번호</th>
+                <!--<th>첨부서류</th>-->
+                <th>진행상태</th>
+                <th>메모</th>
+                <th>반려사유</th>
+              </tr>
+              </thead>
+              <tbody v-for="receipt in receiptList" v-if="receipt.status !== -1" >
+              <tr>
+                <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                <td>{{receipt.contractName}}</td>
+                <td>{{receipt.ctName}}</td>
+                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                <td>{{receipt.contents}}</td>
+                <td>{{addCommas(receipt.price)}}</td>
+                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+                <td>{{receipt.accountBank}}</td>
+                <td>{{receipt.accountHolder}}</td>
+                <td t="s">{{receipt.accountNumber}}</td>
+                <!--<td><img v-for="image in getAttachmentUrl(receipt)" :src="image" /></td>-->
+                <td>{{receipt.statusName}}</td>
+                <td>{{receipt.memo}}</td>
+                <td>{{receipt.rejectReason}}</td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </article>
       </div>
@@ -277,6 +318,7 @@
         /* 결재 요청내역 */
         contractReceiptList: [],
         receiptAccount: [],
+        receiptList: [],
         userPermit: '',
         searchOptions: {
           status: ''
@@ -306,11 +348,18 @@
 
             this.contractReceiptList = response.data.data.contract
             this.receiptAccount = response.data.data.receiptAccount || []
+            this.receiptList = []
 
             this.contractReceiptList.forEach(contract => {
               const reducer = (memo, num) => {
                 return memo + num
               }
+
+              contract.receipt.forEach(receipt => {
+                receipt.contractName = contract.name
+
+                this.receiptList.push(receipt)
+              })
 
               contract.priceSummary = {
                 laborPrice: _.reduce(_.pluck(contract.price, 'laborPrice'), reducer, 0),
@@ -461,6 +510,9 @@
   .excel-btn {
     margin-right:1rem;
   }
+  .no-data {
+    text-align: center;
+  }
   .searchbox {
     div.control {
       margin-right: 3rem;
@@ -485,7 +537,6 @@
       }
     }
   }
-
   .proceeding-contract-list {
     .title-view {
       margin-bottom: 1rem;
