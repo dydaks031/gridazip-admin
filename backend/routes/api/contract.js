@@ -2469,12 +2469,14 @@ router.get('/receipt', (req, res) => {
           'ct.ct_name as _price__ctName')
         .select(cur.raw('ifnull(sum(labor.rc_price),0) as _price__laborPrice'))
         .select(cur.raw('ifnull(sum(resource.rc_price),0) as _price__resourcePrice'))
-        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0) as _price__totalPrice'))
+        .select(cur.raw('ifnull(sum(etc.rc_price),0) as _price__etcPrice'))
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0)+ ifnull(sum(etc.rc_price),0) as _price__totalPrice'))
         .innerJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .innerJoin('proceeding_contract_tbl as pc', 'rc.rc_pcpk', 'pc.pc_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 0 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk')
-        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 1 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 0 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 1 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 2 group by rc_pcpk, rc_ctpk) etc on rc.rc_pcpk = etc.rc_pcpk and rc.rc_ctpk = etc.rc_ctpk')
         .groupBy(['pc_pk', 'rc.rc_ctpk', 'ra_pk'])
         .orderBy(['pc_pk', 'rc_status', 'rc_date']);
       if (!req.query.status) {
@@ -2506,11 +2508,12 @@ router.get('/receipt', (req, res) => {
         }
         return o;
       })
-        .then(calculateResponse => {
-
-          res.json({
-            response: calculateResponse
-          })
+        .then(response => {
+          res.json(
+            resHelper.getJson({
+              contract: response
+            })
+          );
         })
     })
     .catch(err => {
