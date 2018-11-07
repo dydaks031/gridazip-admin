@@ -266,6 +266,7 @@
                     <tr>
                       <th>기안자</th>
                       <th>비용청구일자</th>
+                      <th>현장명</th>
                       <th>공사</th>
                       <th>비용구분</th>
                       <th>비용상세내역</th>
@@ -282,6 +283,7 @@
                   <tr>
                     <td>강형원</td>
                     <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YY-MM-DD')}}</td>
+                    <td>{{receipt.contractName}}</td>
                     <td>{{receipt.constructionName}}</td>
                     <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                     <td>{{receipt.contents}}</td>

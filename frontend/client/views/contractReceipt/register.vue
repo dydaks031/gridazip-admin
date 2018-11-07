@@ -217,11 +217,14 @@
         this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
           .then((response) => {
             if (response.data.code !== 200) {
-              openNotification({
-                message: '결재 등록 중 오류가 발생했습니다.',
-                type: 'danger',
-                duration: 1500
-              })
+              if (response.data.message === 'ALREADY_EXIST_DATA') {
+              } else {
+                openNotification({
+                  message: '결재 등록 중 오류가 발생했습니다.',
+                  type: 'danger',
+                  duration: 1500
+                })
+              }
               return
             }
 

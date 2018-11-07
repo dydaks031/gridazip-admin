@@ -2683,6 +2683,51 @@ router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
   }
 });
 
+router.get('/:pcpk([0-9]+)/receipt/isExist', (req, res) => {
+  let userPk;
+  const reqPcpk = req.params.pcpk;
+  const reqCtPk = req.query.ctPk;
+  const reqPrice = req.query.price;
+  const reqAccountNumber = req.query.accountNumber;
+
+  if (!reqPcpk || !reqCtPk || !reqPrice || !reqAccountNumber) {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    jwtHelper.verify(req.token)
+      .then(userInfo => {
+        userPk = userInfo.user_pk;
+        return knexBuilder.getConnection();
+      })
+      .then(cur => {
+        cur('receipt_tbl')
+          .select('*')
+          .where({
+            rc_pcpk: reqPcpk,
+            rc_ctpk: reqCtPk,
+            rc_account_number: reqAccountNumber,
+            rc_price: reqPrice
+          })
+          .then(response => {
+            if (response.length > 0) {
+              res.json(resHelper.getJson({
+                isExist: true
+              }));
+            } else {
+              res.json(resHelper.getJson({
+                isExist: false
+              }));
+            }
+          })
+          .catch(err => {
+            console.error(err)
+          })
+      })
+  }
+});
+
+
 router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
   const reqRcPk = req.params.rcpk;
   const jwtToken = req.token;
