@@ -37,17 +37,38 @@
           <div class="is-clearfix">
             <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
             <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
-            <button class="button is-info is-pulled-right is-medium" style="margin-right:1rem;" @click="excelExport('xlsx')">엑셀 다운로드</button>
+            <button class="button is-info is-pulled-right is-medium excel-btn" @click="excelExport('xlsx')">엑셀 다운로드</button>
+          </div>
+          <div class="receiptAccount" v-if="userPermit === 'C'">
+            <h1 class="subtitle">입금 요청 내역 집계</h1>
+            <table class="table is-bordered">
+              <thead>
+              <tr>
+                <th>은행명</th>
+                <th>계좌번호</th>
+                <th>예금주</th>
+                <th>금액</th>
+              </tr>
+              </thead>
+              <tbody>
+                <tr v-for="account in receiptAccount">
+                  <td>{{account.accountBank}}</td>
+                  <td>{{account.accountNumber}}</td>
+                  <td>{{account.accountHolder}}</td>
+                  <td>{{account.price}}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           <div>
             <ul class="proceeding-contract-list">
               <li class="contractItem box" v-for="contract in contractReceiptList">
                 <div class="title-view is-clearfix">
-                  <h1 class="subtitle is-pulled-left">{{contract.name}} 현장 비용현황</h1>
-                  <div class="summary-info is-pulled-right is-flex">
+                  <h1 class="subtitle">{{contract.name}} 현장 비용현황</h1>
+                  <div class="summary-info is-flex">
                     <span>당 현장 견적금액: {{addCommas(contract.contractTotalCosts)}}원</span>
                     <span>현 집행금액: {{addCommas(contract.receiptTotalCosts)}}원</span>
-                    <span>집행률: {{Math.round(contract.receiptTotalCosts/contract.contractTotalCosts * 100)}}%</span>
+                    <span>집행률: {{(contract.receiptTotalCosts/contract.contractTotalCosts * 100).toFixed(2)}}%</span>
                   </div>
                 </div>
                 <table class="table is-bordered contract-summary">
@@ -77,7 +98,6 @@
                     </tr>
                   </tbody>
                 </table>
-
                 <div class="title-view">
                   <h1 class="subtitle">{{contract.name}} 현장 입금 요청내역</h1>
                 </div>
@@ -102,7 +122,7 @@
                   <tr>
                     <td>{{receipt.drafter}}</td>
                     <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YY-MM-DD')}}</td>
-                    <td>{{receipt.contractName}}</td>
+                    <td>{{receipt.ctName}}</td>
                     <td>{{receipt.typeToString}}</td>
                     <td>{{receipt.contents}}</td>
                     <td>{{addCommas(receipt.price)}}</td>
@@ -112,7 +132,7 @@
                       {{receipt.accountBank}}<br />
                       {{receipt.accountHolder}}
                     </td>
-                    <td>링크</td>
+                    <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
                     <td>{{receipt.statusName}}</td>
                     <td>{{receipt.memo}}</td>
                     <td class="receipt-button-wrapper">
@@ -132,11 +152,11 @@
                     </tr>
                     <tr>
                       <th>공사</th>
-                      <td>{{receipt.constructionName}}</td>
+                      <td>{{receipt.ctName}}</td>
                     </tr>
                     <tr>
                       <th>구분</th>
-                      <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+                      <td>{{receipt.typeToString}}</td>
                     </tr>
                     <tr>
                       <th>내용</th>
@@ -256,6 +276,7 @@
         filter: new Filter(),
         /* 결재 요청내역 */
         contractReceiptList: [],
+        receiptAccount: [],
         userPermit: '',
         searchOptions: {
           status: ''
@@ -284,6 +305,7 @@
             }
 
             this.contractReceiptList = response.data.data.contract
+            this.receiptAccount = response.data.data.receiptAccount || []
 
             this.contractReceiptList.forEach(contract => {
               const reducer = (memo, num) => {
@@ -414,7 +436,7 @@
 </script>
 
 <style scoped lang="scss">
-  $table-header-color: #999999;
+  $table-header-color: #dfdfdf;
   article {
     overflow: auto;
   }
@@ -436,9 +458,31 @@
       vertical-align: bottom;
     }
   }
+  .excel-btn {
+    margin-right:1rem;
+  }
   .searchbox {
     div.control {
       margin-right: 3rem;
+    }
+  }
+  .receiptAccount {
+    .subtitle {
+      font-weight: bold;
+    }
+    table {
+      thead {
+        background-color: $table-header-color;
+        tr {
+          &:hover {
+            background-color: $table-header-color;
+          }
+          th {
+            color: black;
+            border: 1px solid #cccccc;
+          }
+        }
+      }
     }
   }
 
@@ -446,9 +490,12 @@
     .title-view {
       margin-bottom: 1rem;
       .subtitle {
+        float: left;
         font-weight: bold;
+        margin: 0.5rem 0;
       }
       .summary-info {
+        float: right;
         span {
           margin: 0 0.5rem;
         }
@@ -456,11 +503,15 @@
     }
     .contract-column-summary {
       background-color: $table-header-color;
-      color: #ffffff;
+      border: 1px solid #cccccc;
+      color: black;
     }
     .contract-row-summary {
       background-color: $table-header-color;
-      color: #ffffff;
+      color: black;
+      td {
+        border: 1px solid #cccccc;
+      }
     }
     .contract-receipt-list {
       padding: 0.5rem 0;
@@ -471,20 +522,22 @@
             background-color: $table-header-color;
           }
           th{
-            color: #ffffff;
+            color: black;
+            border: 1px solid #cccccc;
           }
         }
       }
+
       tbody {
         font-size: 0.9rem;
 
         th {
           background: $table-header-color;
-          color: white;
-          border: 1px solid #bbbbbb;
+          color: black;
+          border: 1px solid #cccccc;
         }
         td {
-          border: 1px solid #bbbbbb;
+          border: 1px solid #cccccc;
 
           button.is-primary {
             background: #4285F4;
@@ -497,16 +550,50 @@
         }
       }
     }
+  }
 
-    @media screen and (max-width: 768px) {
-      .contract-receipt-wrapper {
-        > div {
-          overflow-x: auto;
+  @media screen and (max-width: 768px) {
+    .excel-btn {
+      margin: 0.5rem 0;
+    }
+
+    .contract-receipt-wrapper {
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+
+      > div {
+        overflow-x: auto;
+      }
+
+      > p {
+        float: none;
+        padding: 0.5rem;
+      }
+
+      .proceeding-contract-list {
+        margin: 0.5rem 0;
+        .title-view {
+          .subtitle {
+            float: inherit;
+          }
+          .summary-info {
+            float: inherit;
+            display: block;
+            span {
+              display: block;
+              margin: 0.25rem 0;
+            }
+          }
         }
-
-        > p {
-          float: none;
-          padding: 0.5rem;
+        .contract-receipt-list {
+          tbody {
+            &:before {
+              content: '';
+              display: block;
+              height: 2rem;
+            }
+          }
         }
       }
     }
