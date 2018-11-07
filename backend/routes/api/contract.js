@@ -2432,6 +2432,7 @@ router.get('/receipt', (req, res) => {
   const reqStatus = parseInt(req.query.status);
   let userInfo;
   let availableStatus;
+  let connector;
 
   jwtHelper.verify(jwtToken)
     .then(plain => {
@@ -2442,6 +2443,7 @@ router.get('/receipt', (req, res) => {
       return knexBuilder.getConnection()
     })
     .then(cur => {
+      connector = cur;
       const query = cur('receipt_tbl as rc')
         .select(
           'pc_pk as _pk',
@@ -2489,22 +2491,22 @@ router.get('/receipt', (req, res) => {
       }
       console.log(query.toSQL().toNative());
 
-      return {
-        response: knexnest(query),
-        cur
-      }
+      return knexnest(query)
     })
-    .then(responseData => {
-      if (!responseData.response) {
-        responseData.response = []
+    .then(async response => {
+      if (!response) {
+        response = []
       }
-      responseData.response.map(async o => {
-        const totalCosts = await getContractTotalCosts(responseData.cur, o.pk, 0);
+
+      const returnData = {};
+
+      response.map(async o => {
+        const totalCosts = await getContractTotalCosts(connector, o.pk, 0);
         let result = totalCosts[0][0];
         o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
         // console.log(receiptTotalQuery.toSQL().toNative());
-        const receiptTotalCosts = await responseData.cur('receipt_tbl')
-          .select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price'))
+        const receiptTotalCosts = await connector('receipt_tbl')
+          .select(connector.raw('ifnull(sum(rc_price),0) as rc_price'))
           .where('rc_pcpk', o.pk)
           .catch(e => e.name = 'dbError');
 
@@ -2513,39 +2515,37 @@ router.get('/receipt', (req, res) => {
         } else {
           o.receiptTotalCosts = 0;
         }
-        if (userInfo.user_permit === 'C') {
-          const receiptAccount = await responseData.cur('receipt_tbl')
-            .select('rc_account_bank as accountBank', 'rc_account_number as accountNumber', 'rc_account_holder as accountHolder')
-            .sum('rc_price as price')
-            .where('rc_pcpk', o.pk)
-            .groupBy(['rc_account_bank', 'rc_account_number', 'rc_account_holder'])
-            .catch(e => e.name = 'dbError');
-          if (!(receiptAccount instanceof Error)) {
-            o.receiptAccount = receiptAccount;
-          } else {
-            o.receiptAccount = [];
-          }
-        }
 
         return o;
-      })
-        .then(response => {
-          res.json(
-            resHelper.getJson({
-              contract: response
-            })
-          );
-        })
+      });
+
+      returnData.contract = response;
+
+      if (userInfo.user_permit === 'C') {
+        const receiptAccount = await connector('receipt_tbl')
+          .select('rc_account_bank as accountBank', 'rc_account_number as accountNumber', 'rc_account_holder as accountHolder')
+          .sum('rc_price as price')
+          .where('rc_status', 2)
+          .groupBy(['rc_account_bank', 'rc_account_number', 'rc_account_holder'])
+          .catch(e => e.name = 'dbError');
+        if (!(receiptAccount instanceof Error)) {
+          returnData.receiptAccount = receiptAccount;
+        } else {
+          returnData.receiptAccount = [];
+        }
+      }
+      res.json(
+        resHelper.getJson(returnData)
+      );
     })
     .catch(err => {
-
+      console.error(err.message);
       switch (err.message) {
         case 'NO_AUTHORITY': err.message = '올바르지 않은 조회 조건입니다.';
           break;
         default: err.message = '진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.';
         break;
       }
-      console.error(err);
       res.json(resHelper.getError(err.message));
     })
 });
