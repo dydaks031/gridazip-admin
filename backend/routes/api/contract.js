@@ -2505,7 +2505,8 @@ router.get('/receipt', (req, res) => {
         // console.log(receiptTotalQuery.toSQL().toNative());
         const receiptTotalCosts = await responseData.cur('receipt_tbl').select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price')).where('rc_pcpk', o.pk).catch(e => e.name = 'dbError');
         if (!(receiptTotalCosts instanceof Error)) {
-          o.receiptTotalCosts = receiptTotalCosts.rc_price;
+          console.log(receiptTotalCosts);
+          o.receiptTotalCosts = receiptTotalCosts[0].rc_price;
         } else {
           o.receiptTotalCosts = 0;
         }
