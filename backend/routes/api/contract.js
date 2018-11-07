@@ -2507,10 +2507,11 @@ router.get('/receipt', (req, res) => {
         return o;
       })
         .then(calculateResponse => {
-
-          res.json({
-            response: calculateResponse
-          })
+          res.json(
+            resHelper.getJson({
+              contract: calculateResponse
+            })
+          )
         })
     })
     .catch(err => {
