@@ -2503,13 +2503,30 @@ router.get('/receipt', (req, res) => {
         let result = totalCosts[0][0];
         o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
         // console.log(receiptTotalQuery.toSQL().toNative());
-        const receiptTotalCosts = await responseData.cur('receipt_tbl').select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price')).where('rc_pcpk', o.pk).catch(e => e.name = 'dbError');
+        const receiptTotalCosts = await responseData.cur('receipt_tbl')
+          .select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price'))
+          .where('rc_pcpk', o.pk)
+          .catch(e => e.name = 'dbError');
+
         if (!(receiptTotalCosts instanceof Error)) {
-          console.log(receiptTotalCosts);
           o.receiptTotalCosts = receiptTotalCosts[0].rc_price;
         } else {
           o.receiptTotalCosts = 0;
         }
+        if (userInfo.user_permit === 'C') {
+          const receiptAccount = await responseData.cur('receipt_tbl')
+            .select('rc_account_bank as accountBank', 'rc_account_number as accountNumber', 'rc_account_holder as accountHolder')
+            .sum('rc_price as price')
+            .where('rc_pcpk', o.pk)
+            .groupBy(['rc_account_bank', 'rc_account_number', 'rc_account_holder'])
+            .catch(e => e.name = 'dbError');
+          if (!(receiptAccount instanceof Error)) {
+            o.receiptAccount = receiptAccount;
+          } else {
+            o.receiptAccount = [];
+          }
+        }
+
         return o;
       })
         .then(response => {
