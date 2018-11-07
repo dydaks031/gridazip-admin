@@ -1528,71 +1528,25 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
     res.json(resHelper.getError('가견적 여부는 필수입니다.'));
   }
   else {
-    knexBuilder.getConnection().then(cur => {
-      cur('proceeding_contract_tbl')
-        .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
-        .where('pc_pk', reqPcPk)
-        .then(row => {
-          return cur.raw(`
-          SELECT resource_costs,
-                 labor_costs,
-                 (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
-                 (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs,
-                 ${row.pc_discount_amount} as discount_amount
-            FROM (
-              SELECT sum(resource_costs) resource_costs
-                FROM (
-                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
-                    FROM estimate_detail_hst ed
-                   INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
-                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
-                  WHERE es.es_pcpk = ?
-                    AND es.es_is_pre = ?
-                  GROUP BY ed.ed_rspk
-                  ORDER BY rs.rs_name
-                ) resource
-            ) r,
-          (
-          SELECT sum(labor_costs) labor_costs
-            FROM (
-              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
-                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
-                     END AS labor_costs
-              FROM estimate_detail_hst ed
-             INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
-              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-             WHERE es.es_pcpk = ?
-               AND es.es_is_pre = ?
-             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
-            ) labor
-          ) l`, [reqPcPk, reqEsIsPre === 'true', reqPcPk, reqEsIsPre === 'true'])
-            .then(response => {
-              let totalCosts = response[0][0];
-              totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
-              totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
-              totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
-              res.json(
-                resHelper.getJson({
-                  totalCosts
-                })
-              );
-            })
-            .catch(err => {
-              console.error(err);
-              res.json(
-                resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
-              );
-            })
-        })
-        .catch(err => {
-          console.error(err);
-          res.json(
-            resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
-          );
-        })
+    knexBuilder.getConnection().then(async cur => {
+      const response = await getContractTotalCosts(cur, reqPcPk, reqEsIsPre);
+      if (response instanceof Error && response.name === 'functionError') {
+        console.error(response);
+        res.json(
+          resHelper.getError(response.message)
+        );
+      }
+      else {
+        let totalCosts = response[0][0];
+        totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
+        totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
+        totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
+        res.json(
+          resHelper.getJson({
+            totalCosts
+          })
+        )
+      }
     })
   }
 });
@@ -2490,28 +2444,39 @@ router.get('/receipt', (req, res) => {
     .then(cur => {
       const query = cur('receipt_tbl as rc')
         .select(
-          'rc_pk as _pk',
-          'rc_pcpk as _pcPk',
-          'rc_ctpk as _ctPk',
-          'rc_date as _date',
-          'rc_type as _type',
-          'rc_contents as _contents',
-          'rc_price as _price',
-          'rc_account_bank as _accountBank',
-          'rc_account_holder as _accountHolder',
-          'rc_account_number as _accountNumber',
-          'rc_is_emergency as _isEmergency',
-          'rc_status as _status',
-          'rc_is_vat_included as _isVatIncluded',
-          'rc_memo as _memo',
-          'rc_reject_reason as _rejectReason',
-          'ra_pk as _attachment__pk',
-          'ra_url as _attachment__url',
-          'ra_memo as _attachment__memo')
-        .select(cur.raw('(select pc_name from proceeding_contract_tbl where pc_pk = rc.rc_pcpk) as _contractName'))
-        .select(cur.raw('(select ct_name from construction_tbl where ct_pk = rc.rc_ctpk) as _constructionName'))
+          'pc_pk as _pk',
+          'pc_name as _name',
+          'pc_nickname as _nickname',
+          'rc.rc_pk as _receipt__pk',
+          'rc.rc_ctpk as _receipt__pk',
+          'ct.ct_name as receipt__ctName',
+          'rc.rc_date as _receipt__date',
+          'rc.rc_type as _receipt__type',
+          'rc.rc_contents as _receipt__contents',
+          'rc.rc_price as _receipt__price',
+          'rc.rc_account_bank as _receipt__accountBank',
+          'rc.rc_account_holder as _receipt__accountHolder',
+          'rc.rc_account_number as _receipt__accountNumber',
+          'rc.rc_is_emergency as _receipt__isEmergency',
+          'rc.rc_status as _receipt__status',
+          'rc.rc_is_vat_included as _receipt__isVatIncluded',
+          'rc.rc_memo as _receipt__memo',
+          'rc.rc_reject_reason as _receipt__reject_reason',
+          'ra.ra_pk as _receipt__attachment__pk',
+          'ra.ra_url as _receipt__attachment__url',
+          'ra.ra_memo as _receipt__attachment__memo',
+          'rc.rc_ctpk as _price__ctPk',
+          'ct.ct_name as _price__ctName')
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) as _price__laborPrice'))
+        .select(cur.raw('ifnull(sum(resource.rc_price),0) as _price__resourcePrice'))
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0) as _price__totalPrice'))
+        .innerJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .innerJoin('proceeding_contract_tbl as pc', 'rc.rc_pcpk', 'pc.pc_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .orderBy(['rc_status', 'rc_date']);
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 0 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk')
+        .joinRaw('left join (select rc_pcpk, rc_ctpk, rc_price rc_price from receipt_tbl where rc_type = 1 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk')
+        .groupBy(['pc_pk', 'rc.rc_ctpk', 'ra_pk'])
+        .orderBy(['pc_pk', 'rc_status', 'rc_date']);
       if (!req.query.status) {
         query.whereIn('rc_status', availableStatus);
       } else {
@@ -2520,19 +2485,33 @@ router.get('/receipt', (req, res) => {
       }
       console.log(query.toSQL().toNative());
 
-      return knexnest(query);
-    })
-    .then(response => {
-      // console.log(response)
-      if (!response) {
-        response = []
+      return {
+        response: knexnest(query),
+        cur
       }
+    })
+    .then(responseData => {
+      if (!responseData.response) {
+        responseData.response = []
+      }
+      responseData.response.map(async o => {
+        const totalCosts = await getContractTotalCosts(responseData.cur, o.pk, 0);
+        let result = totalCosts[0][0];
+        o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
+        const receiptTotalCosts = await responseData.cur('receipt_tbl').select(responseData.cur.raw('ifnull(sum(rc_price),0) as rc_price')).where('rc_pcpk', o.pk).catch(e => e.name = 'dbError');
+        if (!receiptTotalCosts instanceof Error) {
+          o.receiptTotalCosts = receiptTotalCosts.rc_price;
+        } else {
+          o.receiptTotalCosts = 0;
+        }
+        return o;
+      })
+        .then(calculateResponse => {
 
-      res.json(
-        resHelper.getJson({
-          receipts: response
+          res.json({
+            response: calculateResponse
+          })
         })
-      );
     })
     .catch(err => {
 
@@ -2600,9 +2579,12 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
       );
     })
     .catch(err => {
+      let errorStatusCode = 500;
       console.error(err);
+      console.error(err.name);
+      if (err.name === 'TokenExpiredError') errorStatusCode = 401;
       res.json(
-        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.')
+        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.', errorStatusCode)
       );
     })
 });
@@ -2773,7 +2755,7 @@ function getContractStatus(constructionStartDate, moveDate, contractStatus) {
   return rtnStatus;
 }
 
-function changeContractStatusWhenPre(esPk) {
+function changeContractStatusWhenPre (esPk) {
   if (!esPk) return null;
   knexBuilder.getConnection().then(cur => {
     return cur('estimate_tbl')
@@ -2788,5 +2770,54 @@ function changeContractStatusWhenPre(esPk) {
         else return null;
       })
   })
+}
+
+function getContractTotalCosts (cur, pcPk, esIsPre) {
+  return cur('proceeding_contract_tbl')
+    .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
+    .where('pc_pk', pcPk)
+    .then(row => {
+      return cur.raw(`
+          SELECT ifnull(resource_costs,0) as resource_costs,
+                 ifnull(labor_costs,0) as labor_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_etc_costs_ratio},0) as etc_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_design_costs_ratio},0) as design_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio},0) as supervision_costs,
+                 ifnull(${row.pc_discount_amount},0) as discount_amount
+            FROM (
+              SELECT sum(resource_costs) resource_costs
+                FROM (
+                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+                    FROM estimate_detail_hst ed
+                   INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
+                  WHERE es.es_pcpk = ?
+                    AND es.es_is_pre = ?
+                  GROUP BY ed.ed_rspk
+                  ORDER BY rs.rs_name
+                ) resource
+            ) r,
+          (
+          SELECT sum(labor_costs) labor_costs
+            FROM (
+              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+                     END AS labor_costs
+              FROM estimate_detail_hst ed
+             INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+             WHERE es.es_pcpk = ?
+               AND es.es_is_pre = ?
+             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
+            ) labor
+          ) l`, [pcPk, esIsPre === 'true', pcPk, esIsPre === 'true'])
+    })
+    .catch(e => {
+      e.message = 'error ocurred in getContractTotalCosts';
+      e.name = 'functionError';
+      return e;
+    })
 }
 module.exports = router;
