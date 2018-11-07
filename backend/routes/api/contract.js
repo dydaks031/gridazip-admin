@@ -2462,7 +2462,7 @@ router.get('/receipt', (req, res) => {
           'rc.rc_status as _receipt__status',
           'rc.rc_is_vat_included as _receipt__isVatIncluded',
           'rc.rc_memo as _receipt__memo',
-          'rc.rc_reject_reason as _receipt__reject_reason',
+          'rc.rc_reject_reason as _receipt__rejectReason',
           'ra.ra_pk as _receipt__attachment__pk',
           'ra.ra_url as _receipt__attachment__url',
           'ra.ra_memo as _receipt__attachment__memo',
