@@ -65,7 +65,7 @@
                       <td>{{addCommas(price.ctName)}}</td>
                       <td class="is-hidden-mobile">{{addCommas(price.laborPrice)}}</td>
                       <td class="is-hidden-mobile">{{addCommas(price.resourcePrice)}}</td>
-                      <td class="is-hidden-mobile"></td>
+                      <td class="is-hidden-mobile">{{addCommas(price.etcPrice)}}</td>
                       <td class="contract-column-summary">{{addCommas(price.totalPrice)}}</td>
                     </tr>
                     <tr class="contract-row-summary">
