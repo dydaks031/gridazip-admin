@@ -16,7 +16,6 @@
       <a class="button is-danger is-pulled-right is-medium print-btn" @click="sendToSmS" v-if="deleteRegisterBtn !== true ">SMS 발송</a>
       <a class="button is-info is-pulled-right is-medium print-btn" id="printBtn" @click="printPage()">인쇄</a>
     </div>
-
     <div class="tabs is-boxed is-medium">
       <ul>
         <li v-if="!estimateIsPre" :class="{'is-active': selectedTab === ''}">
@@ -234,7 +233,6 @@
       return {
         router,
         param: {},
-        mergeRestTime: false,
         viewerData: {
           general: [],
           labor: [],
@@ -361,6 +359,7 @@
         }
       },
       printPage () {
+        // 전역 화면의 사이드바 및 다른 부가적인 화면을 없앤다
         EventBus.$emit('togglePrintMode')
         window.setTimeout(() => {
           window.print()

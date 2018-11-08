@@ -103,7 +103,8 @@ export default {
         list: 'resourceList',
         id: 'rs_pk',
         name: 'rs_name',
-        order: 'rs_order'
+        order: 'rs_order',
+        code: 'rs_code'
       },
       isDetailEdit: true
     }

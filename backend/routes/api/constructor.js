@@ -56,7 +56,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('기술자 목록을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -109,7 +109,7 @@ router.get('/:pk([0-9]+)', (req, res) => {
         }
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('기술자 상세를 조회하는 중 오류가 발생하였습니다.')
         );
@@ -255,7 +255,7 @@ router.get('/:crpk([0-9]+)/skill', (req, res) => {
       )
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
       .where('cs_crpk', reqCrPk)
-      .orderBy('ct.ct_pk', 'cr.cr_name')
+      .orderBy(['ct.ct_pk', 'cr.cr_name'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -264,7 +264,7 @@ router.get('/:crpk([0-9]+)/skill', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('기술자 목록을 조회하는 중 오류가 발생하였습니다.')
         );
@@ -292,7 +292,6 @@ router.post('/:crpk([0-9]+)/skill', (req, res) => {
       cur('constructor_skill_tbl')
         .insert(obj)
         .then((response) => {
-          console.log(response)
           res.json(resHelper.getJson({
             msg: '기술자 보유 기술이 정상적으로 추가되었습니다.',
             data: {

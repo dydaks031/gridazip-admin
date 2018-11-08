@@ -10,6 +10,8 @@ router.post('/listener', (req, res) => {
   console.log(req.body)
   const userInfo = req.body.refers.veil;
   const mobileNumber = userInfo.mobileNumber;
+  const userChat = req.body.refers.userChat;
+
   let profile;
   let isUpdate = false
   let alreadyInserted = false
@@ -50,6 +52,8 @@ router.post('/listener', (req, res) => {
       .select('*')
       .where('ch_phone', insertData.ch_phone)
       .then((response) => {
+        console.log(response.length)
+        console.log(insertData.ch_phone)
         isUpdate = response.length > 0;
           if (isUpdate) {
           return cur('channel_access_log_tbl')
@@ -85,7 +89,7 @@ router.post('/listener', (req, res) => {
           const requestInsertData = {
             rq_name: userInfo.name,
             rq_phone: cryptoHelper.encrypt(userInfo.mobileNumber.split('-').join('').replace('+82', '0')),
-            rq_nickname: '',
+            rq_nickname: `채팅 상담 건 - 채팅 기록: https\:\/\/desk.channel.io/#/channels/4680/user_chats/${userChat.id}`,
             rq_family: '',
             rq_size: size,
             rq_address_brief: profile.address || '',
@@ -120,14 +124,26 @@ router.post('/listener', (req, res) => {
   })
 });
 
-router.get('/channel-list', (req, res) => {
+router.get('/channel/completed-list', (req, res) => {
+  const reqStartDate = req.query.start_date
+  const reqEndDate = req.query.end_date
   knexBuilder.getConnection().then(cur => {
-    cur('channel_access_log_tbl')
-      .select('*')
-      .where('ch_segment', '<>', 'lost')
-        .then((response) => {
+    cur.raw(`
+        SELECT
+          DATE_FORMAT(ch_reg_dt, '%Y-%m-%d') as date,
+          COUNT(*) as count
+        FROM
+          channel_access_log_tbl
+        WHERE
+          ch_reg_dt BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
+        GROUP BY
+          DATE_FORMAT(ch_reg_dt, '%Y-%m-%d')
+        ORDER BY date DESC
+      `, [reqStartDate, reqEndDate])
+      .then((response) => {
+        console.log(response)
         res.json(resHelper.getJson({
-          channel_list: response
+          channel_list: response[0]
         }));
       })
   });

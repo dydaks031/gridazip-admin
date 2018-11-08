@@ -6,7 +6,10 @@ const cryptoHelper = require('../../services/crypto/helper');
 const knexBuilder = require('../../services/connection/knex');
 const resHelper = require('../../services/response/helper');
 const smsHelper = require('../../services/sms/helper');
+const jwtHelper = require('../../services/jwt/helper');
+const moment = require('moment');
 const calc = require('calculator');
+const knexnest = require('knexnest');
 
 
 
@@ -54,6 +57,7 @@ router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
   let point = req.query.point;
   let pageIndex = req.query.page;
+  let isNotUsingPage = req.query.isPage === false || req.query.isPage === 'false';
   let pageInst = new paginationService();
   let pageData = pageInst.get();
   if (pageInst.isEnd() === true) {
@@ -79,12 +83,14 @@ router.get('/', (req, res) => {
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
 
-    query = query
-      .limit(pageData.limit)
-      .offset(pageData.page);
+    if (!isNotUsingPage) {
+      query = query
+        .limit(pageData.limit)
+        .offset(pageData.page);
 
-    if (pageData.point !== null) {
-      query = query.where('pc_pk', '<=', pageData.point);
+      if (pageData.point !== null) {
+        query = query.where('pc_pk', '<=', pageData.point);
+      }
     }
 
     let list = [];
@@ -102,14 +108,23 @@ router.get('/', (req, res) => {
           item.pc_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(item.pc_phone));
           return item;
         });
-        pageInst.setPage(pageData.page += list.length);
-        pageInst.setLimit(pageData.limit);
+        if (isNotUsingPage) {
+          res.json(
+            resHelper.getJson({
+              contractList: list
+            })
+          );
+          throw new Error('Ignore')
+        } else {
+          pageInst.setPage(pageData.page += list.length);
+          pageInst.setLimit(pageData.limit);
 
-        if (list.length < pageInst.limit) {
-          pageInst.setEnd(true);
+          if (list.length < pageInst.limit) {
+            pageInst.setEnd(true);
+          }
+
+          return cur('proceeding_contract_tbl').count('* as count');
         }
-
-        return cur('proceeding_contract_tbl').count('* as count');
       })
       .then(response => {
         pageInst.setCount(response[0].count);
@@ -122,6 +137,9 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
+        if (err.message === 'Ignore') {
+          return
+        }
         console.error(err);
         res.json(
           resHelper.getError('진행계약 목록을 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
@@ -199,6 +217,7 @@ router.post('/', (req, res) => {
     insertObj.pc_move_date = req.body.pc_move_date || '';
     insertObj.pc_budget = req.body.pc_budget || '';
     insertObj.pc_memo = req.body.pc_memo || '';
+    insertObj.pc_nickname = req.body.pc_nickname || '';
     insertObj.pc_password = makeRandomNumber(4);
 
     knexBuilder.getConnection().then(cur => {
@@ -226,11 +245,10 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:pcpk([0-9]+)', (req, res) => {
+  const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
   const reqPcPk = req.params.pcpk || '';
   const reqName = req.body.pc_name || '';
   const reqPhone = req.body.pc_phone || '';
-  const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
-  console.log(contractFailReasonList);
 
   if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
@@ -258,8 +276,9 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_discount_amount = req.body.pc_discount_amount || null;
     updateObj.pc_status = req.body.pc_status || 0;
     updateObj.pc_fail_reason = (contractFailReasonList.indexOf(req.body.pc_fail_reason) < 0 ? req.body.pc_fail_reason_text : req.body.pc_fail_reason) || '';
+    updateObj.pc_nickname = req.body.pc_nickname || '';
 
-
+    updateObj.pc_status = getContractStatus(updateObj.pc_construction_start_date, updateObj.pc_move_date, updateObj.pc_status);
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
@@ -314,16 +333,39 @@ router.delete('/:pcpk([0-9]+)', (req, res) => {
 router.post('/:pcpk([0-9]+)/sms', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   knexBuilder.getConnection().then(cur => {
-    cur('proceeding_contract_tbl')
-      .first('pc_name', 'pc_phone', 'pc_password')
-      .where('pc_pk', reqPcPk)
-      .then(row => {
-        const smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
-        smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
-          .then(response => {
-            res.json(
-              resHelper.getJson(response)
-            );
+    cur('estimate_tbl')
+      .count({count: 'es_pk'})
+      .where('es_pcpk', reqPcPk)
+      .then(response => {
+        return response[0].count;
+      })
+      .then(count => {
+        let smsMsg = '';
+        cur('proceeding_contract_tbl')
+          .first('pc_name', 'pc_phone', 'pc_password')
+          .where('pc_pk', reqPcPk)
+          .then(row => {
+            if (count > 1) smsMsg = '견적서가 수정되었습니다. goo.gl/DU4v61 에서 변경사항을 확인해보세요.';
+            else smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
+            smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
+              .then(() => {
+                return cur('proceeding_contract_tbl')
+                  .update('pc_status', 2)
+                  .where('pc_pk', reqPcPk)
+              })
+              .then(() => {
+                res.json(
+                  resHelper.getJson({
+                    msg: 'ok'
+                  })
+                );
+              })
+              .catch(error => {
+                console.error(error);
+                res.json(
+                  resHelper.getError(error)
+                );
+              });
           })
           .catch(error => {
             console.error(error);
@@ -332,12 +374,7 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
             );
           });
       })
-      .catch(error => {
-        console.error(error);
-        res.json(
-          resHelper.getError(error)
-        );
-      });
+
   });
 });
 
@@ -547,10 +584,15 @@ router.post('/:pcpk([0-9]+)/estimate/tabs', (req, res) => {
               .then(() => {
                 if (!reqEsIsPre) {
                   return cur('proceeding_contract_tbl')
-                    .update('pc_status', 1)
+                    .first('pc_construction_start_date', 'pc_move_date')
                     .where('pc_pk', obj.es_pcpk)
-                    .transacting(trx)
+                    .then(row => {
+                      return cur('proceeding_contract_tbl')
+                        .update('pc_status', getContractStatus(row.pc_construction_start_date, row.pc_move_date, 3))
+                        .where('pc_pk', obj.es_pcpk);
+                    })
                 } else {
+                  changeContractStatusWhenPre(reqEsPk);
                   return null;
                 }
               })
@@ -629,7 +671,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
       .leftJoin({rc: 'resource_category_tbl'}, 'rt.rt_rcpk', 'rc.rc_pk')
       .leftJoin({rs: 'resource_tbl'}, 'ed.ed_rspk', 'rs.rs_pk')
       .leftJoin({ru: 'resource_unit_tbl'}, 'rs.rs_rupk', 'ru.ru_pk')
-      .orderBy('ed.ed_place_pk', 'ed_pk')
+      .orderBy(['ed.ed_place_pk', 'ed_pk'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -825,7 +867,7 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
         })
         .then(row => {
           labor_costs = row.cpd_labor_costs;
-
+          changeContractStatusWhenPre(reqEsPk);
           return cur('resource_type_tbl')
             .first('rt_extra_labor_costs')
             .where({
@@ -857,6 +899,7 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
 
 router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
+  const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
   const reqCpPk = req.body.ed_cppk || '';
@@ -936,7 +979,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
         })
         .then(row => {
           labor_costs = row.cpd_labor_costs;
-
+          changeContractStatusWhenPre(reqEsPk);
           return cur('resource_type_tbl')
             .first('rt_extra_labor_costs')
             .where({
@@ -967,6 +1010,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
 
 router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
+  const reqEsPk = req.params.espk || '';
   if (reqEdPk === '') {
     res.json(resHelper.getError('전송 받은 파라메터가 올바르지 않습니다.'));
   }
@@ -976,6 +1020,7 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
         .del()
         .where('ed_pk', reqEdPk)
         .then(() => {
+          changeContractStatusWhenPre(reqEsPk);
           res.json(resHelper.getJson({
             msg: '상세견적 건이 정상적으로 삭제되었습니다.'
           }));
@@ -1483,71 +1528,25 @@ router.get('/:pcpk([0-9]+)/estimate/total', (req, res) => {
     res.json(resHelper.getError('가견적 여부는 필수입니다.'));
   }
   else {
-    knexBuilder.getConnection().then(cur => {
-      cur('proceeding_contract_tbl')
-        .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
-        .where('pc_pk', reqPcPk)
-        .then(row => {
-          return cur.raw(`
-          SELECT resource_costs,
-                 labor_costs,
-                 (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
-                 (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs,
-                 ${row.pc_discount_amount} as discount_amount
-            FROM (
-              SELECT sum(resource_costs) resource_costs
-                FROM (
-                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
-                    FROM estimate_detail_hst ed
-                   INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
-                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
-                  WHERE es.es_pcpk = ?
-                    AND es.es_is_pre = ?
-                  GROUP BY ed.ed_rspk
-                  ORDER BY rs.rs_name
-                ) resource
-            ) r,
-          (
-          SELECT sum(labor_costs) labor_costs
-            FROM (
-              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
-                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
-                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
-                     END AS labor_costs
-              FROM estimate_detail_hst ed
-             INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
-              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
-              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
-             WHERE es.es_pcpk = ?
-               AND es.es_is_pre = ?
-             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
-            ) labor
-          ) l`, [reqPcPk, reqEsIsPre === 'true', reqPcPk, reqEsIsPre === 'true'])
-            .then(response => {
-              let totalCosts = response[0][0];
-              totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
-              totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
-              totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
-              res.json(
-                resHelper.getJson({
-                  totalCosts
-                })
-              );
-            })
-            .catch(err => {
-              console.error(err);
-              res.json(
-                resHelper.getError('[0002]총합금액을 조회하는 중 오류가 발생하였습니다.')
-              );
-            })
-        })
-        .catch(err => {
-          console.error(err);
-          res.json(
-            resHelper.getError('[0001]총합금액을 조회하는 중 오류가 발생하였습니다.')
-          );
-        })
+    knexBuilder.getConnection().then(async cur => {
+      const response = await getContractTotalCosts(cur, reqPcPk, reqEsIsPre);
+      if (response instanceof Error && response.name === 'functionError') {
+        console.error(response);
+        res.json(
+          resHelper.getError(response.message)
+        );
+      }
+      else {
+        let totalCosts = response[0][0];
+        totalCosts.total_costs = Math.floor((totalCosts.resource_costs + totalCosts.labor_costs + totalCosts.etc_costs + totalCosts.design_costs + totalCosts.supervision_costs) * 0.001) * 1000;
+        totalCosts.vat_costs = Math.ceil(totalCosts.total_costs * 10 / 100);
+        totalCosts.total_costs_including_vat = totalCosts.total_costs + totalCosts.vat_costs;
+        res.json(
+          resHelper.getJson({
+            totalCosts
+          })
+        )
+      }
     })
   }
 });
@@ -1641,7 +1640,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/general', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1799,7 +1798,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/labor', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1863,7 +1862,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/resource', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', false)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -1922,7 +1921,7 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
       .select('es_pk', 'es_version')
       .where('es_pcpk', subQuery)
       .andWhere('es_is_pre', reqEsIsPre)
-      .orderBy('es_is_pre', 'es_pk')
+      .orderBy(['es_is_pre', 'es_pk'])
       .then(response => {
         if (response.length < 2) {
           arrEsPk.push(reqEsPk);
@@ -2267,7 +2266,7 @@ router.get('/:pcpk([0-9]+)/checklist', (req, res) => {
       .innerJoin({ct: 'construction_tbl'}, 'cl.cl_ctpk', 'ct.ct_pk')
       .where('cl_pcpk', reqPcPk)
       .andWhere('cl_deleted', 0)
-      .orderBy('cl.cl_date', 'cl.cl_ctpk')
+      .orderBy(['cl.cl_date', 'cl.cl_ctpk'])
       .then(response => {
         res.json(
           resHelper.getJson({
@@ -2427,4 +2426,465 @@ router.put('/:pcpk([0-9]+)/checklist', (req, res) => {
   }
 });
 
-module.exports = router
+
+router.get('/receipt', (req, res) => {
+  const jwtToken = req.token;
+  const reqStatus = parseInt(req.query.status);
+  let userInfo;
+  let availableStatus;
+  let connector;
+
+  jwtHelper.verify(jwtToken)
+    .then(plain => {
+      userInfo = plain;
+      if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
+      else if (userInfo.user_permit === 'B') availableStatus = [1,2];
+      else if (userInfo.user_permit === 'C') availableStatus = [2];
+      return knexBuilder.getConnection()
+    })
+    .then(cur => {
+      connector = cur;
+      const query = cur('receipt_tbl as rc')
+        .select(
+          'pc_pk as _pk',
+          'pc_name as _name',
+          'pc_nickname as _nickname',
+          'rc.rc_pk as _receipt__pk',
+          'ct.ct_name as _receipt__ctName',
+          'user.user_name as _receipt__drafter',
+          'ct.ct_name as receipt__ctName',
+          'rc.rc_date as _receipt__date',
+          'rc.rc_type as _receipt__type',
+          'rc.rc_contents as _receipt__contents',
+          'rc.rc_price as _receipt__price',
+          'rc.rc_account_bank as _receipt__accountBank',
+          'rc.rc_account_holder as _receipt__accountHolder',
+          'rc.rc_account_number as _receipt__accountNumber',
+          'rc.rc_is_emergency as _receipt__isEmergency',
+          'rc.rc_status as _receipt__status',
+          'rc.rc_is_vat_included as _receipt__isVatIncluded',
+          'rc.rc_memo as _receipt__memo',
+          'rc.rc_reject_reason as _receipt__rejectReason',
+          'ra.ra_pk as _receipt__attachment__pk',
+          'ra.ra_url as _receipt__attachment__url',
+          'ra.ra_memo as _receipt__attachment__memo',
+          'rc.rc_ctpk as _price__ctPk',
+          'ct.ct_name as _price__ctName')
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) as _price__laborPrice'))
+        .select(cur.raw('ifnull(sum(resource.rc_price),0) as _price__resourcePrice'))
+        .select(cur.raw('ifnull(sum(etc.rc_price),0) as _price__etcPrice'))
+        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0)+ ifnull(sum(etc.rc_price),0) as _price__totalPrice'))
+        .innerJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .innerJoin('user_tbl as user', 'rc_user_pk', 'user_pk')
+        .innerJoin('proceeding_contract_tbl as pc', 'rc.rc_pcpk', 'pc.pc_pk')
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 0 and rc_status = 3 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk`)
+        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 1 and rc_status = 3 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk`)
+        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 2 and rc_status = 3 group by rc_pcpk, rc_ctpk) etc on rc.rc_pcpk = etc.rc_pcpk and rc.rc_ctpk = etc.rc_ctpk`)
+        .groupBy(['pc_pk', 'rc.rc_ctpk', 'ra.ra_pk'])
+        .orderBy(['pc_pk', 'rc_status', 'rc_date']);
+      if (!req.query.status) {
+        query.whereIn('rc_status', availableStatus);
+      } else {
+        if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
+        else  throw new Error('NO_AUTHORITY');
+      }
+      console.log(query.toSQL().toNative());
+
+      return knexnest(query)
+    })
+    .then(async response => {
+      if (!response) {
+        response = []
+      }
+
+      const returnData = {};
+
+      returnData.contract = await Promise.all(response.map(async o => {
+        const totalCosts = await getContractTotalCosts(connector, o.pk, 0);
+        let result = totalCosts[0][0];
+        // console.log(result)
+        o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
+        // console.log(receiptTotalQuery.toSQL().toNative());
+        const receiptTotalCosts = await connector('receipt_tbl')
+          .select(connector.raw('ifnull(sum(rc_price),0) as rc_price'))
+          .where('rc_pcpk', o.pk)
+          .andWhere('rc_status', 3)
+          .catch(e => e.name = 'dbError');
+
+        if (!(receiptTotalCosts instanceof Error)) {
+          o.receiptTotalCosts = receiptTotalCosts[0].rc_price;
+        } else {
+          o.receiptTotalCosts = 0;
+        }
+
+        return o;
+      }));
+
+      if (userInfo.user_permit === 'C') {
+        const receiptAccount = await connector('receipt_tbl')
+          .select('rc_account_bank as accountBank', 'rc_account_number as accountNumber', 'rc_account_holder as accountHolder')
+          .sum('rc_price as price')
+          .where('rc_status', 2)
+          .groupBy(['rc_account_bank', 'rc_account_number', 'rc_account_holder'])
+          .catch(e => e.name = 'dbError');
+        if (!(receiptAccount instanceof Error)) {
+          returnData.receiptAccount = receiptAccount;
+        } else {
+          returnData.receiptAccount = [];
+        }
+      }
+      res.json(
+        resHelper.getJson(returnData)
+      );
+    })
+    .catch(err => {
+      console.error(err.message);
+      switch (err.message) {
+        case 'NO_AUTHORITY': err.message = '올바르지 않은 조회 조건입니다.';
+          break;
+        default: err.message = '진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.';
+        break;
+      }
+      res.json(resHelper.getError(err.message));
+    })
+});
+
+router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  const jwtToken = req.token;
+  let userInfo;
+  let availableStatus;
+  jwtHelper.verify(jwtToken)
+    .then(plain => {
+      userInfo = plain;
+      if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
+      else if (userInfo.user_permit === 'B') availableStatus = [1,2];
+      else if (userInfo.user_permit === 'C') availableStatus = [2];
+      return knexBuilder.getConnection()
+    })
+    .then(cur => {
+      const query = cur('receipt_tbl as rc')
+        .select(
+          'rc_pk as _pk',
+          'rc_pcpk as _pcPk',
+          'rc_ctpk as _ctPk',
+          'ct_name as _ctName',
+          'rc_date as _date',
+          'rc_type as _type',
+          'rc_contents as _contents',
+          'rc_price as _price',
+          'rc_account_bank as _accountBank',
+          'rc_account_holder as _accountHolder',
+          'rc_account_number as _accountNumber',
+          'rc_is_emergency as _isEmergency',
+          'rc_status as _status',
+          'rc_is_vat_included as _isVatIncluded',
+          'rc_memo as _memo',
+          'ra_pk as _attachment__pk',
+          'ra_url as _attachment__url',
+          'ra_memo as _attachment__memo')
+        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
+        .where('rc_pcpk', reqPcPk)
+        .whereIn('rc_status', availableStatus)
+        .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
+        .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
+        .orderBy(['rc_status', 'rc_date']);
+      return knexnest(query);
+    })
+    .then(response => {
+      if (!response) {
+        response = []
+      }
+      res.json(
+        resHelper.getJson({
+          receipts: response
+        })
+      );
+    })
+    .catch(err => {
+      let errorStatusCode = 500;
+      console.error(err);
+      console.error(err.name);
+      if (err.name === 'TokenExpiredError') errorStatusCode = 401;
+      res.json(
+        resHelper.getError('진행 계약의 구매 품의 목록을 조회하는 중 오류가 발생했습니다.', errorStatusCode)
+      );
+    })
+});
+
+
+router.get('/:pcpk([0-9]+)/receipt/isExist', (req, res) => {
+  let userPk;
+  const reqPcpk = req.params.pcpk;
+  const reqPrice = req.query.price;
+  const reqAccountNumber = req.query.accountNumber;
+  console.log()
+
+  if (!reqPcpk || !reqPrice || !reqAccountNumber) {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  } else {
+    jwtHelper.verify(req.token)
+      .then(userInfo => {
+        userPk = userInfo.user_pk;
+        return knexBuilder.getConnection();
+      })
+      .then(cur => {
+        cur('receipt_tbl')
+          .select('*')
+          .where('rc_pcpk', reqPcpk)
+          .andWhere('rc_account_number', reqAccountNumber)
+          .andWhere('rc_price', reqPrice)
+          .then(response => {
+            if (response.length > 0) {
+              res.json(resHelper.getJson({
+                isExist: true
+              }));
+            } else {
+              res.json(resHelper.getJson({
+                isExist: false
+              }));
+            }
+          })
+          .catch(err => {
+            console.error(err)
+          })
+      })
+  }
+});
+
+
+router.post('/:pcpk([0-9]+)/receipt', (req, res) => {
+  let userPk;
+  if ( (req.body.type === undefined || !req.body.type.toString().trim() )
+    || !req.body.ctPk
+    || !req.body.price
+    || !req.body.accountBank
+    || !req.body.accountHolder
+    || !req.body.accountNumber
+    || ( req.body.isVatIncluded === undefined || !req.body.isVatIncluded.toString().trim() )
+  ) {
+    res.json(
+      resHelper.getError('파라메터가 올바르지 않습니다.')
+    );
+  }
+  else {
+    const attachedList = req.body.attachedList || [];
+    jwtHelper.verify(req.token)
+      .then(userInfo => {
+      userPk = userInfo.user_pk;
+      return knexBuilder.getConnection();
+    })
+      .then(cur => {
+        let obj = {};
+        obj.rc_user_pk = userPk;
+        obj.rc_pcpk = req.params.pcpk;
+        obj.rc_ctpk = req.body.ctPk;
+        obj.rc_date = moment().format('YYYY-MM-DD');
+        obj.rc_type = req.body.type;
+        obj.rc_contents = req.body.contents;
+        obj.rc_price = req.body.price;
+        obj.rc_account_bank = req.body.accountBank;
+        obj.rc_account_holder = req.body.accountHolder;
+        obj.rc_account_number = req.body.accountNumber.toString().replace(/-/gi, '');
+        obj.rc_is_emergency = req.body.isEmergency;
+        obj.rc_status = req.body.status;
+        obj.rc_is_vat_included = req.body.isVatIncluded;
+        obj.rc_memo = req.body.memo;
+
+        cur.transaction(trx => {
+          cur('receipt_tbl')
+            .insert(obj)
+            .returning('rc_pk')
+            .transacting(trx)
+            .then(response => {
+              const rcPk = response[0];
+              const query = [];
+              attachedList.forEach(obj => {
+                let attachment = {};
+                attachment.ra_url = obj.url;
+                attachment.ra_memo = obj.memo;
+                attachment.ra_rcpk = rcPk;
+                query.push(
+                  cur.table('receipt_attachment_tbl')
+                    .insert(attachment)
+                    .transacting(trx));
+              });
+
+              Promise.all(query)
+                .then(trx.commit)
+                .catch(trx.rollback);
+            })
+            .catch(trx.rollback);
+        })
+          .then(() => {
+            res.json(resHelper.getJson({
+              msg: 'ok'
+            }));
+          })
+          .catch(err => {
+            console.error(err);
+            res.json(resHelper.getError('구매품의를 등록하는 중 오류가 발생하였습니다.'));
+          })
+      })
+  }
+});
+
+router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
+  const reqRcPk = req.params.rcpk;
+  const jwtToken = req.token;
+  const reqRcStatus = parseInt(req.body.status);
+  const reqRcRejectReason = req.body.rejectReason;
+
+  let errorMsg = null;
+  jwtHelper.verify(jwtToken).then(userInfo => {
+    if ([-1,0,1,2,3].indexOf(reqRcStatus) < 0) {
+      errorMsg = '파라메터가 올바르지 않습니다.'
+    }
+    else {
+      if (userInfo.user_permit === 'A') {
+        if ([-1].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+      else if (userInfo.user_permit === 'B') {
+        if ([0,2].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+      else if (userInfo.user_permit === 'C') {
+        if ([0,3].indexOf(reqRcStatus) < 0) {
+          errorMsg = '권한이 없습니다.'
+        }
+      }
+    }
+
+    if (errorMsg !== null) {
+      throw new Error(errorMsg);
+    }
+    else {
+      return knexBuilder.getConnection();
+    }
+  })
+    .then(cur => {
+      console.log(reqRcStatus);
+      console.log(reqRcPk);
+      let obj = {};
+      obj.rc_status = reqRcStatus;
+      if (reqRcStatus === 0) {
+        obj.rc_reject_reason = reqRcRejectReason;
+      }
+
+      return cur('receipt_tbl')
+        .update(obj)
+        .where('rc_pk', reqRcPk)
+    })
+    .then(() => {
+      res.json(resHelper.getJson({
+        msg: 'ok'
+      }));
+    })
+    .catch(err => {
+      res.json(resHelper.getError(err.message));
+    })
+});
+
+
+
+
+function getContractStatus(constructionStartDate, moveDate, contractStatus) {
+  let rtnStatus = contractStatus;
+  if (constructionStartDate === '0000-00-00') constructionStartDate = null;
+  if (moveDate === '0000-00-00') constructionStartDate = null;
+
+  if (constructionStartDate) {
+    // 공사시작일자가 현재시간 이전이면(오늘자가 공사시작일자를 지났을 때)
+    if (moment(constructionStartDate, 'YYYY-MM-DD').diff(moment()) < 0) {
+      if (contractStatus === 3) rtnStatus = 4;
+      if (moveDate) {
+        // 이사일자가 현재시간 이전이면
+        if (moment(moveDate, 'YYYY-MM-DD').diff(moment()) < 0) {
+          if (contractStatus === 3 || contractStatus === 4) rtnStatus = 5;
+        }
+        // 이사일자가 현재시간 이후이면
+        else {
+          if (contractStatus === 5) rtnStatus = 4;
+        }
+      }
+    }
+    // 공사시작일자가 현재시간 이후이면
+    else {
+      if (contractStatus === 4 || contractStatus === 5) rtnStatus = 3;
+    }
+  }
+  return rtnStatus;
+}
+
+function changeContractStatusWhenPre (esPk) {
+  if (!esPk) return null;
+  knexBuilder.getConnection().then(cur => {
+    return cur('estimate_tbl')
+      .first('es_is_pre', 'es_pcpk')
+      .where('es_pk', esPk)
+      .then(row => {
+        if (row.es_is_pre === 1) {
+          return cur('proceeding_contract_tbl')
+            .update('pc_status', 1)
+            .where('pc_pk', row.es_pcpk)
+        }
+        else return null;
+      })
+  })
+}
+
+function getContractTotalCosts (cur, pcPk, esIsPre) {
+  return cur('proceeding_contract_tbl')
+    .first('pc_etc_costs_ratio', 'pc_design_costs_ratio', 'pc_supervision_costs_ratio', 'pc_discount_amount')
+    .where('pc_pk', pcPk)
+    .then(row => {
+      return cur.raw(`
+          SELECT ifnull(resource_costs,0) as resource_costs,
+                 ifnull(labor_costs,0) as labor_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_etc_costs_ratio},0) as etc_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_design_costs_ratio},0) as design_costs,
+                 ifnull((resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio},0) as supervision_costs,
+                 ifnull(${row.pc_discount_amount},0) as discount_amount
+            FROM (
+              SELECT sum(resource_costs) resource_costs
+                FROM (
+                  SELECT rs.rs_price * ceil(sum(ed.ed_resource_amount)) AS resource_costs
+                    FROM estimate_detail_hst ed
+                   INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+                    LEFT JOIN resource_tbl rs ON ed.ed_rspk = rs.rs_pk
+                  WHERE es.es_pcpk = ?
+                    AND es.es_is_pre = ?
+                  GROUP BY ed.ed_rspk
+                  ORDER BY rs.rs_name
+                ) resource
+            ) r,
+          (
+          SELECT sum(labor_costs) labor_costs
+            FROM (
+              SELECT CASE WHEN (sum(ed.ed_input_value) % cpd.cpd_min_amount = 0)
+                          THEN sum(ed.ed_input_value) * (rt.rt_extra_labor_costs + cpd.cpd_labor_costs)
+                          ELSE ( rt.rt_extra_labor_costs + cpd.cpd_labor_costs ) * ifnull( (sum(ed.ed_input_value) + cpd.cpd_min_amount - sum(ed.ed_input_value) % cpd.cpd_min_amount), 0)
+                     END AS labor_costs
+              FROM estimate_detail_hst ed
+             INNER JOIN estimate_tbl es on ed.ed_espk = es.es_pk
+              LEFT JOIN construction_process_detail_tbl cpd on ed.ed_cpdpk = cpd.cpd_pk
+              LEFT JOIN resource_type_tbl rt on ed.ed_rtpk = rt.rt_pk
+             WHERE es.es_pcpk = ?
+               AND es.es_is_pre = ?
+             GROUP BY ed.ed_cpdpk, ed.ed_rtpk
+            ) labor
+          ) l`, [pcPk, esIsPre === 'true', pcPk, esIsPre === 'true'])
+    })
+    .catch(e => {
+      e.message = 'error ocurred in getContractTotalCosts';
+      e.name = 'functionError';
+      return e;
+    })
+}
+module.exports = router;

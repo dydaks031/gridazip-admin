@@ -236,8 +236,6 @@
         return true
       },
       submitData () {
-        console.log(this.data)
-
         if (this.validate()) {
           this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
 

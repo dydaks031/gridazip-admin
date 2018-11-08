@@ -63,7 +63,7 @@
                   <!--<button class="button">인쇄하기</button>-->
                 </div>
                 <div class="money-summary is-hidden-desktop">
-                  <h3 class="subtitle">총 견적금액</h3>
+                  <h3 class="subtitle">총 견적금액<small>(VAT 별도)</small></h3>
                   <p><b>{{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}</b> 원</p>
                 </div>
               </div>
@@ -74,65 +74,66 @@
                 <span>등록된 견적서가 없습니다.</span>
               </div>
               <div class="has-data" v-else>
-                <div class="content general-table" :class="{fold: isFoldStatus.general}" ref="generalTable">
-                  <div class="title-container is-clearfix" @click="toggleTable('general')">
-                    <h3 class="subtitle is-pulled-left">공간별 견적</h3>
-                    <i class="fa is-pulled-right" :class="{'fa-angle-up' : !isFoldStatus.general, 'fa-angle-down': isFoldStatus.general}"></i>
-                  </div>
-                  <div class="fold-view">
-                    <table class="table position-base-table" id="general-table">
-                      <colgroup>
-                        <col :width="isMobile() ? '30%' : '8%'" />
-                        <col class="is-hidden-touch" width="5%" />
-                        <col class="is-hidden-touch" width="10%" />
-                        <col :width="isMobile() ? '25%' : '10%'" />
-                        <col class="is-hidden-touch" width="10%" />
-                        <col class="is-hidden-touch" width="auto" />
-                        <col width="10%" />
-                        <col width="10%"/>
-                      </colgroup>
-                      <thead>
-                      <tr>
-                        <th>위치</th>
-                        <th class="is-hidden-touch">공사</th>
-                        <th class="is-hidden-touch">공정</th>
-                        <th>상세공정</th>
-                        <th class="is-hidden-touch">상세위치</th>
-                        <th class="is-hidden-touch">자재</th>
-                        <th class="has-text-right">인건비</th>
-                        <th class="has-text-right">자재비</th>
-                      </tr>
-                      </thead>
-                      <transition-group name="list" mode="out-in" tag="tbody">
-                        <tr class="list-item"
-                            :class="{'is-summary': generalData.is_summary}"
-                            v-for="(generalData, index) in viewerData.general"
-                            v-if="rowHideCondition(generalData, index)"
-                            @click="openSubResource(generalData)"
-                            v-bind:key="index">
-                          <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count - 1">{{generalData.place_name}}</td>
-                          <td class="is-hidden-touch construction" v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count" :colspan="generalData.is_summary ? 6 : 1">{{generalData.ct_name}}</td>
-                          <td class="is-hidden-touch" v-if="!generalData.is_summary && generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
-                          <td v-if="!generalData.is_summary && !generalData.hasOwnProperty('sub_key')">{{generalData.cpd_name}}</td>
+                <!--<div class="content general-table" :class="{fold: isFoldStatus.general}" ref="generalTable">-->
+                  <!--<div class="title-container is-clearfix" @click="toggleTable('general')">-->
+                    <!--<h3 class="subtitle is-pulled-left">공간별 견적</h3>-->
+                    <!--<i class="fa is-pulled-right" :class="{'fa-angle-up' : !isFoldStatus.general, 'fa-angle-down': isFoldStatus.general}"></i>-->
+                  <!--</div>-->
+                  <!--<div class="fold-view">-->
+                    <!--<table class="table position-base-table" id="general-table">-->
+                      <!--<colgroup>-->
+                        <!--<col :width="isMobile() ? '30%' : '8%'" />-->
+                        <!--<col class="is-hidden-touch" width="5%" />-->
+                        <!--<col class="is-hidden-touch" width="10%" />-->
+                        <!--<col :width="isMobile() ? '25%' : '10%'" />-->
+                        <!--<col class="is-hidden-touch" width="10%" />-->
+                        <!--<col class="is-hidden-touch" width="auto" />-->
+                        <!--<col width="10%" />-->
+                        <!--<col width="10%"/>-->
+                      <!--</colgroup>-->
+                      <!--<thead>-->
+                      <!--<tr>-->
+                        <!--<th>위치</th>-->
+                        <!--<th class="is-hidden-touch">공사</th>-->
+                        <!--<th class="is-hidden-touch">공정</th>-->
+                        <!--<th>상세공정</th>-->
+                        <!--<th class="is-hidden-touch">상세위치</th>-->
+                        <!--<th class="is-hidden-touch">자재</th>-->
+                        <!--<th class="has-text-right">인건비</th>-->
+                        <!--<th class="has-text-right">자재비</th>-->
+                      <!--</tr>-->
+                      <!--</thead>-->
+                      <!--<transition-group name="list" mode="out-in" tag="tbody">-->
+                        <!--<tr class="list-item"-->
+                            <!--:class="{'is-summary': generalData.is_summary}"-->
+                            <!--v-for="(generalData, index) in viewerData.general"-->
+                            <!--v-if="rowHideCondition(generalData, index)"-->
+                            <!--@click="openSubResource(generalData)"-->
+                            <!--v-bind:key="index">-->
+                          <!--<td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count - 1">{{generalData.place_name}}</td>-->
+                          <!--<td class="is-hidden-touch construction" v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count" :colspan="generalData.is_summary ? 6 : 1">{{generalData.ct_name}}</td>-->
+                          <!--<td class="is-hidden-touch" v-if="!generalData.is_summary && generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>-->
+                          <!--<td v-if="!generalData.is_summary && !generalData.hasOwnProperty('sub_key')">{{generalData.cpd_name}}</td>-->
 
-                          <!-- 소계용 -->
-                          <td class="is-hidden-desktop" v-if="generalData.is_summary" colspan="2">{{generalData.ct_name}}</td>
+                          <!--&lt;!&ndash; 소계용 &ndash;&gt;-->
+                          <!--<td class="is-hidden-desktop" v-if="generalData.is_summary" colspan="2">{{generalData.ct_name}}</td>-->
 
-                          <!-- 부자재 -->
-                          <td class="is-hidden-desktop" v-if="generalData.hasOwnProperty('sub_key')">{{generalData.rs_name}}</td>
+                          <!--&lt;!&ndash; 부자재 &ndash;&gt;-->
+                          <!--<td class="is-hidden-desktop" v-if="generalData.hasOwnProperty('sub_key')">{{generalData.rs_name}}</td>-->
 
-                          <td class="is-hidden-touch" v-if="!generalData.is_summary">{{generalData.detail_place}}</td>
-                          <td class="is-hidden-touch" v-if="!generalData.is_summary">{{generalData.rs_name}}<span class="resource-code" v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
-                          <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
-                          <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
-                        </tr>
-                      </transition-group>
-                    </table>
-                    <div class="more-btn-container" v-if="viewerData.general.length > 10">
-                      <button class="more-btn button" @click="toggleMoreData('general')">더보기</button>
-                    </div>
-                  </div>
-                </div>
+                          <!--<td class="is-hidden-touch" v-if="!generalData.is_summary">{{generalData.detail_place}}</td>-->
+                          <!--<td class="is-hidden-touch" v-if="!generalData.is_summary">{{generalData.rs_name}}<span class="resource-code" v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>-->
+                          <!--<td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>-->
+                          <!--<td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>-->
+                        <!--</tr>-->
+                      <!--</transition-group>-->
+                    <!--</table>-->
+                    <!--<div class="more-btn-container" v-if="viewerData.general.length > 10">-->
+                      <!--<button class="more-btn button" :class="{'none': isMoreBtnStatus.general}" @click="toggleMoreData('general')">더보기</button>-->
+                      <!--<button class="more-btn button" :class="{'none': !isMoreBtnStatus.general}" @click="toggleMoreData('general')">닫기</button>-->
+                    <!--</div>-->
+                  <!--</div>-->
+                <!--</div>-->
                 <div class="content" :class="{fold: isFoldStatus.resource}" ref="resourceTable">
                   <div class="title-container is-clearfix" @click="toggleTable('resource')">
                     <h3 class="subtitle is-pulled-left">자재비</h3>
@@ -176,7 +177,8 @@
                       </transition-group>
                     </table>
                     <div class="more-btn-container" v-if="viewerData.resource.length > 10">
-                      <button class="more-btn button" @click="toggleMoreData('resource')">더보기</button>
+                      <button class="more-btn button" :class="{'none': isMoreBtnStatus.resource}" @click="toggleMoreData('resource')">더보기</button>
+                      <button class="more-btn button" :class="{'none': !isMoreBtnStatus.resource}" @click="toggleMoreData('resource')">닫기</button>
                     </div>
                   </div>
                 </div>
@@ -228,7 +230,8 @@
                       </transition-group>
                     </table>
                     <div class="more-btn-container" v-if="viewerData.labor.length > 10">
-                      <button class="more-btn button" @click="toggleMoreData('labor')">더보기</button>
+                      <button class="more-btn button" :class="{'none': isMoreBtnStatus.labor}" @click="toggleMoreData('labor')">더보기</button>
+                      <button class="more-btn button" :class="{'none': !isMoreBtnStatus.labor}" @click="toggleMoreData('labor')">닫기</button>
                     </div>
                   </div>
                 </div>
@@ -252,7 +255,7 @@
                 </div>
                 <div class="content result is-hidden-touch">
                   <div class="title-container is-clearfix">
-                    <h3 class="subtitle is-pulled-left">총 견적 금액</h3>
+                    <h3 class="subtitle is-pulled-left">총 견적 금액<small>(VAT 별도)</small></h3>
                     <span class="is-pulled-right money-summary"><b>{{addCommas(viewerData.total.total_costs - (!viewerData.total.discount_amount ? 0 : viewerData.total.discount_amount))}}</b> 원</span>
                   </div>
                 </div>
@@ -383,8 +386,8 @@
         },
         isFoldStatus: {
           general: false,
-          labor: true,
-          resource: true
+          labor: false,
+          resource: false
         },
         siteImageList: {},
         enlargedImage: {
@@ -779,21 +782,7 @@
               return false
             }
             userInfo = response.data.data.contract
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/general?es_is_pre=${isPre}`)
-          })
 
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return false
-            }
-            general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/labor?es_is_pre=${isPre}`)
-          })
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            labor = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
@@ -801,6 +790,20 @@
               return
             }
             resource = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/labor?es_is_pre=${isPre}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return
+            }
+            labor = response.data.data.estimateList
+            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/general?es_is_pre=${isPre}`)
+          })
+          .then((response) => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            general = response.data.data.estimateList
             return this.$http.get(`${queryApi}/${id}/image`)
           })
           .then((response) => {

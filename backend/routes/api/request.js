@@ -83,7 +83,6 @@ router.get('/', (req, res) => {
     if (pageData.point !== null) {
       query = query.where('rq_pk', '<=', pageData.point);
     }
-    console.log(req.query.rq_manager)
     if (req.query.rq_manager.trim()) {
       query = query.where('rq_manager', 'like', `%${req.query.rq_manager}%`)
     }
@@ -96,14 +95,11 @@ router.get('/', (req, res) => {
       query = query.whereBetween('rq_reg_dt', [rqStartDt, rqEndDt])
     }
 
-    console.log(query.toSQL().toNative())
-
     let list = [];
     return query
       .clone()
       .count('* as count')
       .then(response => {
-        console.log(response)
         pageInst.setCount(response[0].count);
         return query
           .select('*')
@@ -141,7 +137,7 @@ router.get('/', (req, res) => {
         );
       })
       .catch(err => {
-        console.log(err);
+        console.error(err);
         res.json(
           resHelper.getError('상담요청 정보를 가지고 오는 중 알 수 없는 오류가 발생하였습니다.')
         )
@@ -194,7 +190,7 @@ router.post('/', (req, res) => {
         .insert(insertObj)
         .then(() => {
           if (process.env.NODE_ENV !== 'development') {
-            const msg = `비상. 비상. 신규 상담건이 쳐들어왔다.\n황경찬 장군은 전화 태세로 돌입하라.\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
+            const msg = `신규 상담건이 들어왔다... 풍악을 울려라아아아아앍\n\n고객명 : ${reqName}\n연락처 : ${FormatService.toDashedPhone(reqPhone.split('-').join(''))}`;
             httpClient.post('https://gridazip.slack.com/services/hooks/slackbot?token=yghQcur4F02uPsV7WeSAGMnX&channel=%23request_info', {form:msg});
           }
 
@@ -359,49 +355,56 @@ router.post('/contract/:rqpk([0-9]+)', (req, res) => {
             resHelper.getError('해당 상담 요청이 존재하지 않습니다.')
           );
         }
-        const data = response[0]
-        const constructionType = data.rq_construction_type ? `${data.rq_construction_type}\n` : ''
-        const consultingResult = data.rq_consulting_result ? `${data.rq_consulting_result}\n` : ''
-        const memo = data.rq_memo ? `${data.rq_memo}\n` : ''
 
-        const sendData = {
-          pc_name: data.rq_name,
-          pc_phone: cryptoHelper.decrypt(data.rq_phone),
-          pc_size: data.rq_size,
-          pc_address_brief: data.rq_address_brief,
-          pc_address_detail: data.rq_address_detail,
-          pc_move_date: data.rq_date,
-          pc_budget: data.rq_budget,
-          pc_memo: `${constructionType}${consultingResult}${memo}`
-        }
+        cur('request_tbl')
+          .where('rq_pk', rq_pk)
+          .update({rq_process_status: '상담완료'})
+          .then(result => {
+            const data = response[0]
+            const constructionType = data.rq_construction_type ? `${data.rq_construction_type}\n` : ''
+            const consultingResult = data.rq_consulting_result ? `${data.rq_consulting_result}\n` : ''
+            const memo = data.rq_memo ? `${data.rq_memo}\n` : ''
 
-        httpClient.post({
-          url: 'http://localhost:3000/api/contract',
-          form: sendData
-        }, (err, response, body) => {
-          let returnData
-          try {
-            returnData = JSON.parse(body)
-          }
-          catch (e) {
-            res.json(
-              resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
-            );
-            return;
-          }
+            const sendData = {
+              pc_name: data.rq_name,
+              pc_nickname: data.rq_nickname,
+              pc_phone: cryptoHelper.decrypt(data.rq_phone),
+              pc_size: request_size_map[data.rq_size],
+              pc_address_brief: data.rq_address_brief,
+              pc_address_detail: data.rq_address_detail,
+              pc_move_date: '',
+              pc_budget: data.rq_budget,
+              pc_memo: `${constructionType}${consultingResult}${memo}`
+            }
 
-          if (returnData.code !== 200) {
-            res.json(
-              resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
-            );
-            return;
-          }
+            httpClient.post({
+              url: 'http://localhost:3000/api/contract',
+              form: sendData
+            }, (err, response, body) => {
+              let returnData
+              try {
+                returnData = JSON.parse(body)
+              }
+              catch (e) {
+                res.json(
+                  resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
+                );
+                return;
+              }
 
-          res.json(
-            resHelper.getJson({
-              msg: 'ok'
-            })
-          );
+              if (returnData.code !== 200) {
+                res.json(
+                  resHelper.getError('상담정보를 진행 계약정보로 이동하는 과정에서 오류가 발생하였습니다.')
+                );
+                return;
+              }
+
+              res.json(
+                resHelper.getJson({
+                  msg: 'ok'
+                })
+              );
+          });
         })
       })
   });

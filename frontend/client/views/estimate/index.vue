@@ -16,6 +16,10 @@
       <div class="tile is-parent">
         <article class="tile is-child box">
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
+          <!--<a class="button is-primary is-pulled-right is-medium" id="testBtn" @click="queryReports">테스트</a>-->
+          <!-- The Sign-in button. This will run `queryReports()` on success. -->
+          <!--<p class="g-signin2" data-onsuccess="queryReports"></p>-->
+          <!--<div class="g-signin2" data-onsuccess="onSignIn"></div>-->
           <table class="table">
             <colgroup>
               <col width="auto" />
@@ -28,6 +32,7 @@
             <thead>
             <tr>
               <th>고객명</th>
+              <th>별칭</th>
               <th>전화번호</th>
               <th>주소</th>
               <th>공사시작일자</th>
@@ -39,6 +44,7 @@
             <tbody>
             <tr v-for="contract in contractList" @click="moveToPage(contract)" v-show="contract.pc_status !== -1 || isShowAllRow">
               <td>{{contract.pc_name}}</td>
+              <td>{{contract.pc_nickname}}</td>
               <td>{{contract.pc_phone}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
               <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>

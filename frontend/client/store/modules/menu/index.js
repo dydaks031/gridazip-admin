@@ -37,6 +37,16 @@ const state = {
       component: lazyLoading('portfolio', true)
     },
     {
+      name: '결재내역 조회',
+      path: '/private/receipt',
+      meta: {
+        icon: 'fa-rocket',
+        link: 'contractReceipt/index.vue',
+        auth: true
+      },
+      component: lazyLoading('contractReceipt', true)
+    },
+    {
       name: '협력업체 신청 목록',
       path: '/private/partner-list',
       meta: {

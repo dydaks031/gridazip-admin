@@ -1,11 +1,16 @@
 <template>
-  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="modalWidth" :height="'auto'" :clickToClose="true" @before-open="beforeOpen">
+  <modal name="imageEnlargedView" :classes="['image-enlarged-view']" :width="modalWidth" :height="'auto'" :clickToClose="true" @before-open="beforeOpen" @before-close="beforeClose">
     <div class="modal-card-head" @click="$modal.hide('imageEnlargedView')">
       <span class="close"></span>
     </div>
     <div class="modal-card-body">
       <span class="helper"></span>
-      <img :src="image.si_url" />
+      <div class="image-viewer" :class="{'is-receipt' : isReceipt}">
+        <span v-if="isReceipt" class="fa fa-angle-left" @click="imageMoveLeft"></span>
+        <img :src="currentImage.si_url" />
+        <span v-if="isReceipt" class="fa fa-angle-right" @click="imageMoveRight"></span>
+      </div>
+      <span v-if="isReceipt">{{parseInt(currentIndex, 10) + 1}}/{{imageGroup.length}}</span>
     </div>
   </modal>
 </template>
@@ -21,21 +26,65 @@
     props: {
       image: Object,
       imageGroup: Array,
-      index: Number
+      index: Number,
+      isReceipt: Boolean
     },
     data () {
       return {
-        modalWidth: 650
+        modalWidth: 650,
+        currentIndex: 0,
+        currentImage: {},
+        isOpen: false
       }
     },
     methods: {
       beforeOpen () {
-        console.log(this.$modal)
+        // Anti Pattern
+        window.document.querySelector('html').classList.add('scroll-block')
         if (this.isMobile()) {
           this.modalWidth = '90%'
         } else {
           this.modalWidth = 650
         }
+      },
+      imageMoveLeft () {
+        if (this.currentIndex === 0) {
+          return
+        }
+
+        this.currentIndex = this.currentIndex - 1
+        this.currentImage = this.imageGroup[this.currentIndex]
+      },
+      imageMoveRight () {
+        if (this.currentIndex === this.imageGroup.length - 1) {
+          return
+        }
+
+        this.currentIndex = this.currentIndex + 1
+        this.currentImage = this.imageGroup[this.currentIndex]
+      },
+      beforeClose () {
+        this.isOpen = false
+        // Anti Pattern
+        window.document.querySelector('html').classList.remove('scroll-block')
+      }
+    },
+    watch: {
+      image: {
+        handler (newValue) {
+          if (newValue.si_url) {
+            this.currentImage = newValue
+          }
+        },
+        deep: true
+      },
+      index: {
+        handler (newValue) {
+          if (newValue) {
+            this.currentIndex = newValue
+          }
+        },
+        deep: true
       }
     }
   }
@@ -60,10 +109,28 @@
     background:transparent;
     text-align: center;
     height: 70vh;
-    overflow: hidden;
-
-    > img {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    img {
       max-height: 100%;
+    }
+
+    .image-viewer {
+      &.is-receipt {
+        display: flex;
+        > img {
+          max-height: 100%;
+          max-width: 90%;
+          align-self: center;
+        }
+        span {
+          align-self: center;
+          font-size: 1.5rem;
+          padding: 0.5rem;
+          color: white;
+        }
+      }
     }
   }
 
@@ -96,6 +163,19 @@
     }
     &::after {
       transform: rotate(-45deg);
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .modal-card-body {
+      .image-viewer {
+        &.is-receipt {
+          > img {
+            max-height: 100%;
+            max-width: 85%;
+          }
+        }
+      }
     }
   }
 </style>
