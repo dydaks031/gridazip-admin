@@ -171,11 +171,9 @@
             this.cpdData = response.data.data[metaData.keyList.list]
           }
           if (metaData.id === 'resourceType' && this.isNewTab) {
-            // return this.$http.get(`/api/resource/unit`, )
             this.resourceTypeData = response.data.data[metaData.keyList.list]
           }
           if (metaData.id === 'resource' && this.isNewTab) {
-            // return this.$http.get(`/api/resource/unit`, )
             this.resourceData = response.data.data[metaData.keyList.list]
           }
         }).catch((error) => {

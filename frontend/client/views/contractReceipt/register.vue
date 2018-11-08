@@ -42,6 +42,7 @@
           <td>
             <label>인건비</label><input class="radio" type="radio" v-model="receipt.type" value="0" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <label>자재비</label><input class="radio" type="radio" v-model="receipt.type" value="1" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
+            <label>기타잡비</label><input class="radio" type="radio" v-model="receipt.type" value="2" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <div>
               <p class="help is-danger" v-if="!$v.receipt.type.required">구분을 입력 해 주십시오.</p>
             </div>
@@ -214,14 +215,41 @@
         if (!this.receipt.isVatIncluded) {
           this.receipt.isVatIncluded = false
         }
-        this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
+
+        if (this.receipt.attachedList.length === 0) {
+          window.alert('첨부파일은 필수로 등록해주셔야 합니다.')
+          return
+        }
+
+        this.receipt.accountNumber = this.receipt.accountNumber.toString().replace(/-/gi, '')
+
+        this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/receipt/isExist?price=${this.receipt.price}&accountNumber=${this.receipt.accountNumber}`)
+          .then(response => {
+            console.log(response)
+            const isExist = response.data.data.isExist === 'true' || response.data.data.isExist === true
+            if (isExist) {
+              if (window.confirm('동일한 내용의 결재 건이 존재합니다.\n그래도 올리시겠습니까?')) {
+                return this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
+              } else {
+                return null
+              }
+            } else {
+              return this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
+            }
+          })
           .then((response) => {
+            if (!response) {
+              return
+            }
             if (response.data.code !== 200) {
-              openNotification({
-                message: '결재 등록 중 오류가 발생했습니다.',
-                type: 'danger',
-                duration: 1500
-              })
+              if (response.data.message === 'ALREADY_EXIST_DATA') {
+              } else {
+                openNotification({
+                  message: '결재 등록 중 오류가 발생했습니다.',
+                  type: 'danger',
+                  duration: 1500
+                })
+              }
               return
             }
 
