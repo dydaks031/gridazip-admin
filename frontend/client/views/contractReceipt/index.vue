@@ -139,10 +139,10 @@
                     <td>{{receipt.statusName}}</td>
                     <td>{{receipt.memo}}</td>
                     <td class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
@@ -203,10 +203,10 @@
                     </tr>
                     <tr>
                       <td colspan="2" class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
@@ -402,9 +402,8 @@
             })
           })
       },
-      changeReceiptStatus (item, status) {
+      changeReceiptStatus (id, item, status) {
         this.checkPermission()
-        const id = item.pcPk
         let rejectReason
         if (status === 0) {
           rejectReason = window.prompt('반려사유를 입력해 주십시오.')
@@ -418,6 +417,19 @@
           rejectReason
         })
           .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '결재 진행 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '결재가 정상적으로 처리되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
             this.loadContractReceipt()
           })
       },

@@ -2619,7 +2619,6 @@ router.get('/:pcpk([0-9]+)/receipt/isExist', (req, res) => {
   const reqPcpk = req.params.pcpk;
   const reqPrice = req.query.price;
   const reqAccountNumber = req.query.accountNumber;
-  console.log()
 
   if (!reqPcpk || !reqPrice || !reqAccountNumber) {
     res.json(
@@ -2769,8 +2768,8 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
     }
   })
     .then(cur => {
-      console.log(reqRcStatus);
-      console.log(reqRcPk);
+      // console.log(reqRcStatus);
+      // console.log(reqRcPk);
       let obj = {};
       obj.rc_status = reqRcStatus;
       if (reqRcStatus === 0) {
