@@ -105,7 +105,10 @@
               <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
               <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" accept="image/*" multiple/>
             </span>
-            <img v-for="image in imageList" :src="image.url"/>
+            <div class="upload-image-wrapper" v-for="image in imageList" >
+              <img :src="image.url" />
+              <button class="button is-danger" @click="deleteFiles(image)">삭제</button>
+            </div>
           </td>
         </tr>
         <tr>
@@ -124,6 +127,7 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import FormData from 'form-data'
+  import _ from 'underscore'
 
   // const constructionQueryApi = '/api/construction'
   const contractQueryApi = '/api/contract'
@@ -305,6 +309,9 @@
               console.log(error)
             })
         }
+      },
+      deleteFiles (image) {
+        this.imageList = _.without(this.imageList, image)
       }
     },
     mounted () {
