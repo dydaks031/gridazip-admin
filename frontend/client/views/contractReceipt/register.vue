@@ -105,9 +105,11 @@
               <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
               <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" accept="image/*" multiple/>
             </span>
-            <div class="upload-image-wrapper" v-for="image in imageList" >
-              <img :src="image.url" />
+            <div class="upload-image-wrapper" v-for="(image, index) in imageList" >
+              <img :src="image.url" style="max-width:50%;"/>
+              <input type="file" :name='"receipt_upload[" + index + "]"' style="display:none;" :ref='"receipt_upload_" + index' v-on:change="onFileChanged($event, index)" />
               <button class="button is-danger" @click="deleteFiles(image)">삭제</button>
+              <button class="button is-info" @click="callFileUpload('receipt_upload_' + index)">수정</button>
             </div>
           </td>
         </tr>
