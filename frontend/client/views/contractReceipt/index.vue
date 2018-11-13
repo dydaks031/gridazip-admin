@@ -55,7 +55,10 @@
                   <td>{{account.accountBank}}</td>
                   <td>{{account.accountNumber}}</td>
                   <td>{{account.accountHolder}}</td>
-                  <td>{{account.price}}</td>
+                  <td>{{addCommas(account.price)}}</td>
+                </tr>
+                <tr v-if="receiptAccount.length > 0" class="price-summary-by-account">
+                  <td colspan="4">합게: {{addCommas(priceSummaryByAccount)}}</td>
                 </tr>
                 <tr v-if="receiptAccount.length === 0">
                   <td colspan="4" class="no-data">입금할 내역이 없습니다.</td>
@@ -313,6 +316,7 @@
     data () {
       return {
         moment,
+        priceSummaryByAccount: 0,
         page: new Pagenation(),
         filter: new Filter(),
         /* 결재 요청내역 */
@@ -349,6 +353,13 @@
             this.contractReceiptList = response.data.data.contract
             this.receiptAccount = response.data.data.receiptAccount || []
             this.receiptList = []
+
+            if (this.receiptAccount.length > 0) {
+              const reducer = (memo, num) => {
+                return memo + num
+              }
+              this.priceSummaryByAccount = _.reduce(_.pluck(this.receiptAccount, 'price'), reducer, 0)
+            }
 
             this.contractReceiptList.forEach(contract => {
               const reducer = (memo, num) => {
@@ -544,6 +555,13 @@
           th {
             color: black;
             border: 1px solid #cccccc;
+          }
+        }
+      }
+      tbody {
+        .price-summary-by-account {
+          td {
+            text-align: right;
           }
         }
       }
