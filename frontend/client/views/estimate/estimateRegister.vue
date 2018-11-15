@@ -115,7 +115,6 @@
         }
       },
       updateModifyView (data) {
-        console.log(data)
         EventBus.$emit('updateModifyView', data)
       },
       loadData () {

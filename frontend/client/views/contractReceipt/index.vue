@@ -275,7 +275,6 @@
   import Filter from '../../services/filter'
   import PaginationVue from '../components/pagination'
   import mixin from '../../services/mixin'
-  import PrivateWrapper from '../components/PrivateWrapper'
   import Datepicker from 'vue-bulma-datepicker'
   import router from '../../router'
   import moment from 'moment'
@@ -306,7 +305,6 @@
   export default {
     name: 'contractReceiptIndex',
     components: {
-      PrivateWrapper,
       PaginationVue,
       Notification,
       Datepicker,

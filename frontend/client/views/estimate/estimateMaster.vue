@@ -133,8 +133,6 @@
     },
     methods: {
       updateModifyView (data) {
-        console.log('updateModifyView')
-        console.log(data)
         const _data = deepClone(data)
         const estimateData = this.getEstimateAmount(_data.selectedData)
         EventBus.$emit('updateModifyView', {

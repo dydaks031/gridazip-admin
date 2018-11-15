@@ -62,13 +62,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr :class="{'is-summary': generalData.is_summary}" v-for="generalData in viewerData.general" v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)" @click="openSubResource(generalData)">
+          <tr
+            v-for="generalData in viewerData.general"
+            :class="{'is-summary': generalData.is_summary}"
+            v-if="generalData.rt_sub === 0 || (generalData.hasOwnProperty('sub_key') && isOpenSubResource[generalData.sub_key] === true)"
+            @click="openSubResource(generalData)">
+            <!-- 아래 걸려있는 v-if 는 row merge를 위한 숨김처리임 -->
             <td v-if="generalData.hasOwnProperty('place_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.place_count : 1 : generalData.place_count">{{generalData.place_name}}</td>
             <td v-if="generalData.hasOwnProperty('construction_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_count : 1 : generalData.construction_count">{{generalData.ct_name}}</td>
             <td v-if="generalData.hasOwnProperty('construction_process_count')" :rowspan="generalData.hasOwnProperty('sub_key') ?  isOpenSubResource[generalData.sub_key] === true ? generalData.construction_process_count : 1 : generalData.construction_process_count">{{generalData.cp_name}}</td>
             <td>{{generalData.cpd_name}}</td>
             <td>{{generalData.detail_place}}</td>
-          <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
+            <td>{{generalData.rs_name}}<span v-if="generalData.rs_code !== '' || generalData.ed_alias !== ''">({{generalData.ed_alias || generalData.rs_code}})</span></td>
             <td class="has-text-right">{{addCommas(generalData.labor_costs)}}</td>
             <td class="has-text-right">{{addCommas(generalData.resource_costs)}}</td>
           </tr>
@@ -429,11 +434,11 @@
           const placePk = placeItem[0].place_pk
           placeBySumData[i].push({
             cp_name: '',
-            cp_pk: '999',
+            cp_pk: 'summary',
             cpd_min_amount: '',
             cpd_name: '',
             ct_name: '소계',
-            ct_pk: '999',
+            ct_pk: 'summary',
             ed_alias: '',
             ed_input_value: '',
             labor_costs: _.reduce(placeItem, (memo, obj) => {
@@ -608,8 +613,8 @@
           const constructionPk = constructionItem[0].ct_pk
           constructionByData[i].push({
             ct_pk: constructionByData[i][0].ct_pk,
-            cp_pk: '999',
-            cpd_pk: '999',
+            cp_pk: 'summary',
+            cpd_pk: 'summary',
             cp_name: '소계',
             cpd_min_amount: '',
             cpd_name: '',

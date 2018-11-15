@@ -137,6 +137,8 @@
       deleteRow (data, index) {
         data.isRemoved = true
         data.selectedData.index = index
+        data.isChecked = false
+        this.$emit('unchecked', index)
         this.$forceUpdate()
         const _data = deepClone(data)
         _data.selectedData.ed_input_value = -(Math.abs(_data.selectedData.ed_input_value))
