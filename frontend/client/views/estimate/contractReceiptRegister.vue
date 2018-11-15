@@ -167,6 +167,19 @@
     methods: {
       registerReceipt () {
         this.receipt.attachedList = this.imageList
+
+        if (!this.receipt.isVatIncluded) {
+          this.receipt.isVatIncluded = false
+        }
+
+        if (this.receipt.attachedList.length === 0) {
+          window.alert('첨부파일은 필수로 등록해주셔야 합니다.')
+          return
+        }
+
+        this.receipt.accountNumber = this.receipt.accountNumber.toString().replace(/-/gi, '')
+        this.receipt.price = this.receipt.price.toString().replace('/,/gi', '')
+
         this.$http.post(`${queryApi}/${this.id}/receipt`, this.receipt)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -177,7 +190,6 @@
               })
               return
             }
-
             openNotification({
               message: '결재가 등록되었습니다.',
               type: 'success',

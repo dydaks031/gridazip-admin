@@ -228,6 +228,7 @@
         }
 
         this.receipt.accountNumber = this.receipt.accountNumber.toString().replace(/-/gi, '')
+        this.receipt.price = this.receipt.price.toString().replace('/,/gi', '')
 
         this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/receipt/isExist?price=${this.receipt.price}&accountNumber=${this.receipt.accountNumber}`)
           .then(response => {
