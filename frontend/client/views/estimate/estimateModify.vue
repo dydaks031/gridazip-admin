@@ -399,6 +399,7 @@
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
       },
+
       /**
        * Origin Data 와 변경할 데이터를 비교해 그 차를 계산하여 서버에 전송한다.
        */
@@ -426,6 +427,7 @@
               if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
                 item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
               }
+              // 삭제인 경우에는 차를 구하지 않는다.
               if (!this.dataGroup[index].isRemoved) {
                 item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
               }
