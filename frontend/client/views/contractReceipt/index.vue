@@ -5,11 +5,11 @@
         <div class="is-clearfix">
           <div class="is-pulled-left is-horizontal searchbox">
             <!--<div class="control is-inline-block">-->
-              <!--<label class="label">날짜</label>-->
-              <!--<p class="control">-->
-                <!--<datepicker />-->
-                <!--<button class="button">초기화</button>-->
-              <!--</p>-->
+            <!--<label class="label">날짜</label>-->
+            <!--<p class="control">-->
+            <!--<datepicker />-->
+            <!--<button class="button">초기화</button>-->
+            <!--</p>-->
             <!--</div>-->
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
@@ -51,18 +51,18 @@
               </tr>
               </thead>
               <tbody>
-                <tr v-for="account in receiptAccount">
-                  <td>{{account.accountBank}}</td>
-                  <td>{{account.accountNumber}}</td>
-                  <td>{{account.accountHolder}}</td>
-                  <td>{{addCommas(account.price)}}</td>
-                </tr>
-                <tr v-if="receiptAccount.length > 0" class="price-summary-by-account">
-                  <td colspan="4">합게: {{addCommas(priceSummaryByAccount)}}</td>
-                </tr>
-                <tr v-if="receiptAccount.length === 0">
-                  <td colspan="4" class="no-data">입금할 내역이 없습니다.</td>
-                </tr>
+              <tr v-for="account in receiptAccount">
+                <td>{{account.accountBank}}</td>
+                <td>{{account.accountNumber}}</td>
+                <td>{{account.accountHolder}}</td>
+                <td>{{addCommas(account.price)}}</td>
+              </tr>
+              <tr v-if="receiptAccount.length > 0" class="price-summary-by-account">
+                <td colspan="4">합게: {{addCommas(priceSummaryByAccount)}}</td>
+              </tr>
+              <tr v-if="receiptAccount.length === 0">
+                <td colspan="4" class="no-data">입금할 내역이 없습니다.</td>
+              </tr>
               </tbody>
             </table>
           </div>
@@ -88,20 +88,20 @@
                   </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="price in contract.price">
-                      <td>{{addCommas(price.ctName)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.laborPrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.resourcePrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.etcPrice)}}</td>
-                      <td class="contract-column-summary">{{addCommas(price.totalPrice)}}</td>
-                    </tr>
-                    <tr class="contract-row-summary">
-                      <td>계</td>
-                      <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.laborPrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.resourcePrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.etcPrice)}}</td>
-                      <td>{{addCommas(contract.priceSummary.totalPrice)}}</td>
-                    </tr>
+                  <tr v-for="price in contract.price">
+                    <td>{{addCommas(price.ctName)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.laborPrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.resourcePrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.etcPrice)}}</td>
+                    <td class="contract-column-summary">{{addCommas(price.totalPrice)}}</td>
+                  </tr>
+                  <tr class="contract-row-summary">
+                    <td>계</td>
+                    <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.laborPrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.resourcePrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(contract.priceSummary.etcPrice)}}</td>
+                    <td>{{addCommas(contract.priceSummary.totalPrice)}}</td>
+                  </tr>
                   </tbody>
                 </table>
                 <div class="title-view">
@@ -109,20 +109,20 @@
                 </div>
                 <table class="table is-bordered contract-receipt-list is-hidden-touch">
                   <thead>
-                    <tr>
-                      <th>기안자</th>
-                      <th>비용청구일자</th>
-                      <th>공사</th>
-                      <th>비용구분</th>
-                      <th>비용상세내역</th>
-                      <th>청구금액</th>
-                      <th>부가세</th>
-                      <th>입금정보</th>
-                      <th>첨부서류</th>
-                      <th>결재상태</th>
-                      <th>메모</th>
-                      <th>결재</th>
-                    </tr>
+                  <tr>
+                    <th>기안자</th>
+                    <th>비용청구일자</th>
+                    <th>공사</th>
+                    <th>비용구분</th>
+                    <th>비용상세내역</th>
+                    <th>청구금액</th>
+                    <th>부가세</th>
+                    <th>입금정보</th>
+                    <th>첨부서류</th>
+                    <th>결재상태</th>
+                    <th>메모</th>
+                    <th>결재</th>
+                  </tr>
                   </thead>
                   <tbody v-for="receipt in contract.receipt" v-if="receipt.status !== -1" >
                   <tr>
@@ -142,74 +142,74 @@
                     <td>{{receipt.statusName}}</td>
                     <td>{{receipt.memo}}</td>
                     <td class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
                 </table>
                 <table class="table is-bordered contract-receipt-list is-hidden-desktop" v-if="contractReceiptList.length !== 0">
                   <tbody v-for="receipt in contract.receipt" v-if="receipt.status !== -1" >
-                    <tr>
-                      <th>날짜</th>
-                      <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
-                    </tr>
-                    <tr>
-                      <th>공사</th>
-                      <td>{{receipt.ctName}}</td>
-                    </tr>
-                    <tr>
-                      <th>구분</th>
-                      <td>{{receipt.typeToString}}</td>
-                    </tr>
-                    <tr>
-                      <th>내용</th>
-                      <td>{{receipt.contents}}</td>
-                    </tr>
-                    <tr>
-                      <th>금액</th>
-                      <td>{{addCommas(receipt.price)}}</td>
-                    </tr>
-                    <tr>
-                      <th>부가세</th>
-                      <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-                    </tr>
-                    <tr>
-                      <th>은행명</th>
-                      <td>{{receipt.accountBank}}</td>
-                    </tr>
-                    <tr>
-                      <th>예금주</th>
-                      <td>{{receipt.accountHolder}}</td>
-                    </tr>
-                    <tr>
-                      <th>계좌번호</th>
-                      <td>{{receipt.accountNumber}}</td>
-                    </tr>
-                    <tr>
-                      <th>첨부서류</th>
-                      <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
-                    </tr>
-                    <tr>
-                      <th>진행상태</th>
-                      <td>{{receipt.statusName}}</td>
-                    </tr>
-                    <tr v-if="!receipt.rejectReason">
-                      <th>메모</th>
-                      <td>{{receipt.memo}}</td>
-                    </tr>
-                    <tr v-if="receipt.rejectReason">
-                      <th>반려사유</th>
-                      <td>{{receipt.rejectReason}}</td>
-                    </tr>
-                    <tr>
-                      <td colspan="2" class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                  <tr>
+                    <th>날짜</th>
+                    <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                  </tr>
+                  <tr>
+                    <th>공사</th>
+                    <td>{{receipt.ctName}}</td>
+                  </tr>
+                  <tr>
+                    <th>구분</th>
+                    <td>{{receipt.typeToString}}</td>
+                  </tr>
+                  <tr>
+                    <th>내용</th>
+                    <td>{{receipt.contents}}</td>
+                  </tr>
+                  <tr>
+                    <th>금액</th>
+                    <td>{{addCommas(receipt.price)}}</td>
+                  </tr>
+                  <tr>
+                    <th>부가세</th>
+                    <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+                  </tr>
+                  <tr>
+                    <th>은행명</th>
+                    <td>{{receipt.accountBank}}</td>
+                  </tr>
+                  <tr>
+                    <th>예금주</th>
+                    <td>{{receipt.accountHolder}}</td>
+                  </tr>
+                  <tr>
+                    <th>계좌번호</th>
+                    <td>{{receipt.accountNumber}}</td>
+                  </tr>
+                  <tr>
+                    <th>첨부서류</th>
+                    <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
+                  </tr>
+                  <tr>
+                    <th>진행상태</th>
+                    <td>{{receipt.statusName}}</td>
+                  </tr>
+                  <tr v-if="!receipt.rejectReason">
+                    <th>메모</th>
+                    <td>{{receipt.memo}}</td>
+                  </tr>
+                  <tr v-if="receipt.rejectReason">
+                    <th>반려사유</th>
+                    <td>{{receipt.rejectReason}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" class="receipt-button-wrapper">
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
@@ -411,9 +411,8 @@
             })
           })
       },
-      changeReceiptStatus (item, status) {
+      changeReceiptStatus (id, item, status) {
         this.checkPermission()
-        const id = item.pcPk
         let rejectReason
         if (status === 0) {
           rejectReason = window.prompt('반려사유를 입력해 주십시오.')
@@ -427,6 +426,19 @@
           rejectReason
         })
           .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '결재 진행 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '결재가 정상적으로 처리되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
             this.loadContractReceipt()
           })
       },
