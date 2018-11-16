@@ -520,6 +520,7 @@
         for (let i = 0; i < resultCount; i++) {
           item = resultData[i]
           // 이미 위에서 place_pk, ct_pk, cp_pk 로 정렬해놓은 데이터이기 떄문에 해당 코드가 성립할 수 있음
+          // 각 PK 별로 반복 시 처음 만난 PK에만 count를 적용해야해서 firstMeetPk object를 만들어 처리함
           if (!firstMeetPk.place.hasOwnProperty(item.place_pk)) {
             item.place_count = mergeCount[item.place_pk].count
             firstMeetPk.place[item.place_pk] = {
