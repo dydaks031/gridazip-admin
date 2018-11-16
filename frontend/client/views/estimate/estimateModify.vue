@@ -399,6 +399,9 @@
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
       },
+      /**
+       * Origin Data 와 변경할 데이터를 비교해 그 차를 계산하여 서버에 전송한다.
+       */
       getNewTabDataByDiffOriginData () {
         const selectedData = deepClone(_.pluck(this.dataGroup, 'selectedData'))
         const originData = deepClone(_.pluck(this.originDataGroup, 'selectedData'))
@@ -435,19 +438,13 @@
             })
             targetOriginData.ed_input_value = -Math.abs(targetOriginData.ed_input_value)
             targetOriginData = this.estimateAmountCalculation(targetOriginData)
+            // ????? Why?
             sendData.push(targetOriginData)
             sendData.push(item)
           }
         })
         return sendData
       },
-      /**
-       * recursive function
-       * @param model model to removed
-       * @param target selected element's one depth child
-       * @param parent selected element
-       *
-       */
       removeChildData (data, type, model, target, parent, key) {
         let currentId = model.id
         let child
