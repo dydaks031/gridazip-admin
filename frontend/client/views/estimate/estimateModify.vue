@@ -368,6 +368,7 @@
       cancelRemoveRow (data, index) {
         data.isRemoved = false
         this.dataGroup = _.without(this.dataGroup, data)
+        this.originDataGroup = _.without(this.originDataGroup[index], index)
         EventBus.$emit('cancelDeleteMasterModifyView', data)
       },
       getType (id) {
@@ -398,11 +399,14 @@
         }
         this.removeChildData(data, type, metaData, curDepthTarget, metaData, key)
       },
+      /**
+       * Origin Data 와 변경할 데이터를 비교해 그 차를 계산하여 서버에 전송한다.
+       */
       getNewTabDataByDiffOriginData () {
         const selectedData = deepClone(_.pluck(this.dataGroup, 'selectedData'))
         const originData = deepClone(_.pluck(this.originDataGroup, 'selectedData'))
         const sendData = []
-        _.forEach(selectedData, (item) => {
+        _.forEach(selectedData, (item, index) => {
           let targetOriginData = _.find(originData, (origin) => {
             return parseInt(item.ed_place_pk, 10) === parseInt(origin.ed_place_pk, 10) &&
               item.ed_detail_place === origin.ed_detail_place &&
@@ -422,7 +426,9 @@
               if (currentInputValueToFixed === originInputValueToFixed && parseFloat(item.ed_resource_amount).toFixed(2) !== parseFloat(targetOriginData.ed_resource_amount).toFixed(2)) {
                 item.ed_resource_amount = (item.ed_resource_amount - targetOriginData.ed_resource_amount).toFixed(2)
               }
-              item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
+              if (!this.dataGroup[index].isRemoved) {
+                item.ed_input_value = (item.ed_input_value - targetOriginData.ed_input_value).toFixed(2)
+              }
               const _item = this.estimateAmountCalculation(item)
               sendData.push(_item)
             }
@@ -432,19 +438,13 @@
             })
             targetOriginData.ed_input_value = -Math.abs(targetOriginData.ed_input_value)
             targetOriginData = this.estimateAmountCalculation(targetOriginData)
+            // ????? Why?
             sendData.push(targetOriginData)
             sendData.push(item)
           }
         })
         return sendData
       },
-      /**
-       * recursive function
-       * @param model model to removed
-       * @param target selected element's one depth child
-       * @param parent selected element
-       *
-       */
       removeChildData (data, type, model, target, parent, key) {
         let currentId = model.id
         let child

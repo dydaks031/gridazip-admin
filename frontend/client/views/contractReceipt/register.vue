@@ -222,6 +222,7 @@
         }
 
         this.receipt.accountNumber = this.receipt.accountNumber.toString().replace(/-/gi, '')
+        this.receipt.price = this.receipt.price.toString().replace('/,/gi', '')
 
         this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/receipt/isExist?price=${this.receipt.price}&accountNumber=${this.receipt.accountNumber}`)
           .then(response => {
@@ -242,14 +243,11 @@
               return
             }
             if (response.data.code !== 200) {
-              if (response.data.message === 'ALREADY_EXIST_DATA') {
-              } else {
-                openNotification({
-                  message: '결재 등록 중 오류가 발생했습니다.',
-                  type: 'danger',
-                  duration: 1500
-                })
-              }
+              openNotification({
+                message: '결재 등록 중 오류가 발생했습니다.',
+                type: 'danger',
+                duration: 1500
+              })
               return
             }
 

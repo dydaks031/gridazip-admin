@@ -48,7 +48,6 @@
   import router from '../../router'
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
-  import AppLink from '../components/app-link'
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   const NotificationComponent = Vue.extend(Notification)
@@ -72,8 +71,7 @@
   export default {
     name: 'partnerList',
     components: {
-      PaginationVue,
-      AppLink
+      PaginationVue
     },
     data () {
       return {

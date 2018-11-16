@@ -180,6 +180,10 @@
           console.error(error)
         })
       },
+
+      /**
+       * Select2 형태에 맞게 Data 변환
+       */
       changedDataToSelect2Data (metaData, keyList = {}, data = []) {
         const convertData = []
         _.forEach(data, (item) => {
@@ -197,6 +201,9 @@
         })
         return convertData
       },
+      /**
+       * Data 변경 시 이벤트
+       */
       changedData (id, key) {
         const type = this.getType(id)
         const metaData = _.find(this.metaData[type], (item) => {
@@ -224,7 +231,6 @@
         }
 
         if (metaData.id === 'resource' && this.isNewTab) {
-          // return this.$http.get(`/api/resource/unit`, )
           const selectedData = _.find(this.resourceData, (item) => {
             return item.rs_pk.toString() === this.selected.ed_rspk.toString()
           })
@@ -233,14 +239,16 @@
             this.selected.rs_price = selectedData.rs_price
           }
         }
+        // 변경된 데이터의 하위 데이터는 초기화한다.
         this.removeChildData(type, metaData, curDepthTarget, metaData, key)
       },
       /**
-       * recursive function
-       * @param model model to removed
-       * @param target selected element's one depth child
-       * @param parent selected element
-       *
+       * 하위 데이터를 초기화히기 위해 재귀로 동작하는 함수
+       * @param type 공사 및 자재 데이터의 구분
+       * @param model 지워야 할 데이터
+       * @param target 지워야 할 데이터의 하위 Depth 객체
+       * @param parent 부모의 metadata
+       * @param key 부모의 pk가 서버로 전송될 떄의 key 값
        */
       removeChildData (type, model, target, parent, key) {
         let currentId = model.id
@@ -264,7 +272,7 @@
               return item.id === child[i].id
             })
 
-            // if child element need api request (selected element's one depth child)
+            // 하위 객체가 초기화되면서 API 호출이 필요한 경우
             if (typeof isReloadItem === 'object') {
               // // call to child's method
               const data = {}
@@ -325,9 +333,7 @@
       }
     },
     mounted () {
-      console.log(META_LODING_CONFIG)
       this.params = this.$route.params
-      console.log(this.isNewTab)
     },
     created () {
       this.metaData = deepClone(META_LODING_CONFIG)
@@ -340,6 +346,7 @@
       const resourceCategoryData = _.find(this.metaData.resource, (item) => {
         return item.id === 'resourceCategory'
       })
+      // 초기에 필요한 데이터 로드 (공사, 공사위치, 자재분류)
       this.loadData({
         metaData: constructionData
       })

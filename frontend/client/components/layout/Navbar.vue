@@ -7,16 +7,6 @@
             <i class="fa fa-bars" aria-hidden="true" v-show="!sidebar.hidden"></i>
           </a>
         </div>
-        <!--<div class="nav-center">-->
-          <!--<a class="nav-item hero-brand" href="/">-->
-            <!--<img src="~assets/logo.svg" :alt="pkginfo.description">-->
-            <!--<tooltip :label="'v' + pkginfo.version" placement="right" type="success" size="small" :no-animate="true" :always="true" :rounded="true">-->
-              <!--<div class="is-hidden-mobile">-->
-                <!--<span class="vue">Vue</span><strong class="admin">Admin</strong>-->
-              <!--</div>-->
-            <!--</tooltip>-->
-          <!--</a>-->
-        <!--</div>-->
         <div class="nav-right is-flex">
           <router-link v-if="!$auth.check()" to="/login" class="nav-item">Login</router-link>
           <a v-if="$auth.check()" @click="logout" class="nav-item">Logout</a>
