@@ -18,6 +18,8 @@ router.get('/', (req, res) => {
         'cr_pk',
         'ct_pk',
         'ct_name',
+        'cp_pk',
+        'cp_name',
         'cr_name',
         'cr_contact',
         'cr_communication_score',
@@ -26,6 +28,7 @@ router.get('/', (req, res) => {
         )
       .leftJoin({cs: 'constructor_skill_tbl'}, 'cr.cr_pk', 'cs.cs_crpk')
       .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+      .leftJoin({cp: 'construction_process_tbl'}, 'cs.cs_cppk', 'cp.cp_pk')
       .where('cr_deleted', false)
       .orderBy('ct.ct_pk', 'cr.cr_name');
 
@@ -92,10 +95,13 @@ router.get('/:pk([0-9]+)', (req, res) => {
               'cs_pk',
               'ct_pk',
               'ct_name',
+              'cp_pk',
+              'cp_name',
               'cs_skill_score',
               'cs_memo'
             )
             .leftJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+            .leftJoin({cp: 'construction_process_tbl'}, 'cs.cs_cppk', 'cp.cp_pk')
             .where('cs.cs_crpk', reqPk)
             .orderBy('cs.cs_pk')
             .then(response => {
@@ -120,6 +126,9 @@ router.get('/:pk([0-9]+)', (req, res) => {
 router.post('/', (req, res) => {
   const reqName = req.body.cr_name || '';
   const reqContact = req.body.cr_contact || '';
+  const reqAccountBank = req.body.cr_account_bank || '';
+  const reqAccountHolder = req.body.cr_account_holder || '';
+  const reqAccountNumber = req.body.cr_account_number || '';
   const reqCommunicationScore = req.body.cr_communication_score || 0;
   const reqSkillList = req.body.constructorSkillList || [];
 
@@ -139,13 +148,15 @@ router.post('/', (req, res) => {
         return res.json(resHelper.getError('[0003] 파라메터가 올바르지 않습니다.'));
       }
     });
-
     knexBuilder.getConnection().then(cur => {
       cur.transaction(trx => {
         cur('constructor_tbl')
           .insert({
             cr_name: reqName,
             cr_contact: cryptoHelper.encrypt(reqContact.split('-').join('')),
+            cr_account_bank: reqAccountBank,
+            cr_account_holder: reqAccountHolder,
+            cr_account_number: reqAccountNumber,
             cr_communication_score: reqCommunicationScore
           })
           .returning('cr_pk')
@@ -156,7 +167,10 @@ router.post('/', (req, res) => {
             reqSkillList.forEach(obj => {
               query.push(cur.table('constructor_skill_tbl')
                 .insert({
-                  ...obj,
+                  cs_ctpk: obj.cs_ctpk,
+                  cs_cppk: obj.cs_cppk,
+                  cs_memo: obj.cs_memo,
+                  cs_skill_score: obj.cs_skill_score,
                   cs_crpk: crPk
                 })
                 .transacting(trx));
@@ -275,6 +289,7 @@ router.get('/:crpk([0-9]+)/skill', (req, res) => {
 router.post('/:crpk([0-9]+)/skill', (req, res) => {
   const reqCrPk = req.params.crpk || '';
   const reqCtPk = req.body.ct_pk || '';
+  const reqCpPk = req.body.cp_pk || '';
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
 
@@ -285,6 +300,7 @@ router.post('/:crpk([0-9]+)/skill', (req, res) => {
     const obj = {};
     obj.cs_crpk = reqCrPk;
     obj.cs_ctpk = reqCtPk;
+    obj.cs_cppk = reqCpPk;
     obj.cs_skill_score = reqSkillScore;
     obj.cs_memo = reqMemo;
 
@@ -311,6 +327,7 @@ router.post('/:crpk([0-9]+)/skill', (req, res) => {
 router.put('/:crpk([0-9]+)/skill/:pk([0-9]+)', (req, res) => {
   const reqPk = req.params.pk || '';
   const reqCtPk = req.body.ct_pk || '';
+  const reqCpPk = req.body.cp_pk || '';
   const reqSkillScore = req.body.cs_skill_score || '';
   const reqMemo = req.body.cs_memo || '';
 
@@ -320,6 +337,7 @@ router.put('/:crpk([0-9]+)/skill/:pk([0-9]+)', (req, res) => {
   else {
     const obj = {};
     obj.cs_ctpk = reqCtPk;
+    obj.cs_cppk = reqCpPk;
     obj.cs_skill_score = reqSkillScore;
     obj.cs_memo = reqMemo;
     knexBuilder.getConnection().then(cur => {

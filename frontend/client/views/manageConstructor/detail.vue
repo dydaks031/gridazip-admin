@@ -15,6 +15,18 @@
               <input class="input" type="text" v-model="data.constructor.cr_contact" :class="{'is-danger': $v.data.constructor.cr_contact.$invalid }"/>
               <p class="help is-danger" v-if="!$v.data.constructor.cr_contact.required">연락처를 입력해 주십시오.</p>
             </div>
+            <label class="label">예금은행</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_bank"/>
+            </div>
+            <label class="label">예금주</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_holder"/>
+            </div>
+            <label class="label">계좌번호</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_number"/>
+            </div>
             <label class="label">평점</label>
             <div class="control">
               <star-rating v-model="data.constructor.cr_communication_score" :show-rating="false" :star-size="35"></star-rating>
@@ -28,14 +40,16 @@
           <h1 class="title">보유기술 정보</h1>
           <table class="table">
             <colgroup>
-              <col width="5%" />
+              <col width="10%" />
+              <col width="15%" />
               <col width="8%" />
-              <col width="75%" />
+              <col width="auto" />
               <col width="15%" />
             </colgroup>
             <thead>
               <tr>
                 <th>공사</th>
+                <th>공정</th>
                 <th>평점</th>
                 <th>비고</th>
                 <th></th>
@@ -46,9 +60,18 @@
                 <td>
                   <span v-if="!item.isModify">{{item.ct_name}}</span>
                   <div class="select" v-if="item.isModify">
-                    <select v-model="item.ct_pk">
+                    <select v-model="item.ct_pk" @change="changeConstruction(item)">
                       <option value="" disabled class="disabled">선택</option>
                       <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <span v-if="!item.isModify">{{item.cp_name}}</span>
+                  <div class="select" v-if="item.isModify">
+                    <select v-model="item.cp_pk">
+                      <option value="">선택</option>
+                      <option v-for="constructionProcess in item.constructionProcessList" :value="constructionProcess.cp_pk">{{constructionProcess.cp_name}}</option>
                     </select>
                   </div>
                 </td>
@@ -69,9 +92,17 @@
               <tr>
                 <td>
                   <div class="select">
-                    <select v-model="newData.ct_pk">
+                    <select v-model="newData.ct_pk" @change="changeConstruction(newData)">
                       <option value="" disabled class="disabled">선택</option>
                       <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                    </select>
+                  </div>
+                </td>
+                <td>
+                  <div class="select">
+                    <select v-model="newData.cp_pk">
+                      <option value="">선택</option>
+                      <option v-for="constructionProcess in newData.constructionProcessList" :value="constructionProcess.cp_pk">{{constructionProcess.cp_name}}</option>
                     </select>
                   </div>
                 </td>
@@ -212,6 +243,7 @@
 
   const queryApi = '/api'
   const constructionQueryApi = '/api/construction'
+  const constructionProcessQueryApi = '/api/construction/process'
   const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
@@ -232,9 +264,11 @@
         resourceCategoryList: [],
         newData: {
           ct_pk: '',
+          cp_pk: '',
           cs_skill_score: 0,
           cs_memo: '',
-          rc_pk: ''
+          rc_pk: '',
+          constructionProcessList: []
         },
         router
       }
@@ -284,6 +318,9 @@
       },
       toggleRow (item) {
         item.isModify = !item.isModify
+        if (item.isModify) {
+          this.getConstructionProcessList(item)
+        }
         this.$forceUpdate()
       },
       updateConstructor (validator) {
@@ -321,9 +358,17 @@
 
             insertData.cs_pk = data.cs_pk
             insertData.ct_name = constructionName.ct_name
+            insertData.cp_name = insertData.constructionProcessList[0].cp_name
             console.log(insertData)
             this.data.constructorSkillList.push(insertData)
-            this.newData = {}
+            this.newData = {
+              ct_pk: '',
+              cp_pk: '',
+              cs_skill_score: 0,
+              cs_memo: '',
+              rc_pk: '',
+              constructionProcessList: []
+            }
 
             openNotification({
               message: '기술 정보가 추가되었습니다.',
@@ -344,9 +389,15 @@
             const construction = _.find(this.constructionList, (_construction) => {
               return _construction.ct_pk === item.ct_pk
             })
-
+            let constructionProcess = _.find(item.constructionProcessList, (_constructionProcess) => {
+              return _constructionProcess.cp_pk === item.cp_pk
+            })
+            if (!constructionProcess) constructionProcess = { cp_name: '', cp_pk: '' }
             item.isModify = false
             item.ct_name = construction.ct_name
+            item.cp_name = constructionProcess.cp_name
+
+            console.log(item)
             openNotification({
               message: '기술 정보가 수정되었습니다.',
               type: 'success',
@@ -393,6 +444,25 @@
           })
           .catch((error) => {
             console.error(error)
+          })
+      },
+      changeConstruction (item) {
+        item.cp_pk = ''
+        this.getConstructionProcessList(item)
+      },
+      getConstructionProcessList (item) {
+        this.$http.get(`${constructionProcessQueryApi}?ct_pk=${item.ct_pk}`)
+          .then(response => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: `조회 중 오류가 발생하였습니다.`,
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
+            item.constructionProcessList = response.data.data.constructionProcessList
+            this.$forceUpdate()
           })
       },
       updateCorrespondent (validator) {
