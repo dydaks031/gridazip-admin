@@ -15,6 +15,18 @@
               <input class="input" type="text" v-model="newData.cr_contact" :class="{'is-danger': $v.newData.cr_contact.$invalid }"/>
               <p class="help is-danger" v-if="!$v.newData.cr_contact.required">전화번호를 입력해 주십시오.</p>
             </div>
+            <label class="label">예금은행</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_bank"/>
+            </div>
+            <label class="label">예금주</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_holder"/>
+            </div>
+            <label class="label">계좌번호</label>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.cr_account_number"/>
+            </div>
             <label class="label">평점(소통)</label>
             <div class="control">
               <star-rating v-model="newData.cr_communication_score" :show-rating="false" :star-size="35" />
@@ -24,14 +36,16 @@
           <h1 class="title">보유기술 정보</h1>
           <table class="table">
             <colgroup>
-              <col width="5%" />
+              <col width="10%" />
+              <col width="15%" />
               <col width="8%" />
-              <col width="75%" />
+              <col width="auto" />
               <col width="15%" />
             </colgroup>
             <thead>
             <tr>
-              <th>공사</th>
+              <th>공사*</th>
+              <th>공정</th>
               <th>평점</th>
               <th>비고</th>
               <th></th>
@@ -41,9 +55,17 @@
             <tr v-for="(skill, index) in newData.constructorSkillList">
               <td>
                 <div class="select">
-                  <select v-model="skill.cs_ctpk">
+                  <select v-model="skill.cs_ctpk" @change="getConstructionProcessList(skill)">
                     <option value="" disabled class="disabled">선택</option>
                     <option v-for="construction in constructionList" :value="construction.ct_pk">{{construction.ct_name}}</option>
+                  </select>
+                </div>
+              </td>
+              <td>
+                <div class="select">
+                  <select v-model="skill.cs_cppk">
+                    <option value="">선택</option>
+                    <option v-for="constructionProcess in skill.constructionProcessList" :value="constructionProcess.cp_pk">{{constructionProcess.cp_name}}</option>
                   </select>
                 </div>
               </td>
@@ -54,7 +76,7 @@
               </td>
               <td>
                 <button class="button is-primary" @click="addSkillList">추가</button>
-                <button class="button" @click="removeSkillList(item)" v-show="index !== 0">삭제</button>
+                <button class="button" @click="removeSkillList(skill)" v-show="index !== 0">삭제</button>
               </td>
             </tr>
             </tbody>
@@ -160,6 +182,7 @@
 
   const queryApi = '/api'
   const constructionQueryApi = '/api/construction'
+  const constructionProcessQueryApi = '/api/construction/process'
   const resourceCategoryQueryApi = '/api/resource/category'
 
   export default {
@@ -180,6 +203,9 @@
         newData: {
           cr_name: '',
           cr_contact: '',
+          cr_account_bank: '',
+          cr_account_holder: '',
+          cr_account_number: '',
           co_name: '',
           co_manager_name: '',
           co_location: '',
@@ -187,8 +213,10 @@
           cr_communication_score: 0,
           constructorSkillList: [{
             cs_ctpk: '',
+            cs_cppk: '',
             cs_memo: '',
-            cs_skill_score: 0
+            cs_skill_score: 0,
+            constructionProcessList: []
           }],
           correspondentItemList: [{
             ci_rcpk: '',
@@ -257,6 +285,21 @@
             console.error(error)
           })
       },
+      getConstructionProcessList (skill) {
+        skill.cs_cppk = ''
+        this.$http.get(`${constructionProcessQueryApi}?ct_pk=${skill.cs_ctpk}`)
+          .then(response => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: `조회 중 오류가 발생하였습니다.`,
+                type: 'danger',
+                duration: 1500
+              })
+              return false
+            }
+            skill.constructionProcessList = response.data.data.constructionProcessList
+          })
+      },
       createData (validator) {
         if (validator.$invalid) {
           return false
@@ -303,8 +346,10 @@
       addSkillList () {
         this.newData.constructorSkillList.push({
           cs_ctpk: '',
+          cs_cppk: '',
           cs_memo: '',
-          cs_skill_score: ''
+          cs_skill_score: 0,
+          constructionProcessList: []
         })
       },
       removeSkillList (item) {
