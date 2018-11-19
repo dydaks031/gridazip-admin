@@ -38,10 +38,12 @@
                 <col width="auto" />
                 <col width="auto" />
                 <col width="auto" />
+                <col width="auto" />
               </colgroup>
               <thead>
               <tr>
                 <th>공사</th>
+                <th>공정</th>
                 <th>이름</th>
                 <th>전화번호</th>
                 <th>평점(실력)</th>
@@ -52,6 +54,7 @@
               <tbody>
               <tr v-for="item in data.constructor" @click="moveToDetail(item)">
                 <td>{{item.ct_name}}</td>
+                <td>{{item.cp_name}}</td>
                 <td>{{item.cr_name}}</td>
                 <td>{{item.cr_contact}}</td>
                 <td>

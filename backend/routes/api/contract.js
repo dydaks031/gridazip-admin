@@ -2009,6 +2009,7 @@ router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
         'cr_pk',
         'ct_pk',
         'ct_name',
+        'cp_name',
         'cr_name',
         'cr_contact',
         'cr_communication_score',
@@ -2019,6 +2020,7 @@ router.get('/:pcpk([0-9]+)/constructor', (req, res) => {
         this.on('cc.cc_crpk','=','cs.cs_crpk').andOn('cc.cc_ctpk','=','cs.cs_ctpk')
       })
       .innerJoin({ct: 'construction_tbl'}, 'cs.cs_ctpk', 'ct.ct_pk')
+      .innerJoin({cp: 'construction_process_tbl'}, 'cs.cs_cppk', 'cp.cp_pk')
       .where('cc.cc_pcpk', reqPcPk)
       .map(obj => {
         obj.cr_contact = FormatService.toDashedPhone(cryptoHelper.decrypt(obj.cr_contact));
@@ -2503,7 +2505,8 @@ router.get('/receipt', (req, res) => {
       returnData.contract = await Promise.all(response.map(async o => {
         const totalCosts = await getContractTotalCosts(connector, o.pk, 0);
         let result = totalCosts[0][0];
-        // console.log(result)
+        // console.log(totalCosts)
+        console.log(result)
         o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
         // console.log(receiptTotalQuery.toSQL().toNative());
         const receiptTotalCosts = await connector('receipt_tbl')
