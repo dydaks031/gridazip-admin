@@ -237,6 +237,7 @@ router.delete('/:rqpk([0-9]+)', (req, res) => {
 });
 
 router.put('/:rqpk([0-9]+)', (req, res) => {
+  const consultingFailReasonList = require('../../services/app/global').consultingFailReasonList;
   const rq_pk = req.params.rqpk;
   const regexPhone = /^01([0|1|6|7|8|9]?)-?([0-9]{3,4})-?([0-9]{4})$/;
   let errorMsg = null;
@@ -279,7 +280,7 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
     updateObj.rq_construction_type = req.body.rq_construction_type || '';
     updateObj.rq_consulting_result = req.body.rq_consulting_result || '';
     updateObj.rq_process_status = req.body.rq_process_status;
-    updateObj.rq_fail_reason = req.body.rq_fail_reason || '';
+    updateObj.rq_fail_reason = (consultingFailReasonList.indexOf(req.body.rq_fail_reason) < 0 ? req.body.rq_fail_reason_text : req.body.rq_fail_reason) || '';
     updateObj.rq_manager = req.body.rq_manager || '';
     updateObj.rq_site_type = req.body.rq_site_type || '';
 
@@ -307,6 +308,8 @@ router.put('/:rqpk([0-9]+)', (req, res) => {
 });
 
 router.get('/:rqpk([0-9]+)', (req, res) => {
+  const consultingFailReasonList = require('../../services/app/global').consultingFailReasonList;
+
   knexBuilder.getConnection().then(cur => {
     let rq_pk = req.params.rqpk;
     let request;
@@ -322,9 +325,14 @@ router.get('/:rqpk([0-9]+)', (req, res) => {
           );
         }
         request = response[0];
+        console.log(request);
         request.rq_size_str = request_size_map[request.rq_size];
         request.rq_budget_str = request_budget_map[request.rq_budget];
         request.rq_phone = cryptoHelper.decrypt(request.rq_phone);
+        if (consultingFailReasonList.indexOf(request.rq_fail_reason) < 0 && request.rq_fail_reason !== '' && request.rq_fail_reason !== null) {
+          request.rq_fail_reason_text = request.rq_fail_reason;
+          request.rq_fail_reason = '기타'
+        }
 
         // request.rq_phone = FormatService.toDashedPhone(cryptoHelper.decrypt(request.rq_phone));
       })

@@ -20,6 +20,9 @@
               <option v-for="failStatus in failStatusList" :value="failStatus.label">{{failStatus.label}}</option>
             </select>
           </div>
+          <p class="control" v-if="data.rq_fail_reason === '기타'">
+            <textarea class="textarea" v-model="data.rq_fail_reason_text" placeholder="실패사유를 입력해주세요."></textarea>
+          </p>
           <label class="label">신청일자</label>
           <p class="control">
             {{ (data.rq_reg_dt === '0000-00-00' || !data.rq_reg_dt) ? '' : moment(data.rq_reg_dt, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD') }}
@@ -196,7 +199,8 @@
         data: {
           rq_phone: '',
           rq_fail_reason: '',
-          rq_site_type: ''
+          rq_site_type: '',
+          rq_fail_reason_text: ''
         },
         id: '',
         hasStatusChildren: false,
@@ -215,6 +219,7 @@
     },
     methods: {
       loadDetail (id) {
+        console.log('loadDetail')
         console.log(`${queryApi}/${id}`)
         this.$http.get(`${queryApi}/${id}`)
         .then((response) => {
@@ -228,6 +233,7 @@
               return item.label === this.data.rq_process_status
             }).children
             this.hasStatusChildren = true
+            this.$forceUpdate()
           }
           Vue.set(this.data, 'rq_phone', this.data.rq_phone)
         }).catch((error) => {

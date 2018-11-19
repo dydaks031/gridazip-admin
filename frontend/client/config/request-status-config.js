@@ -19,6 +19,8 @@ export default {
       label: '부분인테리어'
     }, {
       label: '3차통화부재중'
+    }, {
+      label: '기타'
     }]
   }, {
     label: '상담예약완료'
