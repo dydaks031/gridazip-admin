@@ -55,7 +55,10 @@
                   <td>{{account.accountBank}}</td>
                   <td>{{account.accountNumber}}</td>
                   <td>{{account.accountHolder}}</td>
-                  <td>{{account.price}}</td>
+                  <td>{{addCommas(account.price)}}</td>
+                </tr>
+                <tr v-if="receiptAccount.length > 0" class="price-summary-by-account">
+                  <td colspan="4">합게: {{addCommas(priceSummaryByAccount)}}</td>
                 </tr>
                 <tr v-if="receiptAccount.length === 0">
                   <td colspan="4" class="no-data">입금할 내역이 없습니다.</td>
@@ -139,10 +142,10 @@
                     <td>{{receipt.statusName}}</td>
                     <td>{{receipt.memo}}</td>
                     <td class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
@@ -203,10 +206,10 @@
                     </tr>
                     <tr>
                       <td colspan="2" class="receipt-button-wrapper">
-                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
-                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
                     </td>
                   </tr>
                   </tbody>
@@ -272,7 +275,6 @@
   import Filter from '../../services/filter'
   import PaginationVue from '../components/pagination'
   import mixin from '../../services/mixin'
-  import PrivateWrapper from '../components/PrivateWrapper'
   import Datepicker from 'vue-bulma-datepicker'
   import router from '../../router'
   import moment from 'moment'
@@ -303,7 +305,6 @@
   export default {
     name: 'contractReceiptIndex',
     components: {
-      PrivateWrapper,
       PaginationVue,
       Notification,
       Datepicker,
@@ -313,6 +314,7 @@
     data () {
       return {
         moment,
+        priceSummaryByAccount: 0,
         page: new Pagenation(),
         filter: new Filter(),
         /* 결재 요청내역 */
@@ -349,6 +351,13 @@
             this.contractReceiptList = response.data.data.contract
             this.receiptAccount = response.data.data.receiptAccount || []
             this.receiptList = []
+
+            if (this.receiptAccount.length > 0) {
+              const reducer = (memo, num) => {
+                return memo + num
+              }
+              this.priceSummaryByAccount = _.reduce(_.pluck(this.receiptAccount, 'price'), reducer, 0)
+            }
 
             this.contractReceiptList.forEach(contract => {
               const reducer = (memo, num) => {
@@ -402,9 +411,8 @@
             })
           })
       },
-      changeReceiptStatus (item, status) {
+      changeReceiptStatus (id, item, status) {
         this.checkPermission()
-        const id = item.pcPk
         let rejectReason
         if (status === 0) {
           rejectReason = window.prompt('반려사유를 입력해 주십시오.')
@@ -418,6 +426,19 @@
           rejectReason
         })
           .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '결재 진행 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '결재가 정상적으로 처리되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
             this.loadContractReceipt()
           })
       },
@@ -532,6 +553,13 @@
           th {
             color: black;
             border: 1px solid #cccccc;
+          }
+        }
+      }
+      tbody {
+        .price-summary-by-account {
+          td {
+            text-align: right;
           }
         }
       }

@@ -13,6 +13,7 @@
     </div>
     <div class="tile is-ancestor">
       <div class="tile is-parent">
+        <!-- 계약정보 탭 -->
         <article class="tile is-child box" v-show="currentTab === tabType.info">
           <div class="block">
             <label class="label">고객명</label>
@@ -98,12 +99,15 @@
             </p>
           </div>
         </article>
+        <!-- 가견적서 탭 -->
         <article class="tile is-child box" v-show = "currentTab === tabType.preEstimateView">
           <estimate-sheet :estimateIsPre="true"/>
         </article>
+        <!-- 상세견적서 탭 -->
         <article class="tile is-child box estimate" v-show = "currentTab === tabType.estimateView">
           <estimate-sheet :estimateIsPre="false"/>
         </article>
+        <!-- 기술자/거래처 탭 -->
         <article class="tile is-child box" v-show="currentTab === tabType.managerAndShop">
           <p class="subtitle is-3 is-pulled-left">기술자</p>
           <a class="button is-primary is-pulled-right is-medium" id="addConstructorBtn" @click="openAddPartnerModal('constructor')">등록</a>
@@ -181,6 +185,7 @@
             </tbody>
           </table>
         </article>
+        <!-- 현장사진 탭 -->
         <article class="tile is-child box" v-show="currentTab === tabType.siteImage">
           <p class="subtitle is-3 is-pulled-left">현장사진</p>
           <a class="button is-primary is-pulled-right is-medium" id="addSiteImageBtn" @click="openAddSiteImageModal()">등록</a>
@@ -216,6 +221,7 @@
             </tbody>
           </table>
         </article>
+        <!-- 체크리스트 탭 -->
         <article class="tile is-child box" v-show="currentTab === tabType.checkList">
           <p class="subtitle is-3 is-pulled-left">체크리스트</p>
           <a class="button is-primary is-pulled-right is-medium" @click="moveToDate">이동</a>
@@ -324,6 +330,7 @@
           </table>
           </div>
         </article>
+        <!-- 현장별 결재내역 탭 -->
         <article class="tile is-child box contract-receipt-wrapper" v-show="currentTab === tabType.contractReceipt">
           <div class="is-clearfix">
             <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
@@ -597,9 +604,11 @@
             this.loadDetail()
             break
           case this.tabType.preEstimateView:
+            // 하위 컴포넌트에 이벤트 전달
             EventBus.$emit('loadPreEstimateView')
             break
           case this.tabType.estimateView:
+            // 하위 컴포넌트에 이벤트 전달
             EventBus.$emit('loadEstimateView')
             break
           case this.tabType.managerAndShop:
@@ -616,6 +625,7 @@
             break
         }
       },
+      /* 진행계약 조회 */
       loadDetail () {
         const id = this.param.id
         if (!id) {
@@ -672,6 +682,7 @@
             })
         }
       },
+      /* 기술자&거래처 */
       loadPartner () {
         const id = this.param.id
         this.$http.get(`${queryApi}/${id}/constructor`)
@@ -732,6 +743,7 @@
 
         this.$modal.show('addPartnersModal')
       },
+      /* 현장사진 */
       openAddSiteImageModal () {
         this.$modal.show('addSiteImageModal')
       },
@@ -767,6 +779,7 @@
             console.error(e)
           })
       },
+      /* 체크리스트 */
       loadCheckList () {
         const id = this.param.id
         this.$http.get(`${queryApi}/${id}/checklist`)
@@ -781,7 +794,6 @@
               checkList[i].isChecked = false
             }
             this.checkList = _.groupBy(checkList, 'date')
-
             return this.$http.get(`${queryApi}/${id}/construction`)
           })
           .then((response) => {
