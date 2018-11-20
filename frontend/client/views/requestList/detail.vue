@@ -187,6 +187,7 @@
   }
 
   const queryApi = '/api/request'
+  const usersQueryApi = '/api/user'
 
   export default {
     name: 'detail',
@@ -210,7 +211,6 @@
       }
     },
     mounted () {
-      console.log(this.$route)
       this.id = this.$route.params.id
       if (!this.id) {
         this.$router.back()
@@ -219,7 +219,6 @@
     },
     methods: {
       loadDetail (id) {
-        console.log('loadDetail')
         console.log(`${queryApi}/${id}`)
         this.$http.get(`${queryApi}/${id}`)
         .then((response) => {
@@ -236,7 +235,12 @@
             this.$forceUpdate()
           }
           Vue.set(this.data, 'rq_phone', this.data.rq_phone)
-        }).catch((error) => {
+          return this.$http.get(usersQueryApi)
+        })
+        .then(users => {
+          console.log(users)
+        })
+        .catch((error) => {
           console.log(error)
         })
       },

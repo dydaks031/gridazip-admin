@@ -37,6 +37,7 @@ const contractStatusUpdateBatch = require('./batch/contractStatusUpdateBatch');
 
 const index = require('./routes/index');
 const apiCompany = require('./routes/api/company');
+const apiUser = require('./routes/api/user');
 const apiPortfolio = require('./routes/api/portfolio');
 const apiProfile = require('./routes/api/profile');
 const apiRequest = require('./routes/api/request');
@@ -98,6 +99,7 @@ app.use('/', index);
 app.use(/^\/(?:(?!api)(.*))\/?(?=\/|$)/i, index);
 
 app.use('/api/company', apiCompany);
+app.use('/api/user', apiUser);
 app.use('/api/portfolio', apiPortfolio);
 app.use('/api/profile', apiProfile);
 app.use('/api/request', apiRequest);
