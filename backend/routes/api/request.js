@@ -77,14 +77,46 @@ router.get('/', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     let query = cur('request_tbl')
-
-    query = query.orderBy('request_tbl.rq_recency');
+      .select(
+        'rq_pk',
+        'rq_name',
+        'rq_nickname',
+        'rq_family',
+        'rq_manager',
+        'user_name',
+        'rq_site_type',
+        'rq_size',
+        'rq_address_brief',
+        'rq_address_detail',
+        'rq_phone',
+        'rq_move_date',
+        'rq_style_likes',
+        'rq_style_dislikes',
+        'rq_color_likes',
+        'rq_color_dislikes',
+        'rq_budget',
+        'rq_place',
+        'rq_date',
+        'rq_time',
+        'rq_is_send',
+        'rq_request',
+        'rq_is_valuable',
+        'rq_is_contracted',
+        'rq_process_status',
+        'rq_fail_reason',
+        'rq_construction_type',
+        'rq_consulting_result',
+        'rq_memo',
+        'rq_reg_dt',
+        'rq_mod_dt'
+      )
+      .leftJoin('user_tbl', 'user_pk', 'rq_manager');
 
     if (pageData.point !== null) {
       query = query.where('rq_pk', '<=', pageData.point);
     }
     if (req.query.rq_manager.trim()) {
-      query = query.where('rq_manager', 'like', `%${req.query.rq_manager}%`)
+      query = query.where('rq_manager', '=', req.query.rq_manager)
     }
     if (req.query.rq_process_status.trim()) {
       query = query.where('rq_process_status', `${req.query.rq_process_status}`)
@@ -94,6 +126,7 @@ router.get('/', (req, res) => {
       const rqEndDt = moment(req.query.rq_end_dt, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD')
       query = query.whereBetween('rq_reg_dt', [rqStartDt, rqEndDt])
     }
+    query = query.orderBy('request_tbl.rq_recency');
 
     let list = [];
     return query
@@ -102,7 +135,6 @@ router.get('/', (req, res) => {
       .then(response => {
         pageInst.setCount(response[0].count);
         return query
-          .select('*')
           .limit(pageData.limit)
           .offset(pageData.page);
       })

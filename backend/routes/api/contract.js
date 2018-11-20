@@ -1939,9 +1939,9 @@ router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/total', (req, res) => {
         return cur.raw(`
           SELECT resource_costs,
                  labor_costs,
-                 (resource_costs + labor_costs) * ${row.pc_etc_costs_ratio} as etc_costs,
-                 (resource_costs + labor_costs) * ${row.pc_design_costs_ratio} as design_costs,
-                 (resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio} as supervision_costs` +
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_etc_costs_ratio},0)) as etc_costs,
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_design_costs_ratio},0)) as design_costs,
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio},0)) as supervision_costs` +
                  (reqEsIsPre === true ? `,\n ${row.pc_discount_amount} as discount_amount\n` : '\n') +
             `FROM (
               SELECT sum(resource_costs) resource_costs
@@ -2849,9 +2849,9 @@ function getContractTotalCosts (cur, pcPk, esIsPre) {
       return cur.raw(`
           SELECT ifnull(resource_costs,0) as resource_costs,
                  ifnull(labor_costs,0) as labor_costs,
-                 ifnull((resource_costs + labor_costs) * ${row.pc_etc_costs_ratio},0) as etc_costs,
-                 ifnull((resource_costs + labor_costs) * ${row.pc_design_costs_ratio},0) as design_costs,
-                 ifnull((resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio},0) as supervision_costs,
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_etc_costs_ratio},0)) as etc_costs,
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_design_costs_ratio},0)) as design_costs,
+                 ceil(ifnull((resource_costs + labor_costs) * ${row.pc_supervision_costs_ratio},0)) as supervision_costs,
                  ifnull(${row.pc_discount_amount},0) as discount_amount
             FROM (
               SELECT sum(resource_costs) resource_costs

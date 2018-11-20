@@ -38,9 +38,12 @@
             </cleave>
           </p>
           <label class="label">담당자</label>
-          <p class="control">
-            <input class="input" type="text" v-model="data.rq_manager" />
-          </p>
+          <div class="select is-fullwidth">
+            <select v-model="data.rq_manager">
+              <option value="" selected="selected">선택</option>
+              <option v-for="manager in managerList" :value="manager.user_pk">{{manager.user_name}}</option>
+            </select>
+          </div>
           <label class="label">별칭</label>
           <p class="control">
             <input type="text" class="input" v-model="data.rq_nickname" />
@@ -187,6 +190,7 @@
   }
 
   const queryApi = '/api/request'
+  const usersQueryApi = '/api/user'
 
   export default {
     name: 'detail',
@@ -205,12 +209,12 @@
         id: '',
         hasStatusChildren: false,
         failStatusList: [],
+        managerList: [],
         requestStatusConfig,
         moment
       }
     },
     mounted () {
-      console.log(this.$route)
       this.id = this.$route.params.id
       if (!this.id) {
         this.$router.back()
@@ -219,7 +223,6 @@
     },
     methods: {
       loadDetail (id) {
-        console.log('loadDetail')
         console.log(`${queryApi}/${id}`)
         this.$http.get(`${queryApi}/${id}`)
         .then((response) => {
@@ -236,7 +239,12 @@
             this.$forceUpdate()
           }
           Vue.set(this.data, 'rq_phone', this.data.rq_phone)
-        }).catch((error) => {
+          return this.$http.get(usersQueryApi)
+        })
+        .then(response => {
+          this.managerList = response.data.data.users
+        })
+        .catch((error) => {
           console.log(error)
         })
       },
