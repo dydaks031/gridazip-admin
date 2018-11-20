@@ -6,13 +6,18 @@
           <div class="is-pulled-left is-horizontal searchbox">
             <div class="control is-inline-block">
               <label class="label">담당자</label>
-              <input class="input" type="text" placeholder="검색 내용 입력" v-model="searchData.rq_manager">
+              <div class="select">
+                <select v-model="searchData.rq_manager">
+                  <option value="" selected="selected">전체</option>
+                  <option v-for="manager in managerList" :value="manager.user_pk">{{manager.user_name}}</option>
+                </select>
+              </div>
             </div>
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
               <div class="select">
                 <select v-model="searchData.rq_process_status">
-                  <option value="" selected="selected">선택</option>
+                  <option value="" selected="selected">전체</option>
                   <option v-for="status in requestStatusConfig.statusList" :value="status.label">{{status.label}}</option>
                 </select>
               </div>
@@ -72,7 +77,7 @@
               <td>{{item.rq_name}}</td>
               <td>{{item.rq_nickname}}</td>
               <td>{{item.rq_phone}}</td>
-              <td>{{item.rq_manager}}</td>
+              <td>{{item.user_name}}</td>
               <td>{{item.rq_process_status}}</td>
               <td>{{item.rq_fail_reason}}</td>
               <!--<td>-->
@@ -116,6 +121,7 @@
   const NotificationComponent = Vue.extend(Notification)
 
   const queryApi = '/api/request'
+  const usersQueryApi = '/api/user'
 
   const openNotification = (propsData = {
     title: '',
@@ -144,6 +150,7 @@
         page: new Pagenation(),
         filter: new Filter(),
         data: [],
+        managerList: [],
         isLoading: false,
         searchData: {
           rq_manager: '',
@@ -171,8 +178,11 @@
           const dataList = response.data.data
           this.data = dataList.data
           this.page.set(dataList.page)
+          return this.$http.get(usersQueryApi)
+        }).then(response => {
+          this.managerList = response.data.data.users
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       moveToPage (curItem) {
