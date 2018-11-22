@@ -51,13 +51,31 @@ const webpackConfig = merge(baseWebpackConfig, {
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      title: '그리다_집 상세견적서',
+      title: '표준견적 솔루션',
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
         : config.build.index,
       template: 'index.html',
       inject: true,
       favicon: 'client/assets/favicon-2.ico',
+      minify: {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeAttributeQuotes: true
+        // more options:
+        // https://github.com/kangax/html-minifier#options-quick-reference
+      },
+      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+      chunksSortMode: 'dependency'
+    }),
+    new HtmlWebpackPlugin({
+      title: '이루다솔루션 표준견적',
+      filename: process.env.NODE_ENV === 'testing'
+        ? 'index.html'
+        : config.build.irudaIndex,
+      template: 'index_iruda.html',
+      inject: true,
+      favicon: 'client/assets/favicon-iruda.ico',
       minify: {
         removeComments: true,
         collapseWhitespace: true,

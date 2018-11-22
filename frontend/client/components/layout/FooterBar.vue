@@ -2,7 +2,7 @@
   <footer class="footer">
     <div class="container">
       <div class="content has-text-centered">
-        Copyright(c) 2018 by (주) 그리다집.<br />All Page content is property of (주) 그리다집
+        Copyright(c) 2018 by (주) {{getCompanyName()}}<br />All Page content is property of (주) {{getCompanyName()}}
       </div>
     </div>
   </footer>
@@ -10,9 +10,13 @@
 
 <script>
 export default {
-
   data () {
     return this.$store.state.pkg
+  },
+  methods: {
+    getCompanyName () {
+      return window.location.host.indexOf('irudasolution') < 0 ? '그리다집' : '이루다솔루션'
+    }
   }
 
 }

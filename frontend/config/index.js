@@ -7,6 +7,7 @@ module.exports = {
   build: {
     env: require('./prod.env'),
     index: path.resolve(__dirname, '../../backend/public/index.html'),
+    irudaIndex: path.resolve(__dirname, '../../backend/public/index_iruda.html'),
     assetsRoot: path.resolve(__dirname, '../../backend/public'),
     assetsSubDirectory: 'assets',
     assetsPublicPath: '/',

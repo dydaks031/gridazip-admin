@@ -2491,7 +2491,7 @@ router.get('/receipt', (req, res) => {
         if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
         else  throw new Error('NO_AUTHORITY');
       }
-      console.log(query.toSQL().toNative());
+      // console.log(query.toSQL().toNative());
 
       return knexnest(query)
     })
@@ -2506,7 +2506,7 @@ router.get('/receipt', (req, res) => {
         const totalCosts = await getContractTotalCosts(connector, o.pk, 0);
         let result = totalCosts[0][0];
         // console.log(totalCosts)
-        console.log(result)
+        // console.log(result)
         o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
         // console.log(receiptTotalQuery.toSQL().toNative());
         const receiptTotalCosts = await connector('receipt_tbl')
