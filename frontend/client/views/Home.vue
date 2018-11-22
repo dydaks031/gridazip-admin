@@ -1,9 +1,8 @@
 <template>
   <div class="content has-text-centered">
-    <p>
-      <img width="200" src="~assets/logo-main.png" :alt="description">
-    </p>
-
+    <!--<p>-->
+      <!--<img width="200" src="~assets/logo-main.png" :alt="description">-->
+    <!--</p>-->
     <h1 class="is-title is-bold">{{ name.replace('-', ' ') }}</h1>
 
     <p>

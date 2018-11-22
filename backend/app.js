@@ -74,8 +74,11 @@ global.auth = app.locals.auth = {
 
 app.use(raven.requestHandler());
 // uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+
 app.use(function (req, res, next) {
+  // let faviconFile = 'favicon-2.ico';
+  // if (req.headers.host.indexOf('irudasolution') > 0) faviconFile = 'favicon-iruda.ico';
+  // app.use(favicon(path.join(__dirname, 'public', faviconFile)));
   req.ip = get_ip(req).clientIp;
   next();
 });
