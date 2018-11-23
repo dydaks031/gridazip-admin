@@ -4,7 +4,7 @@ var router = express.Router();
 
 router.get('/', function (req, res, next) {
   let indexFile = 'index.html';
-  if (req.headers.host.indexOf('irudasolution') > 0) indexFile = 'index_iruda.html';
+  if (req.headers.host.indexOf('irudasolution') < 0) indexFile = 'index_gridazip.html';
   res.sendFile(path.join(__dirname, '../public', indexFile))
 });
 

@@ -54,10 +54,10 @@ const webpackConfig = merge(baseWebpackConfig, {
       title: '표준견적 솔루션',
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
-        : config.build.index,
-      template: 'index.html',
+        : config.build.gridazipIndex,
+      template: 'index_gridazip.html',
       inject: true,
-      favicon: 'client/assets/favicon-2.ico',
+      // favicon: 'client/assets/favicon-2.ico',
       minify: {
         removeComments: true,
         collapseWhitespace: true,
@@ -72,8 +72,8 @@ const webpackConfig = merge(baseWebpackConfig, {
       title: '이루다솔루션 표준견적',
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
-        : config.build.irudaIndex,
-      template: 'index_iruda.html',
+        : config.build.index,
+      template: 'index.html',
       inject: true,
       favicon: 'client/assets/favicon-iruda.ico',
       minify: {
