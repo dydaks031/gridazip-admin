@@ -57,7 +57,7 @@ const webpackConfig = merge(baseWebpackConfig, {
         : config.build.gridazipIndex,
       template: 'index_gridazip.html',
       inject: true,
-      // favicon: 'client/assets/favicon-2.ico',
+      favicon: 'client/assets/favicon-2.ico',
       minify: {
         removeComments: true,
         collapseWhitespace: true,
