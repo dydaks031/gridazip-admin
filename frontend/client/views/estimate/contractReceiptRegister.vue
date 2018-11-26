@@ -40,7 +40,7 @@
         <tr>
           <th>금액</th>
           <td>
-            <input class="input" type="text" v-model="receipt.price" :class="{'is-danger': $v.receipt.price.$invalid }"/>
+            <input class="input" type="number" v-model="receipt.price" :class="{'is-danger': $v.receipt.price.$invalid }"/>
             <div>
               <p class="help is-danger" v-if="!$v.receipt.price.required">금액을 입력 해 주십시오.</p>
             </div>
