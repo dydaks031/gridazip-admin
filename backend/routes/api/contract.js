@@ -78,7 +78,32 @@ router.get('/', (req, res) => {
 
   knexBuilder.getConnection().then(cur => {
     let query = cur('proceeding_contract_tbl')
-      .select('*')
+      .select(
+        'pc_pk',
+        'pc_supervisor',
+        'user_name as pc_supervisor_name',
+        'pc_name',
+        'pc_nickname',
+        'pc_phone',
+        'pc_size',
+        'pc_address_brief',
+        'pc_address_detail',
+        'pc_construction_start_date',
+        'pc_move_date',
+        'pc_budget',
+        'pc_memo',
+        'pc_etc_costs_ratio',
+        'pc_design_costs_ratio',
+        'pc_supervision_costs_ratio',
+        'pc_discount_amount',
+        'pc_status',
+        'pc_fail_reason',
+        'pc_password',
+        'pc_completed',
+        'pc_reg_dt',
+        'pc_mod_dt'
+      )
+      .leftJoin('user_tbl', 'user_tbl.user_pk', 'proceeding_contract_tbl.pc_supervisor')
       .where('pc_deleted', false)
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
@@ -153,7 +178,30 @@ router.get('/:pcpk([0-9]+)', (req, res) => {
   const contractFailReasonList = require('../../services/app/global').contractFailReasonList;
   knexBuilder.getConnection().then(cur => {
     cur('proceeding_contract_tbl')
-      .first('*')
+      .first(
+        'pc_pk',
+        'pc_supervisor',
+        'pc_name',
+        'pc_nickname',
+        'pc_phone',
+        'pc_size',
+        'pc_address_brief',
+        'pc_address_detail',
+        'pc_construction_start_date',
+        'pc_move_date',
+        'pc_budget',
+        'pc_memo',
+        'pc_etc_costs_ratio',
+        'pc_design_costs_ratio',
+        'pc_supervision_costs_ratio',
+        'pc_discount_amount',
+        'pc_status',
+        'pc_fail_reason',
+        'pc_password',
+        'pc_completed',
+        'pc_reg_dt',
+        'pc_mod_dt'
+      )
       .where({
         pc_pk: reqPcPk
       })

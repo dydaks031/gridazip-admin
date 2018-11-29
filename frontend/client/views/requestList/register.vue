@@ -32,7 +32,7 @@
           </p>
           <label class="label" for="rqManager">담당자</label>
           <div class="select is-fullwidth">
-            <select v-model="data.rq_manager">
+            <select v-model="data.rq_manager" id="rqManager">
               <option value="" selected="selected">선택</option>
               <option v-for="manager in managerList" :value="manager.user_pk">{{manager.user_name}}</option>
             </select>

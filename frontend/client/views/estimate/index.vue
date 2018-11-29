@@ -28,12 +28,16 @@
               <col width="auto" />
               <col width="auto" />
               <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
+              <col width="auto" />
             </colgroup>
             <thead>
             <tr>
               <th>고객명</th>
               <th>별칭</th>
               <th>전화번호</th>
+              <th>현장감독</th>
               <th>주소</th>
               <th>공사시작일자</th>
               <th>이사일자</th>
@@ -46,6 +50,7 @@
               <td>{{contract.pc_name}}</td>
               <td>{{contract.pc_nickname}}</td>
               <td>{{contract.pc_phone}}</td>
+              <td>{{contract.pc_supervisor_name}}</td>
               <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
               <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>
               <td>{{getComputedDate(contract.pc_move_date)}}</td>

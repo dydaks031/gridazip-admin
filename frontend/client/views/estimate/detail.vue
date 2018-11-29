@@ -30,6 +30,13 @@
               <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
               <p class="help is-danger" v-if="!$v.detailData.pc_phone.required">전화번호를 입력해 주십시오.</p>
             </div>
+            <label class="label">현장감독</label>
+            <div class="select is-fullwidth">
+              <select v-model="detailData.pc_supervisor" id="pcSupervisor">
+                <option value="" selected="selected">선택</option>
+                <option v-for="supervisor in detailData.supervisorList" :value="supervisor.user_pk">{{supervisor.user_name}}</option>
+              </select>
+            </div>
             <label class="label">계약상태</label>
             <p class="control">
                 {{requestStatusConfig.contractStatusList[detailData.pc_status]}}
@@ -506,6 +513,7 @@
   }
 
   const queryApi = '/api/contract'
+  const userQueryApi = '/api/user'
 
   export default {
     name: 'estimateDetail',
@@ -535,7 +543,8 @@
         currentTab: '',
         param: {},
         detailData: {
-          pc_move_date: ''
+          pc_move_date: '',
+          supervisorList: []
         },
         estimateData: {
           general: [],
@@ -637,9 +646,18 @@
               return false
             }
             this.detailData = response.data.data.contract
+            if (!this.detailData.pc_supervisor) this.detailData.pc_supervisor = ''
             this.detailData.pc_move_date = (this.detailData.pc_move_date === '0000-00-00 00:00:00' || !this.detailData.pc_move_date) ? '' : moment(this.detailData.pc_move_date, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')
-          }).catch((error) => {
-            console.log(error)
+            return this.$http.get(userQueryApi)
+          }).then(response => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.detailData.supervisorList = response.data.data.users
+            this.$forceUpdate()
+          })
+          .catch(error => {
+            console.error(error)
           })
       },
       updateContract () {
