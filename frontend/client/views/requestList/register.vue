@@ -31,9 +31,12 @@
             <input class="input" type="text" v-model="data.rq_nickname" id="rqNickname"/>
           </p>
           <label class="label" for="rqManager">담당자</label>
-          <p class="control">
-            <input class="input" type="text" v-model="data.rq_manager" id="rqManager"/>
-          </p>
+          <div class="select is-fullwidth">
+            <select v-model="data.rq_manager">
+              <option value="" selected="selected">선택</option>
+              <option v-for="manager in managerList" :value="manager.user_pk">{{manager.user_name}}</option>
+            </select>
+          </div>
           <label class="label">현장 구분</label>
           <div class="control">
             <div class="select is-fullwidth">
@@ -178,6 +181,7 @@
 
   // const queryApi = '/api/request'
   const submitApi = '/api/request'
+  const userQueryApi = '/api/user'
 
   export default {
     name: 'regist',
@@ -192,6 +196,7 @@
           rq_is_valuable: '',
           rq_is_contracted: '',
           rq_name: '',
+          rq_manager: '',
           rq_size: '',
           rq_budget: '',
           rq_address_brief: '',
@@ -207,15 +212,25 @@
         },
         hasStatusChildren: false,
         failStatusList: [],
+        managerList: [],
         requestStatusConfig,
         id: '',
         moment
       }
     },
     mounted () {
-
+      this.loadManager()
     },
     methods: {
+      loadManager () {
+        this.$http.get(userQueryApi)
+          .then(response => {
+            this.managerList = response.data.data.users
+          })
+          .catch(error => {
+            console.error(error)
+          })
+      },
       validate () {
         if (this.data.rq_name === '') {
           openNotification({
