@@ -13,6 +13,13 @@
             <input class="input" type="text" v-model="data.pc_phone" :class="{'is-danger': $v.data.pc_phone.$invalid }" />
             <p class="help is-danger" v-if="!$v.data.pc_phone.required">전화번호를 입력해 주십시오.</p>
           </div>
+          <label class="label">현장감독</label>
+          <div class="select is-fullwidth">
+            <select v-model="data.pc_supervisor" id="pcSupervisor">
+              <option value="" selected="selected">선택</option>
+              <option v-for="supervisor in supervisorList" :value="supervisor.user_pk">{{supervisor.user_name}}</option>
+            </select>
+          </div>
           <label class="label">평수</label>
           <p class="control">
             <input class="input" type="text" v-model="data.pc_size" />
@@ -61,6 +68,7 @@
   const NotificationComponent = Vue.extend(Notification)
 
   const queryApi = '/api/contract'
+  const userQueryApi = '/api/user'
 
   const openNotification = (propsData = {
     title: '',
@@ -85,8 +93,10 @@
       return {
         data: {
           pc_name: '',
-          pc_phone: ''
-        }
+          pc_phone: '',
+          pc_supervisor: ''
+        },
+        supervisorList: []
       }
     },
     validations: {
@@ -99,7 +109,19 @@
         }
       }
     },
+    mounted () {
+      this.loadSupervisor()
+    },
     methods: {
+      loadSupervisor () {
+        this.$http.get(userQueryApi)
+          .then(response => {
+            if (response.data.code !== 200) {
+              return false
+            }
+            this.supervisorList = response.data.data.users
+          })
+      },
       registerContract () {
         this.$http.post(`${queryApi}`, this.data)
           .then((response) => {
