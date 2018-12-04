@@ -464,7 +464,9 @@
       :constructionList="partners.construction"
       :resourceCategoryList="partners.resourceCategory"
       :beforeClose="loadPartner" />
-
+    <add-bills-schedule-modal
+      :id="param.id"
+      :estimateTotalAmount="5000000" />
     <add-site-image-modal
       :id="param.id"
       :beforeClose="loadSiteImage" />
@@ -487,6 +489,7 @@
   import Vue from 'vue'
   import addPartnersModal from './addPartnersModal'
   import addSiteImageModal from './addSiteImageModal'
+  import AddBillsScheduleModal from './addBillsScheduleModal'
   import StarRating from 'vue-star-rating'
   import _ from 'underscore'
   import Datepicker from 'vue-bulma-datepicker'
@@ -519,6 +522,7 @@
     name: 'estimateDetail',
     mixins: [mixin],
     components: {
+      AddBillsScheduleModal,
       estimateSheet,
       addPartnersModal,
       addSiteImageModal,
@@ -599,6 +603,7 @@
       this.param = this.$route.params
       this.loadDetail()
       this.checkPermission()
+      this.openAddBillsScheduleModal()
     },
     computed: {
       getFullAddress () {
@@ -760,6 +765,9 @@
         this.addPartnersModalData.type = type
 
         this.$modal.show('addPartnersModal')
+      },
+      openAddBillsScheduleModal () {
+        this.$modal.show('addBillsScheduleModal')
       },
       /* 현장사진 */
       openAddSiteImageModal () {
