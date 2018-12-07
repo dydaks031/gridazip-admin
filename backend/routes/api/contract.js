@@ -309,6 +309,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     res.json(resHelper.getError('핸드폰번호는 반드시 입력해야 합니다.'));
   }
   else {
+    let beforeDC, afterDC;
     let updateObj = {};
     updateObj.pc_name = reqName;
     updateObj.pc_phone = cryptoHelper.encrypt(reqPhone.split('-').join(''));
@@ -327,18 +328,37 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.pc_status = req.body.pc_status || 0;
     updateObj.pc_fail_reason = (contractFailReasonList.indexOf(req.body.pc_fail_reason) < 0 ? req.body.pc_fail_reason_text : req.body.pc_fail_reason) || '';
     updateObj.pc_nickname = req.body.pc_nickname || '';
-
     updateObj.pc_status = getContractStatus(updateObj.pc_construction_start_date, updateObj.pc_move_date, updateObj.pc_status);
 
     knexBuilder.getConnection().then(cur => {
       cur('proceeding_contract_tbl')
-        .update(updateObj)
+        .first('pc_discount_amount')
         .where('pc_pk', reqPcPk)
+        .then(row => {
+          console.log(row)
+          beforeDC = parseInt(row.pc_discount_amount || 0);
+          afterDC = parseInt(updateObj.pc_discount_amount);
+          return cur('proceeding_contract_tbl')
+            .update(updateObj)
+            .where('pc_pk', reqPcPk);
+        })
         .then(() => {
+          let query = null;
+          if (afterDC !== beforeDC) {
+            query = cur('collect_bills_tbl')
+              .update({
+                cb_amount: cur.raw('cb_amount + (??)', [beforeDC - afterDC])
+              })
+              .where('cb_pcpk', reqPcPk)
+              .andWhere('cb_type', '조정')
+          }
           updateObj.pc_phone = cryptoHelper.decrypt(updateObj.pc_phone);
           updateObj.pc_etc_costs_ratio  = updateObj.pc_etc_costs_ratio * 100;
           updateObj.pc_design_costs_ratio  = updateObj.pc_design_costs_ratio * 100;
           updateObj.pc_supervision_costs_ratio  = updateObj.pc_supervision_costs_ratio * 100;
+          return query;
+        })
+        .then(() => {
           res.json(resHelper.getJson({
             msg: '진행 계약건이 정상적으로 변경되었습니다.',
             data: updateObj
@@ -816,6 +836,28 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
             })
             .catch(trx.rollback)
         })
+          .then(async () => {
+            let bills;
+            let total;
+            let result;
+            let currentBillsSum = 0;
+            let currentEstimateSum = 0;
+            let query = null;
+
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            total = await getContractTotalCosts(cur, reqPcPk, 0);
+            result = total[0][0];
+            currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
+            currentBillsSum = bills[0].currentBillsSum;
+            query = cur('collect_bills_tbl')
+              .update({
+                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+              })
+              .where('cb_pcpk', reqPcPk)
+              .andWhere('cb_type', '조정')
+
+            return query;
+          })
           .then(() => {
             res.json(resHelper.getJson({
               es_pk
@@ -837,6 +879,7 @@ router.post('/:pcpk([0-9]+)/estimate/master', (req, res) => {
 });
 
 router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
   const reqCtPk = req.body.ed_ctpk || '';
@@ -924,12 +967,36 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
               rt_pk: reqRtPk
             })
         })
-        .then(row => {
+        .then(async row => {
+          let bills;
+          let total;
+          let result;
+          let currentBillsSum = 0;
+          let currentEstimateSum = 0;
+          let query = null;
+
           labor_costs += row.rt_extra_labor_costs;
           insertObj.rc_pk = reqRcPk;
           insertObj.labor_costs = labor_costs * (reqInputValue * cf) / cf;
           insertObj.resource_costs = resource_price * (insertObj.ed_resource_amount * cf) / cf;
 
+          const estimate = await cur('estimate_tbl').first('es_is_pre').where('es_pk', reqEsPk);
+          if (parseInt(estimate.es_is_pre) === 0) {
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            total = await getContractTotalCosts(cur, reqPcPk, 0);
+            result = total[0][0];
+            currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
+            currentBillsSum = bills[0].currentBillsSum;
+            query = cur('collect_bills_tbl')
+              .update({
+                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+              })
+              .where('cb_pcpk', reqPcPk)
+              .andWhere('cb_type', '조정')
+          }
+          return query;
+        })
+        .then(() => {
           res.json(
             resHelper.getJson({
               msg: 'ok',
@@ -948,6 +1015,7 @@ router.post('/:pcpk([0-9]+)/estimate/:espk([0-9]+)', (req, res) => {
 });
 
 router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   const reqEdPk = req.params.edpk || '';
   const reqEsPk = req.params.espk || '';
   const reqPlacePk = req.body.ed_place_pk || '';
@@ -987,7 +1055,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
 
     // 계약번호 공사위치 공사 공정 공정상세 자재군 자재 자재단위 인풋값
     // select cpd_labor_costs from construction_process_detail_tbl
-    knexBuilder.getConnection().then(cur => {
+    knexBuilder.getConnection().then(async cur => {
       cur('resource_tbl')
         .first('rs_rupk', 'rs_price')
         .where({
@@ -1036,11 +1104,34 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
               rt_pk: reqRtPk
             })
         })
-        .then(row => {
+        .then(async row => {
+          let bills;
+          let total;
+          let result;
+          let currentBillsSum = 0;
+          let currentEstimateSum = 0;
+          let query = null;
           labor_costs += row.rt_extra_labor_costs;
           updateObj.labor_costs = (labor_costs * (reqInputValue * cf) / cf).toFixed(0);
           updateObj.resource_costs = (resource_price * (updateObj.ed_resource_amount * cf) / cf).toFixed(0);
 
+          const estimate = await cur('estimate_tbl').first('es_is_pre').where('es_pk', reqEsPk);
+          if (parseInt(estimate.es_is_pre) === 0) {
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            total = await getContractTotalCosts(cur, reqPcPk, 0);
+            result = total[0][0];
+            currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
+            currentBillsSum = bills[0].currentBillsSum;
+            query = cur('collect_bills_tbl')
+              .update({
+                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+              })
+              .where('cb_pcpk', reqPcPk)
+              .andWhere('cb_type', '조정')
+          }
+          return query;
+        })
+        .then(() => {
           res.json(
             resHelper.getJson({
               msg: 'ok',
@@ -1059,6 +1150,7 @@ router.put('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
 });
 
 router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
+  const reqPcPk = req.params.pcpk || '';
   const reqEdPk = req.params.edpk || '';
   const reqEsPk = req.params.espk || '';
   if (reqEdPk === '') {
@@ -1069,20 +1161,42 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
       cur('estimate_detail_hst')
         .del()
         .where('ed_pk', reqEdPk)
-        .then(() => {
+        .then(async () => {
+          let bills;
+          let total;
+          let result;
+          let currentBillsSum = 0;
+          let currentEstimateSum = 0;
+          let query = null;
           changeContractStatusWhenPre(reqEsPk);
+          const estimate = await cur('estimate_tbl').first('es_is_pre').where('es_pk', reqEsPk);
+          if (parseInt(estimate.es_is_pre) === 0) {
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            total = await getContractTotalCosts(cur, reqPcPk, 0);
+            result = total[0][0];
+            currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
+            currentBillsSum = bills[0].currentBillsSum;
+            query = cur('collect_bills_tbl')
+              .update({
+                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+              })
+              .where('cb_pcpk', reqPcPk)
+              .andWhere('cb_type', '조정')
+          }
+          return query;
+        })
+        .then(() => {
           res.json(resHelper.getJson({
             msg: '상세견적 건이 정상적으로 삭제되었습니다.'
-          }));
+          }))
         })
         .catch(err => {
           console.error(err);
           res.json(resHelper.getError('[0001] 상세견적 건을 삭제하는 중 오류가 발생하였습니다.'));
         })
-    });
+    })
   }
 });
-
 // estimate CRUD :end
 
 
@@ -1090,7 +1204,6 @@ router.delete('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) 
 
 router.get('/:pcpk([0-9]+)/estimate/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
   const reqEdPk = req.params.edpk || '';
-
   let constructionPk;
   let constructionProcessPk;
   let constructionProcessDetailPk;
@@ -2555,9 +2668,7 @@ router.get('/receipt', (req, res) => {
       returnData.contract = await Promise.all(response.map(async o => {
         const totalCosts = await getContractTotalCosts(connector, o.pk, 0);
         let result = totalCosts[0][0];
-        // console.log(totalCosts)
-        // console.log(result)
-        o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs) * 0.001) * 1000;
+        o.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
         // console.log(receiptTotalQuery.toSQL().toNative());
         const receiptTotalCosts = await connector('receipt_tbl')
           .select(connector.raw('ifnull(sum(rc_price),0) as rc_price'))
@@ -2843,8 +2954,83 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
     })
 });
 
+router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  const reqIsSchedule = parseInt(req.query.isSchedule) || 1;
+  knexBuilder.getConnection()
+    .then(cur => {
+      cur('collect_bills_tbl')
+        .select(
+          'cb_pk',
+          'cb_type',
+          'cb_date',
+          'cb_sender',
+          'cb_amount'
+        )
+        .where('cb_pcpk', reqPcPk)
+        .andWhere('cb_is_schedule', reqIsSchedule)
+        .then(response => {
+          res.json(resHelper.getJson({
+            list: response
+          }));
+        })
+        .catch(err => {
+          res.json(resHelper.getError(err.message));
+        })
+    })
+})
+
+router.post('/:pcpk([0-9]+)/schedule', (req, res) => {
+  const reqPcPk = req.params.pcpk;
+  const billsScheduleList = req.body.billsScheduleList || [];
+  let userPk;
+  jwtHelper.verify(req.token)
+    .then(userInfo => {
+      userPk = userInfo.user_pk;
+      return knexBuilder.getConnection();
+    })
+    .then(cur => {
+      cur.transaction(trx => {
+        const query = [];
+        billsScheduleList.forEach(obj => {
+          let schedule = {};
+          schedule.cb_is_schedule = obj.cb_is_schedule;
+          schedule.cb_type = obj.cb_type;
+          schedule.cb_date = obj.cb_date;
+          schedule.cb_amount = obj.cb_amount;
+          schedule.cb_reg_user = userPk;
+          schedule.cb_pcpk = reqPcPk;
+          query.push(
+            cur.table('collect_bills_tbl')
+              .insert(schedule)
+              .transacting(trx)
+          );
+        });
+        query.push(
+          cur.table('collect_bills_tbl')
+            .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: 0, cb_reg_user: userPk, cb_pcpk: reqPcPk})
+            .transacting(trx)
+        );
+
+        Promise.all(query)
+          .then(trx.commit)
+          .catch(trx.rollback);
+      })
+      .then(() => {
+        res.json(resHelper.getJson({
+          msg: 'ok'
+        }));
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(resHelper.getError('수금 예정표를 등록하는 중 오류가 발생하였습니다.'));
+      })
+    })
+});
 
 
+
+/* functions */
 
 function getContractStatus(constructionStartDate, moveDate, contractStatus) {
   let rtnStatus = contractStatus;

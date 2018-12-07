@@ -465,8 +465,7 @@
       :resourceCategoryList="partners.resourceCategory"
       :beforeClose="loadPartner" />
     <add-bills-schedule-modal
-      :id="param.id"
-      :estimateTotalAmount="5000000" />
+      :id="param.id" />
     <add-site-image-modal
       :id="param.id"
       :beforeClose="loadSiteImage" />
@@ -603,7 +602,7 @@
       this.param = this.$route.params
       this.loadDetail()
       this.checkPermission()
-      this.openAddBillsScheduleModal()
+      EventBus.$on('openAddBillsScheduleModal', this.openAddBillsScheduleModal)
     },
     computed: {
       getFullAddress () {
@@ -767,6 +766,7 @@
         this.$modal.show('addPartnersModal')
       },
       openAddBillsScheduleModal () {
+        console.log('openAddBillsScheduleModal')
         this.$modal.show('addBillsScheduleModal')
       },
       /* 현장사진 */
@@ -1042,6 +1042,9 @@
       checkPermission () {
         this.userPermit = this.$auth.user().user_permit
       }
+    },
+    beforeDestroy () {
+      EventBus.$off('openAddBillsScheduleModal')
     }
   }
 </script>

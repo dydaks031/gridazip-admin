@@ -1,5 +1,5 @@
 <template>
-  <modal name="addBillsScheduleModal" height="auto" width="40%">
+  <modal name="addBillsScheduleModal" height="auto" width="45%">
     <div class="add-bills-schedule-modal">
       <div class="modal-card-head">
         <h1 class="modal-card-title">수금 예정표</h1>
@@ -59,8 +59,7 @@
                 </td>
               </tr>
               <tr>
-                <td>합계</td>
-                <td class="has-text-right" colspan="3">{{addCommas(totalAmount)}}</td>
+                <td colspan="4" class="has-text-right">{{addCommas(totalAmount)}}</td>
                 <td></td>
               </tr>
             </tbody>
@@ -83,6 +82,7 @@
   import deepClone from '../../services/deepClone'
   import mixin from '../../services/mixin'
   import _ from 'underscore'
+  import EventBus from '../../services/eventBus'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -109,8 +109,12 @@
     },
     mixins: [mixin],
     props: {
-      id: String,
-      estimateTotalAmount: Number
+      id: String
+    },
+    mounted () {
+      EventBus.$on('calculateEstimateTotalAmount', total => {
+        this.estimateTotalAmount = total.total_costs - total.discount_amount
+      })
     },
     data () {
       return {
@@ -122,7 +126,8 @@
           cb_date: '',
           cb_amount: ''
         },
-        billsScheduleList: []
+        billsScheduleList: [],
+        estimateTotalAmount: -1
       }
     },
     computed: {
@@ -172,12 +177,24 @@
       insertBillsSchedule () {
         console.log(this.billsScheduleList)
         console.log(`${contractQueryApi}/${this.id}/schedule`)
-        this.$http.post(`${contractQueryApi}/${this.id}/schedule`, this.billsScheduleList)
+        if (this.totalAmount !== this.estimateTotalAmount) {
+          openNotification({
+            message: `채택하실 견적서 금액[${this.addCommas(this.estimateTotalAmount)}]과 일치하지 않습니다.`,
+            type: 'danger'
+          })
+          return false
+        }
+        this.$http.post(`${contractQueryApi}/${this.id}/schedule`, {billsScheduleList: this.billsScheduleList})
           .then((response) => {
             console.log(response.data.data)
             if (response.data.code !== 200) {
+              openNotification({
+                message: `수금예정표 등록에 실패하였습니다.`,
+                type: 'danger'
+              })
               return false
             }
+            EventBus.$emit('selectionCurrentTab')
             openNotification({
               message: '등록 되었습니다.',
               type: 'success',
@@ -186,6 +203,9 @@
             this.$modal.hide('addBillsScheduleModal')
           })
       }
+    },
+    beforeDestroy () {
+      EventBus.$off('calculateEstimateTotalAmount')
     }
   }
 </script>

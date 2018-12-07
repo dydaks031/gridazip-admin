@@ -4,7 +4,7 @@
       <span class="title">공간별 견적</span>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="excelxport('xlsx')">엑셀</a>
       <a class="button is-info is-pulled-right is-medium print-btn" @click="duplicateTab" v-if="estimateIsPre && selectionFlag">복제</a>
-      <a class="button is-primary is-pulled-right is-medium print-btn" @click="selectionTab" v-if="estimateIsPre && selectionFlag">채택</a>
+      <a class="button is-primary is-pulled-right is-medium print-btn" @click="EventBus.$emit('openAddBillsScheduleModal')" v-if="estimateIsPre && selectionFlag">채택</a>
       <a class="button is-warning is-pulled-right is-medium print-btn" id="addBtn" @click="moveToRegister" v-if="deleteRegisterBtn !== true && !(estimateIsPre ^ selectionFlag) && (selectedTab !== '' || estimateIsPre)">
         <span v-if="estimateCurrentTabs.length === 0 && estimateIsPre === true">
           등록
@@ -237,6 +237,7 @@
     data () {
       return {
         router,
+        EventBus,
         param: {},
         viewerData: {
           general: [],
@@ -780,6 +781,8 @@
               resource,
               total
             }
+
+            EventBus.$emit('calculateEstimateTotalAmount', total)
           })
           .catch((error) => {
             this.estimateData = {
@@ -832,6 +835,11 @@
             })
         }
       })
+
+      EventBus.$on('selectionCurrentTab', () => {
+        console.log('estimateSheet.vue 839 selectionCurrentTab eventbus')
+        this.selectionTab()
+      })
     },
     created () {
     },
@@ -852,6 +860,7 @@
     beforeDestroy () {
       EventBus.$off('loadEstimateView')
       EventBus.$off('loadPreEstimateView')
+      EventBus.$off('selectionCurrentTab')
     }
   }
 </script>
