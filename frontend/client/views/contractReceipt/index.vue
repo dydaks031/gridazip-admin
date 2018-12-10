@@ -104,6 +104,66 @@
                     </tr>
                   </tbody>
                 </table>
+
+                <div class="level title-view">
+                  <div class="level-left">
+                    <h1 class="subtitle" v-if="contract.collectSchedule.length !== 0">수금예정현황</h1>
+                  </div>
+                  <div class="level-right">
+                    <h1 class="subtitle" v-if="contract.collectBills.length !== 0">실제수금현황 / 수금률: 57.4%</h1>
+
+                  </div>
+                </div>
+                <div class="level title-view">
+                  <div class="level-left" v-if="contract.collectSchedule.length !== 0">
+                    <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                      <thead>
+                        <tr>
+                          <th>no</th>
+                          <th>구분</th>
+                          <th>수금예정일</th>
+                          <th>금액</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(schedule, i) in contract.collectSchedule">
+                          <td>{{i+1}}</td>
+                          <td>{{schedule.cb_type}}</td>
+                          <td>{{schedule.cb_date===null?'':moment(schedule.cb_date).format('YYYY-MM-DD')}}</td>
+                          <td>{{addCommas(schedule.cb_amount)}}</td>
+                        </tr>
+                        <tr>
+                          <td colspan="3">합계</td>
+                          <td>{{addCommas(getTotalAmount(contract.collectSchedule))}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="level-right" v-if="contract.collectBills.length !== 0">
+                    <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                      <thead>
+                      <tr>
+                        <th>No.</th>
+                        <th>실제수금일</th>
+                        <th>예금주</th>
+                        <th>금액</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(bills, i) in contract.collectBills">
+                        <td>{{i+1}}</td>
+                        <td>{{bills.cb_date===null?'':moment(bills.cb_date).format('YYYY-MM-DD')}}</td>
+                        <td>{{bills.cb_sender}}</td>
+                        <td>{{addCommas(bills.cb_amount)}}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="3">합계</td>
+                        <td>{{addCommas(getTotalAmount(contract.collectBills))}}</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
                 <div class="title-view">
                   <h1 class="subtitle">{{contract.name}} 현장 입금 요청내역</h1>
                 </div>
@@ -333,6 +393,23 @@
       }
     },
     methods: {
+      loadCollectBills () {
+        this.$http.get(`${queryApi}/53/schedule?isSchedule=0`)
+          .then(response => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              console.log(response.data.data)
+            }
+          })
+        this.$http.get(`${queryApi}/53/schedule?isSchedule=1`)
+          .then(response => {
+            console.log(response)
+            if (response.data.code !== 200) {
+              console.log(response.data.data)
+            }
+          })
+      },
+
       /* 결재 영수 조회 */
       loadContractReceipt () {
         this.checkPermission()
@@ -497,10 +574,15 @@
         })
 
         return attachmentList
+      },
+
+      getTotalAmount(bills) {
+        return bills.reduce((sum, bill) => {return sum + parseInt(bill.cb_amount)}, 0)
       }
     },
     mounted () {
       this.loadContractReceipt()
+      this.loadCollectBills()
     }
   }
 </script>

@@ -2682,6 +2682,40 @@ router.get('/receipt', (req, res) => {
           o.receiptTotalCosts = 0;
         }
 
+        const collectBills = await connector('collect_bills_tbl')
+          .select(
+            'cb_pk',
+            'cb_type',
+            'cb_date',
+            'cb_sender',
+            'cb_amount'
+          )
+          .where('cb_pcpk', o.pk)
+          .andWhere('cb_is_schedule', false);
+
+        const collectSchedule = await connector('collect_bills_tbl')
+          .select(
+            'cb_pk',
+            'cb_type',
+            'cb_date',
+            'cb_sender',
+            'cb_amount'
+          )
+          .where('cb_pcpk', o.pk)
+          .andWhere('cb_is_schedule', true);
+
+
+        if (!(collectBills instanceof Error)) {
+          o.collectBills = collectBills;
+        } else {
+          o.collectBills = [];
+        }
+        if (!(collectSchedule instanceof Error)) {
+          o.collectSchedule = collectSchedule;
+        } else {
+          o.collectSchedule = [];
+        }
+
         return o;
       }));
 
@@ -2956,7 +2990,7 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
 
 router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
   const reqPcPk = req.params.pcpk;
-  const reqIsSchedule = parseInt(req.query.isSchedule) || 1;
+  const reqIsSchedule = !parseInt(req.query.isSchedule);
   knexBuilder.getConnection()
     .then(cur => {
       cur('collect_bills_tbl')
