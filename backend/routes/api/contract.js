@@ -2632,20 +2632,11 @@ router.get('/receipt', (req, res) => {
           'rc.rc_reject_reason as _receipt__rejectReason',
           'ra.ra_pk as _receipt__attachment__pk',
           'ra.ra_url as _receipt__attachment__url',
-          'ra.ra_memo as _receipt__attachment__memo',
-          'rc.rc_ctpk as _price__ctPk',
-          'ct.ct_name as _price__ctName')
-        .select(cur.raw('ifnull(sum(labor.rc_price),0) as _price__laborPrice'))
-        .select(cur.raw('ifnull(sum(resource.rc_price),0) as _price__resourcePrice'))
-        .select(cur.raw('ifnull(sum(etc.rc_price),0) as _price__etcPrice'))
-        .select(cur.raw('ifnull(sum(labor.rc_price),0) + ifnull(sum(resource.rc_price),0)+ ifnull(sum(etc.rc_price),0) as _price__totalPrice'))
+          'ra.ra_memo as _receipt__attachment__memo')
         .innerJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .innerJoin('user_tbl as user', 'rc_user_pk', 'user_pk')
         .innerJoin('proceeding_contract_tbl as pc', 'rc.rc_pcpk', 'pc.pc_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
-        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 0 and rc_status = 3 group by rc_pcpk, rc_ctpk) labor on rc.rc_pcpk = labor.rc_pcpk and rc.rc_ctpk = labor.rc_ctpk`)
-        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 1 and rc_status = 3 group by rc_pcpk, rc_ctpk) resource on rc.rc_pcpk = resource.rc_pcpk and rc.rc_ctpk = resource.rc_ctpk`)
-        .joinRaw(`left join (select rc_pcpk, rc_ctpk, rc_price from receipt_tbl where rc_type = 2 and rc_status = 3 group by rc_pcpk, rc_ctpk) etc on rc.rc_pcpk = etc.rc_pcpk and rc.rc_ctpk = etc.rc_ctpk`)
         .groupBy(['pc_pk', 'rc.rc_ctpk', 'ra.ra_pk'])
         .orderBy(['pc_pk', 'rc_status', 'rc_date']);
       if (!req.query.status) {
@@ -2654,7 +2645,8 @@ router.get('/receipt', (req, res) => {
         if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
         else  throw new Error('NO_AUTHORITY');
       }
-      // console.log(query.toSQL().toNative());
+      console.log(query.toSQL().toNative());
+      console.log('receipt');
 
       return knexnest(query)
     })
@@ -2691,7 +2683,14 @@ router.get('/receipt', (req, res) => {
             'cb_amount'
           )
           .where('cb_pcpk', o.pk)
-          .andWhere('cb_is_schedule', false);
+          .andWhere('cb_is_schedule', false)
+          .andWhereNot('cb_amount', 0);
+
+        if (!(collectBills instanceof Error)) {
+          o.collectBills = collectBills;
+        } else {
+          o.collectBills = [];
+        }
 
         const collectSchedule = await connector('collect_bills_tbl')
           .select(
@@ -2702,18 +2701,34 @@ router.get('/receipt', (req, res) => {
             'cb_amount'
           )
           .where('cb_pcpk', o.pk)
-          .andWhere('cb_is_schedule', true);
+          .andWhere('cb_is_schedule', true)
+          .andWhereNot('cb_amount', 0);
 
-
-        if (!(collectBills instanceof Error)) {
-          o.collectBills = collectBills;
-        } else {
-          o.collectBills = [];
-        }
         if (!(collectSchedule instanceof Error)) {
           o.collectSchedule = collectSchedule;
         } else {
           o.collectSchedule = [];
+        }
+
+        const priceList = await connector('receipt_tbl as rc')
+          .select([
+            'rc_pcpk',
+            'ct_name',
+            connector.raw(`sum(case when rc_type = 0 then rc_price else 0 end) as labor_price`),
+            connector.raw(`sum(case when rc_type = 1 then rc_price else 0 end) as resource_price`),
+            connector.raw(`sum(case when rc_type = 2 then rc_price else 0 end) as etc_price`),
+            connector.raw(`sum(rc_price) as total_price`)
+          ])
+          .where('rc_pcpk', o.pk)
+          .andWhere('rc_status', 3)
+          .leftJoin('construction_tbl as ct', 'rc.rc_ctpk', 'ct.ct_pk')
+          .groupBy(['rc_pcpk', 'rc_ctpk'])
+          .orderBy('ct_name');
+
+        if (!(priceList instanceof Error)) {
+          o.priceList = priceList;
+        } else {
+          o.priceList = [];
         }
 
         return o;
@@ -3004,6 +3019,7 @@ router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
         )
         .where('cb_pcpk', reqPcPk)
         .andWhere('cb_is_schedule', reqIsSchedule)
+        .andWhereNot('cb_amount', 0)
         .orderBy('cb_date')
         .then(response => {
           res.json(resHelper.getJson({
