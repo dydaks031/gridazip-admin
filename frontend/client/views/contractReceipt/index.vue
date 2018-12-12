@@ -88,12 +88,12 @@
                   </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="price in contract.price">
-                      <td>{{addCommas(price.ctName)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.laborPrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.resourcePrice)}}</td>
-                      <td class="is-hidden-mobile">{{addCommas(price.etcPrice)}}</td>
-                      <td class="contract-column-summary">{{addCommas(price.totalPrice)}}</td>
+                    <tr v-for="price in contract.priceList">
+                      <td>{{addCommas(price.ct_name)}}</td>
+                      <td class="is-hidden-mobile">{{addCommas(price.labor_price)}}</td>
+                      <td class="is-hidden-mobile">{{addCommas(price.resource_price)}}</td>
+                      <td class="is-hidden-mobile">{{addCommas(price.etc_price)}}</td>
+                      <td class="contract-column-summary">{{addCommas(price.total_price)}}</td>
                     </tr>
                     <tr class="contract-row-summary">
                       <td>계</td>
@@ -450,10 +450,10 @@
               })
 
               contract.priceSummary = {
-                laborPrice: _.reduce(_.pluck(contract.price, 'laborPrice'), reducer, 0),
-                resourcePrice: _.reduce(_.pluck(contract.price, 'resourcePrice'), reducer, 0),
-                etcPrice: _.reduce(_.pluck(contract.price, 'etcPrice'), reducer, 0),
-                totalPrice: _.reduce(_.pluck(contract.price, 'totalPrice'), reducer, 0)
+                laborPrice: _.reduce(_.pluck(contract.priceList, 'labor_price'), reducer, 0),
+                resourcePrice: _.reduce(_.pluck(contract.priceList, 'resource_price'), reducer, 0),
+                etcPrice: _.reduce(_.pluck(contract.priceList, 'etc_price'), reducer, 0),
+                totalPrice: _.reduce(_.pluck(contract.priceList, 'total_price'), reducer, 0)
               }
 
               contract.receipt.forEach(receipt => {
