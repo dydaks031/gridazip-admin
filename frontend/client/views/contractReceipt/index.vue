@@ -110,7 +110,7 @@
                     <h1 class="subtitle" v-if="contract.collectSchedule.length !== 0">수금예정현황</h1>
                   </div>
                   <div class="level-right">
-                    <h1 class="subtitle" v-if="contract.collectBills.length !== 0">실제수금현황 / 수금률: 57.4%</h1>
+                    <h1 class="subtitle" v-if="contract.collectBills.length !== 0">실제수금현황 / 수금률: {{getCollectBillsPercent(contract)}}%</h1>
 
                   </div>
                 </div>
@@ -119,7 +119,7 @@
                     <table class="table is-bordered contract-receipt-list is-hidden-touch">
                       <thead>
                         <tr>
-                          <th>no</th>
+                          <th>No.</th>
                           <th>구분</th>
                           <th>수금예정일</th>
                           <th>금액</th>
@@ -127,13 +127,14 @@
                       </thead>
                       <tbody>
                         <tr v-for="(schedule, i) in contract.collectSchedule">
-                          <td>{{i+1}}</td>
+                          <td class="has-text-centered">{{i+1}}</td>
                           <td>{{schedule.cb_type}}</td>
                           <td>{{schedule.cb_date===null?'':moment(schedule.cb_date).format('YYYY-MM-DD')}}</td>
                           <td>{{addCommas(schedule.cb_amount)}}</td>
                         </tr>
                         <tr>
-                          <td colspan="3">합계</td>
+                          <td>합계</td>
+                          <td colspan="2"></td>
                           <td>{{addCommas(getTotalAmount(contract.collectSchedule))}}</td>
                         </tr>
                       </tbody>
@@ -151,13 +152,14 @@
                       </thead>
                       <tbody>
                       <tr v-for="(bills, i) in contract.collectBills">
-                        <td>{{i+1}}</td>
+                        <td class="has-text-centered">{{i+1}}</td>
                         <td>{{bills.cb_date===null?'':moment(bills.cb_date).format('YYYY-MM-DD')}}</td>
                         <td>{{bills.cb_sender}}</td>
                         <td>{{addCommas(bills.cb_amount)}}</td>
                       </tr>
                       <tr>
-                        <td colspan="3">합계</td>
+                        <td>합계</td>
+                        <td colspan="2"></td>
                         <td>{{addCommas(getTotalAmount(contract.collectBills))}}</td>
                       </tr>
                       </tbody>
@@ -576,8 +578,15 @@
         return attachmentList
       },
 
-      getTotalAmount(bills) {
-        return bills.reduce((sum, bill) => {return sum + parseInt(bill.cb_amount)}, 0)
+      getTotalAmount (bills) {
+        return bills.reduce((sum, bill) => { return sum + parseInt(bill.cb_amount) }, 0)
+      },
+      getCollectBillsPercent (contract) {
+        const collectBillsTotal = contract.collectBills.reduce((sum, bill) => { return sum + parseInt(bill.cb_amount) }, 0)
+        const collectScheduleTotal = contract.collectSchedule.reduce((sum, schdule) => { return sum + parseInt(schdule.cb_amount) }, 0)
+        console.log(collectBillsTotal)
+        console.log(collectScheduleTotal)
+        return (collectBillsTotal / collectScheduleTotal * 100).toFixed(1)
       }
     },
     mounted () {

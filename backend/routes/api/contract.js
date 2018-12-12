@@ -2990,7 +2990,8 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
 
 router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
   const reqPcPk = req.params.pcpk;
-  const reqIsSchedule = !parseInt(req.query.isSchedule);
+  const reqIsSchedule = parseInt(req.query.isSchedule);
+  console.log(reqIsSchedule)
   knexBuilder.getConnection()
     .then(cur => {
       cur('collect_bills_tbl')
@@ -3003,9 +3004,10 @@ router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
         )
         .where('cb_pcpk', reqPcPk)
         .andWhere('cb_is_schedule', reqIsSchedule)
+        .orderBy('cb_date')
         .then(response => {
           res.json(resHelper.getJson({
-            list: response
+            collectBillsList: response
           }));
         })
         .catch(err => {
@@ -3015,6 +3017,37 @@ router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
 })
 
 router.post('/:pcpk([0-9]+)/schedule', (req, res) => {
+  console.log('schedule post')
+  const reqPcPk = req.params.pcpk;
+  let userPk;
+  jwtHelper.verify(req.token)
+    .then(userInfo => {
+      userPk = userInfo.user_pk;
+      return knexBuilder.getConnection();
+    })
+    .then(cur => {
+      let obj = {};
+      obj.cb_pcpk = reqPcPk;
+      obj.cb_date = req.body.cb_date;
+      obj.cb_is_schedule = 0;
+      obj.cb_sender = req.body.cb_sender;
+      obj.cb_amount = req.body.cb_amount;
+      obj.cb_reg_user = userPk;
+
+      console.log(obj)
+      return cur('collect_bills_tbl').insert(obj)
+    })
+    .then(() => {
+      res.json(resHelper.getJson({
+        msg: 'ok'
+      }));
+    })
+    .catch(err => {
+      console.error(err);
+      res.json(resHelper.getError('수금 현황을 등록하는 중 오류가 발생하였습니다.'));
+    })
+})
+router.post('/:pcpk([0-9]+)/schedule/list', (req, res) => {
   const reqPcPk = req.params.pcpk;
   const billsScheduleList = req.body.billsScheduleList || [];
   let userPk;
@@ -3061,7 +3094,28 @@ router.post('/:pcpk([0-9]+)/schedule', (req, res) => {
       })
     })
 });
+router.delete('/:pcpk([0-9]+)/schedule/:cbpk([0-9]+)', (req, res) => {
+  const reqCbPk = req.params.cbpk;
 
+  knexBuilder.getConnection().then(cur => {
+    cur('collect_bills_tbl')
+      .del()
+      .where('cb_pk', reqCbPk)
+      .then(() => {
+        res.json(
+          resHelper.getJson({
+            msg: 'ok'
+          })
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.json(
+          resHelper.getError('수금현황 건을 삭제하는 중 오류가 발생했습니다.')
+        );
+      })
+  })
+});
 
 
 /* functions */

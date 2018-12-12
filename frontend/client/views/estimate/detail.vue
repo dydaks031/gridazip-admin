@@ -9,6 +9,7 @@
         <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
         <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>체크리스트</a></li>
         <li @click="activeView(tabType.contractReceipt)" :class="{'is-active': currentTab === tabType.contractReceipt}"><a>결재 요청내역</a></li>
+        <li @click="activeView(tabType.collectBills)" :class="{'is-active': currentTab === tabType.collectBills}"><a>수금 내역</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -455,6 +456,67 @@
             </div>
           </div>
         </article>
+        <!-- 수금 내역-->
+        <article class="tile is-child box collect-bills-wrapper" v-show="currentTab === tabType.collectBills">
+          <div class="is-clearfix">
+            <p class="subtitle is-3 is-pulled-left">수금 내역</p>
+          </div>
+          <div class="block">
+            <div class="control has-addons">
+              <div class="control is-inline-block">
+                <label class="label">수금일자</label>
+                <p class="control">
+                  <datepicker v-model="collectBillsData.cb_date" class="datepicker" :config="{dateFormat:'Y-m-d'}" />
+                </p>
+              </div>
+              <div class="control is-inline-block">
+                <label class="label">송금인</label>
+                <p class="control">
+                  <input class="input" type="input" v-model="collectBillsData.cb_sender" />
+                </p>
+              </div>
+              <div class="control is-inline-block">
+                <label class="label">금액</label>
+                <input class="input" type="number" placeholder="금액 입력" v-model="collectBillsData.cb_amount" @keypress.enter.stop="addCollectBills">
+                <a class="button is-primary" @click="addCollectBills">추가</a>
+              </div>
+            </div>
+            <table class="table is-bordered">
+              <colgroup>
+                <col width="8%"/>
+                <col width="17%"/>
+                <col width="40%"/>
+                <col width="30%"/>
+                <col width="5%"/>
+              </colgroup>
+              <thead>
+              <tr>
+                <th class="has-text-centered">No.</th>
+                <th>수금일</th>
+                <th>송금인</th>
+                <th class="has-text-right">금액</th>
+                <th></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="(item, i) in collectBillsList" v-if="collectBillsList.length !== 0">
+                <td class="has-text-centered">{{i+1}}</td>
+                <td>{{item.cb_date===null?'':moment(item.cb_date).format('YYYY-MM-DD')}}</td>
+                <td>{{item.cb_sender}}</td>
+                <td class="has-text-right">{{addCommas(item.cb_amount)}}</td>
+                <td class="has-text-centered">
+                  <button class="button is-default is-small" @click="deleteCollectBills(item)">삭제</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="has-text-centered">합계</td>
+                <td colspan="3" class="has-text-right">{{addCommas(totalAmount)}}</td>
+                <td></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
       </div>
     </div>
     <add-partners-modal
@@ -541,7 +603,8 @@
           preEstimateView: 'preEstimateView',
           siteImage: 'siteImage',
           checkList: 'checkList',
-          contractReceipt: 'contractReceipt'
+          contractReceipt: 'contractReceipt',
+          collectBills: 'collectBills'
         },
         currentTab: '',
         param: {},
@@ -579,6 +642,14 @@
         contractReceiptList: [],
         userPermit: '',
 
+        /* 수금 내역 */
+        collectBillsData: {
+          cb_date: '',
+          cb_amount: '',
+          cb_sender: ''
+        },
+        collectBillsList: [],
+
         /* 이미지 팝업 */
         enlargedImage: {
           image: {},
@@ -607,6 +678,9 @@
     computed: {
       getFullAddress () {
         return `${this.detailData.pc_address_brief} ${this.detailData.pc_address_detail}`
+      },
+      totalAmount () {
+        return this.collectBillsList.reduce((sum, o) => { return sum + parseInt(o.cb_amount) }, 0)
       }
     },
     methods: {
@@ -635,6 +709,9 @@
             break
           case this.tabType.contractReceipt:
             this.loadContractReceipt()
+            break
+          case this.tabType.collectBills:
+            this.loadCollectBills()
             break
         }
       },
@@ -766,7 +843,6 @@
         this.$modal.show('addPartnersModal')
       },
       openAddBillsScheduleModal () {
-        console.log('openAddBillsScheduleModal')
         this.$modal.show('addBillsScheduleModal')
       },
       /* 현장사진 */
@@ -780,7 +856,6 @@
             if (response.data.code !== 200) {
               return false
             }
-            console.log(response.data.data)
             this.siteImageList = response.data.data.siteImageList
           })
           .catch((e) => {
@@ -927,7 +1002,6 @@
         const id = this.param.id
         this.$http.delete(`${queryApi}/${id}/checklist/${item.cl_pk}`)
           .then((response) => {
-            console.log(response)
             if (response.data.code !== 200) {
               openNotification({
                 message: '체크리스트가 삭제 중 오류가 발생하였습니다.',
@@ -949,7 +1023,6 @@
         item.cl_date = moment(item.date, 'YYYY-MM-DD').format('X')
         this.$http.put(`${queryApi}/${id}/checklist/${item.cl_pk}`, item)
           .then((response) => {
-            console.log(response)
             if (response.data.code !== 200) {
               openNotification({
                 message: '체크리스트가 수정 중 이상이 발생하였습니다.',
@@ -1007,6 +1080,83 @@
             })
           })
       },
+      /* 수금 내역 조회 */
+      loadCollectBills () {
+        const id = this.param.id
+        this.checkPermission()
+        this.$http.get(`${queryApi}/${id}/schedule?isSchedule=0`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              this.collectBillsList = []
+              return
+            }
+            this.collectBillsList = response.data.data.collectBillsList
+          })
+      },
+      addCollectBills () {
+        // validataion
+        if (this.collectBillsData.cb_sender === '') {
+          openNotification({
+            message: '송금을 선택해주세요.',
+            type: 'danger'
+          })
+          return false
+        } else if (this.collectBillsData.cb_date === '') {
+          openNotification({
+            message: '수금일을 선택해주세요.',
+            type: 'danger'
+          })
+          return false
+        } else if (this.collectBillsData.cb_amount === '') {
+          openNotification({
+            message: '금액을 입력해주세요.',
+            type: 'danger'
+          })
+          return false
+        } else {
+          this.$http.post(`${queryApi}/${this.param.id}/schedule`, this.collectBillsData)
+            .then((response) => {
+              if (response.data.code !== 200) {
+                openNotification({
+                  message: `수금 현황 등록에 실패하였습니다.`,
+                  type: 'danger'
+                })
+                return false
+              }
+              this.collectBillsData.cb_sender = ''
+              this.collectBillsData.cb_amount = ''
+
+              openNotification({
+                message: '등록 되었습니다.',
+                type: 'success',
+                duration: 1500
+              })
+              this.loadCollectBills()
+            })
+          this.$forceUpdate()
+        }
+      },
+      deleteCollectBills (item) {
+        const id = this.param.id
+        this.$http.delete(`${queryApi}/${id}/schedule/${item.cb_pk}`)
+          .then((response) => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '수금내역을 삭제하는 중 오류가 발생하였습니다.',
+                type: 'success',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '수금내역이 정상적으로 삭제되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadCollectBills()
+          })
+      },
+
       changeReceiptStatus (item, status) {
         this.checkPermission()
         const id = this.param.id
@@ -1087,6 +1237,12 @@
           background: #4285F4;
         }
       }
+    }
+  }
+
+  .collect-bills-wrapper {
+    div.control {
+      margin-right: 2rem;
     }
   }
 </style>

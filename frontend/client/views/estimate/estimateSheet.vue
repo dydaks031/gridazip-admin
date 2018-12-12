@@ -326,6 +326,9 @@
         this.loadEstimateView()
       },
       selectionTab () {
+        if (!this.estimateIsPre) {
+          return false
+        }
         this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
           es_is_pre: false,
           es_pk: this.selectedTab

@@ -52,7 +52,7 @@
               <tr v-for="(item, i) in billsScheduleList" v-if="billsScheduleList.length !== 0">
                 <td class="has-text-centered">{{i+1}}</td>
                 <td>{{item.cb_type}}</td>
-                <td>{{item.cb_date}}</td>
+                <td>{{item.cb_date===null?'':moment(item.cb_date).format('YYYY-MM-DD')}}</td>
                 <td class="has-text-right">{{addCommas(item.cb_amount)}}</td>
                 <td class="has-text-centered">
                   <button class="button is-default" @click="deleteSchedule(item)">삭제</button>
@@ -176,7 +176,7 @@
       },
       insertBillsSchedule () {
         console.log(this.billsScheduleList)
-        console.log(`${contractQueryApi}/${this.id}/schedule`)
+        console.log(`${contractQueryApi}/${this.id}/schedule/list`)
         if (this.totalAmount !== this.estimateTotalAmount) {
           openNotification({
             message: `채택하실 견적서 금액[${this.addCommas(this.estimateTotalAmount)}]과 일치하지 않습니다.`,
