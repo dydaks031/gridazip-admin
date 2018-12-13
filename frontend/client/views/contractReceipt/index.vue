@@ -114,7 +114,7 @@
 
                   </div>
                 </div>
-                <div class="level title-view">
+                <div class="level title-view collect-bills">
                   <div class="level-left" v-if="contract.collectSchedule.length !== 0">
                     <table class="table is-bordered contract-receipt-list is-hidden-touch">
                       <thead>
@@ -130,12 +130,12 @@
                           <td class="has-text-centered">{{i+1}}</td>
                           <td>{{schedule.cb_type}}</td>
                           <td>{{schedule.cb_date===null?'':moment(schedule.cb_date).format('YYYY-MM-DD')}}</td>
-                          <td>{{addCommas(schedule.cb_amount)}}</td>
+                          <td class="has-text-right">{{addCommas(schedule.cb_amount)}}</td>
                         </tr>
                         <tr>
                           <td>합계</td>
                           <td colspan="2"></td>
-                          <td>{{addCommas(getTotalAmount(contract.collectSchedule))}}</td>
+                          <td class="has-text-right">{{addCommas(getTotalAmount(contract.collectSchedule))}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -155,12 +155,12 @@
                         <td class="has-text-centered">{{i+1}}</td>
                         <td>{{bills.cb_date===null?'':moment(bills.cb_date).format('YYYY-MM-DD')}}</td>
                         <td>{{bills.cb_sender}}</td>
-                        <td>{{addCommas(bills.cb_amount)}}</td>
+                        <td class="has-text-right">{{addCommas(bills.cb_amount)}}</td>
                       </tr>
                       <tr>
                         <td>합계</td>
                         <td colspan="2"></td>
-                        <td>{{addCommas(getTotalAmount(contract.collectBills))}}</td>
+                        <td class="has-text-right">{{addCommas(getTotalAmount(contract.collectBills))}}</td>
                       </tr>
                       </tbody>
                     </table>
@@ -694,6 +694,7 @@
           th{
             color: black;
             border: 1px solid #cccccc;
+            text-align: center;
           }
         }
       }
@@ -718,6 +719,12 @@
             vertical-align: middle;
           }
         }
+      }
+    }
+
+    .collect-bills {
+      > div {
+        align-self : baseline;
       }
     }
   }
