@@ -584,8 +584,6 @@
       getCollectBillsPercent (contract) {
         const collectBillsTotal = contract.collectBills.reduce((sum, bill) => { return sum + parseInt(bill.cb_amount) }, 0)
         const collectScheduleTotal = contract.collectSchedule.reduce((sum, schdule) => { return sum + parseInt(schdule.cb_amount) }, 0)
-        console.log(collectBillsTotal)
-        console.log(collectScheduleTotal)
         return (collectBillsTotal / collectScheduleTotal * 100).toFixed(1)
       }
     },
