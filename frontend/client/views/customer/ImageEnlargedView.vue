@@ -4,13 +4,12 @@
       <span class="close"></span>
     </div>
     <div class="modal-card-body">
-      <span class="helper"></span>
+      <span class="helper">{{parseInt(currentIndex, 10) + 1}}/{{imageGroup.length}}</span>
       <div class="image-viewer" :class="{'is-receipt' : isReceipt}">
         <span v-if="isReceipt" class="fa fa-angle-left" @click="imageMoveLeft"></span>
         <img :src="currentImage.si_url" />
         <span v-if="isReceipt" class="fa fa-angle-right" @click="imageMoveRight"></span>
       </div>
-      <span v-if="isReceipt">{{parseInt(currentIndex, 10) + 1}}/{{imageGroup.length}}</span>
     </div>
   </modal>
 </template>
@@ -31,7 +30,7 @@
     },
     data () {
       return {
-        modalWidth: 650,
+        modalWidth: 750,
         currentIndex: 0,
         currentImage: {},
         isOpen: false
@@ -44,23 +43,25 @@
         if (this.isMobile()) {
           this.modalWidth = '90%'
         } else {
-          this.modalWidth = 650
+          this.modalWidth = 750
         }
+
+        this.currentIndex = this.index
       },
       imageMoveLeft () {
         if (this.currentIndex === 0) {
-          return
+          this.currentIndex = this.imageGroup.length - 1
+        } else {
+          this.currentIndex = this.currentIndex - 1
         }
-
-        this.currentIndex = this.currentIndex - 1
         this.currentImage = this.imageGroup[this.currentIndex]
       },
       imageMoveRight () {
         if (this.currentIndex === this.imageGroup.length - 1) {
-          return
+          this.currentIndex = 0
+        } else {
+          this.currentIndex = this.currentIndex + 1
         }
-
-        this.currentIndex = this.currentIndex + 1
         this.currentImage = this.imageGroup[this.currentIndex]
       },
       beforeClose () {
@@ -105,6 +106,9 @@
     border-bottom: 0;
   }
   .modal-card-body {
+    .helper {
+      font-size: 1.5rem;
+    }
     padding: 0;
     background:transparent;
     text-align: center;
@@ -125,8 +129,8 @@
           align-self: center;
         }
         span {
-          align-self: center;
-          font-size: 1.5rem;
+          align-self: baseline;
+          font-size: 4.0rem;
           padding: 0.5rem;
           color: white;
         }
