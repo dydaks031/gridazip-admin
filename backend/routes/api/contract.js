@@ -2645,8 +2645,6 @@ router.get('/receipt', (req, res) => {
         if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
         else  throw new Error('NO_AUTHORITY');
       }
-      console.log(query.toSQL().toNative());
-      console.log('receipt');
 
       return knexnest(query)
     })
@@ -2765,24 +2763,30 @@ router.get('/receipt', (req, res) => {
 
 router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
   const reqPcPk = req.params.pcpk;
+  const reqStatus = parseInt(req.query.status);
   const jwtToken = req.token;
   let userInfo;
   let availableStatus;
+  let resultData = {};
+  let connector;
+
   jwtHelper.verify(jwtToken)
     .then(plain => {
       userInfo = plain;
       if (userInfo.user_permit === 'A') availableStatus = [0,1,2];
       else if (userInfo.user_permit === 'B') availableStatus = [1,2];
       else if (userInfo.user_permit === 'C') availableStatus = [2];
-      return knexBuilder.getConnection()
+      return knexBuilder.getConnection();
     })
     .then(cur => {
+      connector = cur;
       const query = cur('receipt_tbl as rc')
         .select(
           'rc_pk as _pk',
           'rc_pcpk as _pcPk',
           'rc_ctpk as _ctPk',
           'ct_name as _ctName',
+          'user_name as _drafter',
           'rc_date as _date',
           'rc_type as _type',
           'rc_contents as _contents',
@@ -2797,23 +2801,87 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
           'ra_pk as _attachment__pk',
           'ra_url as _attachment__url',
           'ra_memo as _attachment__memo')
-        // .select(cur.raw('(select count(*) from receipt_attachment_tbl where ra_rcpk = rc.rc_pk) as rc_attachment'))
         .where('rc_pcpk', reqPcPk)
-        .whereIn('rc_status', availableStatus)
+        .innerJoin('user_tbl as user', 'rc_user_pk', 'user_pk')
         .leftJoin('construction_tbl as ct', 'rc_ctpk', 'ct_pk')
         .leftJoin('receipt_attachment_tbl as ra', 'rc_pk', 'ra_rcpk')
         .orderBy(['rc_status', 'rc_date']);
+      if (!req.query.status) {
+        query.whereIn('rc_status', availableStatus);
+      } else {
+        if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
+        else  throw new Error('NO_AUTHORITY');
+      }
       return knexnest(query);
     })
     .then(response => {
       if (!response) {
-        response = []
+        resultData.receipts = []
+      } else {
+        resultData.receipts = response
       }
-      res.json(
-        resHelper.getJson({
-          receipts: response
-        })
-      );
+
+      return connector('receipt_tbl as rc')
+        .select([
+          'rc_pcpk',
+          'ct_name',
+          connector.raw(`sum(case when rc_type = 0 then rc_price else 0 end) as labor_price`),
+          connector.raw(`sum(case when rc_type = 1 then rc_price else 0 end) as resource_price`),
+          connector.raw(`sum(case when rc_type = 2 then rc_price else 0 end) as etc_price`),
+          connector.raw(`sum(rc_price) as total_price`)
+        ])
+        .where('rc_pcpk', reqPcPk)
+        .andWhere('rc_status', 3)
+        .leftJoin('construction_tbl as ct', 'rc.rc_ctpk', 'ct.ct_pk')
+        .groupBy(['rc_pcpk', 'rc_ctpk'])
+        .orderBy('ct_name');
+    })
+    .then(response => {
+      resultData.priceList = response;
+      return connector('collect_bills_tbl')
+        .select(
+          'cb_pk',
+          'cb_type',
+          'cb_date',
+          'cb_sender',
+          'cb_amount'
+        )
+        .where('cb_pcpk', reqPcPk)
+        .andWhere('cb_is_schedule', false)
+        .andWhereNot('cb_amount', 0);
+    })
+    .then(response => {
+      resultData.collectBills = response;
+      return connector('collect_bills_tbl')
+        .select(
+          'cb_pk',
+          'cb_type',
+          'cb_date',
+          'cb_sender',
+          'cb_amount'
+        )
+        .where('cb_pcpk', reqPcPk)
+        .andWhere('cb_is_schedule', true)
+        .andWhereNot('cb_amount', 0);
+    })
+    .then(async response => {
+      resultData.collectSchedule = response;
+      const totalCosts = await getContractTotalCosts(connector, reqPcPk, 0);
+      let result = totalCosts[0][0];
+      resultData.contractTotalCosts = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
+      // console.log(receiptTotalQuery.toSQL().toNative());
+      const receiptTotalCosts = await connector('receipt_tbl')
+        .select(connector.raw('ifnull(sum(rc_price),0) as rc_price'))
+        .where('rc_pcpk', reqPcPk)
+        .andWhere('rc_status', 3)
+        .catch(e => e.name = 'dbError');
+      if (!(receiptTotalCosts instanceof Error)) {
+        resultData.receiptTotalCosts = receiptTotalCosts[0].rc_price;
+      } else {
+        resultData.receiptTotalCosts = 0;
+      }
+
+      res.json(resHelper.getJson(resultData));
     })
     .catch(err => {
       let errorStatusCode = 500;
@@ -3033,7 +3101,6 @@ router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
 })
 
 router.post('/:pcpk([0-9]+)/schedule', (req, res) => {
-  console.log('schedule post')
   const reqPcPk = req.params.pcpk;
   let userPk;
   jwtHelper.verify(req.token)
@@ -3132,6 +3199,8 @@ router.delete('/:pcpk([0-9]+)/schedule/:cbpk([0-9]+)', (req, res) => {
       })
   })
 });
+
+
 
 
 /* functions */
