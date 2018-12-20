@@ -26,14 +26,14 @@
       <div class="tabs is-hidden-desktop">
         <ul>
           <li :class="{'is-active': selectedMobileMenu === mobileMenuList.estimate}" @click="changeMobileMenu(mobileMenuList.estimate)"><span>상세견적서</span></li>
-          <li :class="{'is-active': selectedMobileMenu === mobileMenuList.photo}" @click="changeMobileMenu(mobileMenuList.photo)"><span>시공현황</span></li>
+          <li :class="{'is-active': selectedMobileMenu === mobileMenuList.photo}" @click="changeMobileMenu(mobileMenuList.photo)"><span>시공일정</span></li>
           <li :class="{'is-active': selectedMobileMenu === mobileMenuList.info}" @click="changeMobileMenu(mobileMenuList.info)"><span>고객정보</span></li>
         </ul>
       </div>
       <div class="tabs is-hidden-touch">
         <ul>
           <li :class="{'is-active' : openTabData.estimate}" @click="changeTab('estimate')"><span>견적서 보기</span></li>
-          <li :class="{'is-active' : openTabData.photo}" @click="changeTab('photo')"><span>시공현황 보기</span></li>
+          <li :class="{'is-active' : openTabData.photo}" @click="changeTab('photo')"><span>시공일정 보기</span></li>
         </ul>
       </div>
       <div class="container outer">
