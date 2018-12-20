@@ -7,7 +7,7 @@
         <li @click="activeView(tabType.estimateView)" :class="{'is-active': currentTab === tabType.estimateView}"><a>상세견적서</a></li>
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
         <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
-        <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>시공현황</a></li>
+        <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>시공일정</a></li>
         <li @click="activeView(tabType.contractReceipt)" :class="{'is-active': currentTab === tabType.contractReceipt}"><a>비용 수금현황</a></li>
         <li @click="activeView(tabType.collectBills)" :class="{'is-active': currentTab === tabType.collectBills}"><a>수금 입력</a></li>
       </ul>
@@ -229,9 +229,9 @@
             </tbody>
           </table>
         </article>
-        <!-- 시공현황 탭 -->
+        <!-- 시공일정 탭 -->
         <article class="tile is-child box" v-show="currentTab === tabType.checkList">
-          <p class="subtitle is-3 is-pulled-left">시공현황</p>
+          <p class="subtitle is-3 is-pulled-left">시공일정</p>
           <a class="button is-primary is-pulled-right is-medium" @click="moveToDate">이동</a>
           <span class="is-pulled-right" style="height:2.885rem">
             <datepicker ref="moveToDate" style="width:100px; vertical-align: middle" v-model="wantMoveDate"/> <b style="vertical-align: middle;">으로</b>
@@ -1034,7 +1034,7 @@
             console.error(e)
           })
       },
-      /* 시공현황 */
+      /* 시공일정 */
       loadCheckList () {
         const id = this.param.id
         this.$http.get(`${queryApi}/${id}/checklist`)
@@ -1062,7 +1062,7 @@
           })
       },
       moveToDate () {
-        // 체크된 시공현황의 cl_pk를 가져오기 위한 로직
+        // 체크된 시공일정의 cl_pk를 가져오기 위한 로직
         const isCheckedCheckList = _.chain(this.checkList)
           .values()
           .flatten()
@@ -1084,7 +1084,7 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '시공현황 날짜 이동 중 오류가 발생하였습니다.',
+                message: '시공일정 날짜 이동 중 오류가 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
@@ -1092,7 +1092,7 @@
             }
 
             openNotification({
-              message: '시공현황이 정상적으로 이동하였습니다.',
+              message: '시공일정이 정상적으로 이동하였습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1129,14 +1129,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '시공현황 등록 중 오류가 발생하였습니다.',
+                message: '시공일정 등록 중 오류가 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '시공현황이 정상적으로 등록되었습니다.',
+              message: '시공일정이 정상적으로 등록되었습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1158,14 +1158,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '시공현황이 삭제 중 오류가 발생하였습니다.',
+                message: '시공일정이 삭제 중 오류가 발생하였습니다.',
                 type: 'success',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '시공현황이 정상적으로 삭제되었습니다.',
+              message: '시공일정이 정상적으로 삭제되었습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1179,14 +1179,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '시공현황이 수정 중 이상이 발생하였습니다.',
+                message: '시공일정이 수정 중 이상이 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '시공현황이 정상적으로 수정되었습니다.',
+              message: '시공일정이 정상적으로 수정되었습니다.',
               type: 'success',
               duration: 1500
             })
