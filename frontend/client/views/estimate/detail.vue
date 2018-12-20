@@ -8,8 +8,8 @@
         <li @click="activeView(tabType.managerAndShop)" :class="{'is-active': currentTab === tabType.managerAndShop}"><a>기술자 및 거래처</a></li>
         <li @click="activeView(tabType.siteImage)" :class="{'is-active': currentTab === tabType.siteImage}"><a>현장사진</a></li>
         <li @click="activeView(tabType.checkList)" :class="{'is-active': currentTab === tabType.checkList}"><a>체크리스트</a></li>
-        <li @click="activeView(tabType.contractReceipt)" :class="{'is-active': currentTab === tabType.contractReceipt}"><a>결재 요청내역</a></li>
-        <li @click="activeView(tabType.collectBills)" :class="{'is-active': currentTab === tabType.collectBills}"><a>수금 내역</a></li>
+        <li @click="activeView(tabType.contractReceipt)" :class="{'is-active': currentTab === tabType.contractReceipt}"><a>비용 수금현황</a></li>
+        <li @click="activeView(tabType.collectBills)" :class="{'is-active': currentTab === tabType.collectBills}"><a>수금 입력</a></li>
       </ul>
     </div>
     <div class="tile is-ancestor">
@@ -340,121 +340,261 @@
         </article>
         <!-- 현장별 결재내역 탭 -->
         <article class="tile is-child box contract-receipt-wrapper" v-show="currentTab === tabType.contractReceipt">
+
           <div class="is-clearfix">
-            <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
-            <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
+            <p class="subtitle is-3 is-pulled-left">비용 수금현황</p>
           </div>
-          <div>
-            <table class="table is-bordered contract-receipt is-hidden-touch" v-if="contractReceiptList.length !== 0">
-              <colgroup>
-              </colgroup>
-              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1" >
-              <tr>
-                <th>날짜</th>
-                <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
-                <th>공사</th>
-                <td>{{receipt.constructionName}}</td>
-                <th>내용</th>
-                <td colspan="2">{{receipt.contents}}</td>
-                <th>구분</th>
-                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
-                <th>금액</th>
-                <td>{{addCommas(receipt.price)}}</td>
-                <th>부가세</th>
-                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-                <td rowspan="2" style="text-align: center; vertical-align: middle;">
-                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
-                  <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
-                </td>
-              </tr>
-              <tr>
-                <th>은행명</th>
-                <td>{{receipt.accountBank}}</td>
-                <th>예금주</th>
-                <td>{{receipt.accountHolder}}</td>
-                <th>계좌번호</th>
-                <td colspan="2">{{receipt.accountNumber}}</td>
-                <th>첨부서류</th>
-                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
-                <th>진행상태</th>
-                <td>{{receipt.statusName}}</td>
-                <th v-if="!receipt.rejectReason">메모</th>
-                <td v-if="!receipt.rejectReason" colspan="1">{{receipt.memo}}</td>
-                <th v-if="receipt.rejectReason">반려사유</th>
-                <td v-if="receipt.rejectReason" colspan="1">{{receipt.rejectReason}}</td>
-              </tr>
-              </tbody>
-            </table>
-            <table class="table is-bordered contract-receipt is-hidden-desktop" v-if="contractReceiptList.length !== 0">
-              <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1">
-              <tr>
-                <th>날짜</th>
-                <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
-              </tr>
-              <tr>
-                <th>공사</th>
-                <td>{{receipt.constructionName}}</td>
-              </tr>
-              <tr>
-                <th>구분</th>
-                <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
-              </tr>
-              <tr>
-                <th>내용</th>
-                <td>{{receipt.contents}}</td>
-              </tr>
-              <tr>
-                <th>금액</th>
-                <td>{{addCommas(receipt.price)}}</td>
-              </tr>
-              <tr>
-                <th>부가세</th>
-                <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-              </tr>
-              <tr>
-                <th>은행명</th>
-                <td>{{receipt.accountBank}}</td>
-              </tr>
-              <tr>
-                <th>예금주</th>
-                <td>{{receipt.accountHolder}}</td>
-              </tr>
-              <tr>
-                <th>계좌번호</th>
-                <td>{{receipt.accountNumber}}</td>
-              </tr>
-              <tr>
-                <th>첨부서류</th>
-                <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
-              </tr>
-              <tr>
-                <th>진행상태</th>
-                <td>{{receipt.statusName}}</td>
-              </tr>
-              <tr v-if="!receipt.rejectReason">
-                <th>메모</th>
-                <td>{{receipt.memo}}</td>
-              </tr>
-              <tr v-if="receipt.rejectReason">
-                <th>반려사유</th>
-                <td>{{receipt.rejectReason}}</td>
-              </tr>
-              <tr>
-                <td style="text-align: center; vertical-align: middle;" colspan="2">
-                  <button class="button is-danger is-medium" v-if="userPermit !== 'A' "@click="changeReceiptStatus(receipt, 0)">반려</button>
-                  <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                  <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-            <div v-if="contractReceiptList.length === 0">
-              <span class="no-results">결재 요청이 없습니다.</span>
+          <div class="search box">
+            <div class="block">
+              <div class="is-clearfix">
+                <div class="is-pulled-left is-horizontal searchbox">
+                  <!--<div class="control is-inline-block">-->
+                  <!--<label class="label">날짜</label>-->
+                  <!--<p class="control">-->
+                  <!--<datepicker />-->
+                  <!--<button class="button">초기화</button>-->
+                  <!--</p>-->
+                  <!--</div>-->
+                  <div class="control is-inline-block">
+                    <label class="label">진행상태</label>
+                    <div class="select">
+                      <select v-model="searchOptions.status">
+                        <option value="" selected="selected">선택</option>
+                        <!--<option value="-1">삭제</option>-->
+                        <option value="0">반려</option>
+                        <option value="1">기안</option>
+                        <option value="2">승인</option>
+                        <option value="3">입금완료</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="is-pulled-right search-btn">
+                  <a class="button is-info" @click="loadContractReceipt">검색</a>
+                </div>
+              </div>
             </div>
           </div>
+          <div class="title-view is-clearfix">
+            <h1 class="subtitle">{{detailData.pc_name}} 현장 비용현황</h1>
+            <div class="summary-info is-flex">
+              <span>당 현장 견적금액: {{addCommas(contractTotalCosts)}}원</span>
+              <span>현 집행금액: {{addCommas(receiptTotalCosts)}}원</span>
+              <span>집행률: {{(receiptTotalCosts/contractTotalCosts * 100)?(receiptTotalCosts/contractTotalCosts * 100).toFixed(2):0}}%</span>
+            </div>
+          </div>
+          <div>
+            <table class="table is-bordered contract-summary">
+              <thead>
+              <tr>
+                <th>공사</th>
+                <th class="is-hidden-mobile">인건비</th>
+                <th class="is-hidden-mobile">자재비</th>
+                <th class="is-hidden-mobile">기타잡비</th>
+                <th class="contract-column-summary">계</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="price in contractPriceList">
+                <td>{{addCommas(price.ct_name)}}</td>
+                <td class="is-hidden-mobile">{{addCommas(price.labor_price)}}</td>
+                <td class="is-hidden-mobile">{{addCommas(price.resource_price)}}</td>
+                <td class="is-hidden-mobile">{{addCommas(price.etc_price)}}</td>
+                <td class="contract-column-summary">{{addCommas(price.total_price)}}</td>
+              </tr>
+              <tr class="contract-row-summary">
+                <td>계</td>
+                <td class="is-hidden-mobile">{{addCommas(contractPrice.laborPrice)}}</td>
+                <td class="is-hidden-mobile">{{addCommas(contractPrice.resourcePrice)}}</td>
+                <td class="is-hidden-mobile">{{addCommas(contractPrice.etcPrice)}}</td>
+                <td>{{addCommas(contractPrice.totalPrice)}}</td>
+              </tr>
+              </tbody>
+            </table>
+            <!--<div v-if="contractReceiptList.length === 0">-->
+              <!--<span class="no-results">결재 요청이 없습니다.</span>-->
+            <!--</div>-->
+          </div>
+
+          <div class="level title-view">
+            <div class="level-left">
+              <h1 class="subtitle" v-if="contractCollectSchedule.length !== 0">수금예정현황</h1>
+            </div>
+            <div class="level-right">
+              <h1 class="subtitle" v-if="contractCollectBills.length !== 0">실제수금현황 / 수금률: {{getCollectBillsPercent(contractCollectBills, contractCollectSchedule)}}%</h1>
+
+            </div>
+          </div>
+          <div class="level title-view collect-bills">
+            <div class="level-left" v-if="contractCollectSchedule.length !== 0">
+              <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>구분</th>
+                  <th>수금예정일</th>
+                  <th>금액</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(schedule, i) in contractCollectSchedule">
+                  <td class="has-text-centered">{{i+1}}</td>
+                  <td>{{schedule.cb_type}}</td>
+                  <td>{{schedule.cb_date===null?'':moment(schedule.cb_date).format('YYYY-MM-DD')}}</td>
+                  <td class="has-text-right">{{addCommas(schedule.cb_amount)}}</td>
+                </tr>
+                <tr>
+                  <td>합계</td>
+                  <td colspan="2"></td>
+                  <td class="has-text-right">{{addCommas(getTotalAmount(contractCollectSchedule))}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="level-right" v-if="contractCollectBills.length !== 0">
+              <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>실제수금일</th>
+                  <th>예금주</th>
+                  <th>금액</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(bills, i) in contractCollectBills">
+                  <td class="has-text-centered">{{i+1}}</td>
+                  <td>{{bills.cb_date===null?'':moment(bills.cb_date).format('YYYY-MM-DD')}}</td>
+                  <td>{{bills.cb_sender}}</td>
+                  <td class="has-text-right">{{addCommas(bills.cb_amount)}}</td>
+                </tr>
+                <tr>
+                  <td>합계</td>
+                  <td colspan="2"></td>
+                  <td class="has-text-right">{{addCommas(getTotalAmount(contractCollectBills))}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="is-clearfix">
+            <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
+          </div>
+          <div class="title-view">
+            <h1 class="subtitle">{{detailData.pc_name}} 현장 입금 요청내역</h1>
+          </div>
+          <table class="table is-bordered contract-receipt-list is-hidden-touch">
+            <thead>
+            <tr>
+              <th>기안자</th>
+              <th>비용청구일자</th>
+              <th>공사</th>
+              <th>비용구분</th>
+              <th>비용상세내역</th>
+              <th>청구금액</th>
+              <th>부가세</th>
+              <th>입금정보</th>
+              <th>첨부서류</th>
+              <th>결재상태</th>
+              <th>메모</th>
+              <th>결재</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="receipt in contractReceiptList" v-if="receipt.status !== -1">
+              <td>{{receipt.drafter}}</td>
+              <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YY-MM-DD')}}</td>
+              <td>{{receipt.ctName}}</td>
+              <td>{{receipt.typeToString}}</td>
+              <td>{{receipt.contents}}</td>
+              <td>{{addCommas(receipt.price)}}</td>
+              <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+              <td t="s">
+                {{receipt.accountNumber}}<br />
+                {{receipt.accountBank}}<br />
+                {{receipt.accountHolder}}
+              </td>
+              <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
+              <td>{{receipt.statusName}}</td>
+              <td>{{receipt.memo}}</td>
+              <td class="receipt-button-wrapper">
+                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(detailData.pc_pk, receipt, 0)">반려</button>
+                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(detailData.pc_pk, receipt, -1)">삭제</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3" @click="changeReceiptStatus(detailData.pc_pk, receipt, 2)">승인</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(detailData.pc_pk, receipt, 3)">입금완료</button>
+              </td>
+            </tr>
+            <tr v-if="contractReceiptList.length === 0">
+              <td colspan="12" class="has-text-centered">입금 요청내역이 없습니다.</td>
+            </tr>
+            </tbody>
+          </table>
+          <table class="table is-bordered contract-receipt-list is-hidden-desktop" v-if="contractReceiptList.length !== 0">
+            <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1" >
+            <tr>
+              <th>날짜</th>
+              <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+            </tr>
+            <tr>
+              <th>공사</th>
+              <td>{{receipt.ctName}}</td>
+            </tr>
+            <tr>
+              <th>구분</th>
+              <td>{{receipt.typeToString}}</td>
+            </tr>
+            <tr>
+              <th>내용</th>
+              <td>{{receipt.contents}}</td>
+            </tr>
+            <tr>
+              <th>금액</th>
+              <td>{{addCommas(receipt.price)}}</td>
+            </tr>
+            <tr>
+              <th>부가세</th>
+              <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+            </tr>
+            <tr>
+              <th>은행명</th>
+              <td>{{receipt.accountBank}}</td>
+            </tr>
+            <tr>
+              <th>예금주</th>
+              <td>{{receipt.accountHolder}}</td>
+            </tr>
+            <tr>
+              <th>계좌번호</th>
+              <td>{{receipt.accountNumber}}</td>
+            </tr>
+            <tr>
+              <th>첨부서류</th>
+              <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
+            </tr>
+            <tr>
+              <th>진행상태</th>
+              <td>{{receipt.statusName}}</td>
+            </tr>
+            <tr v-if="!receipt.rejectReason">
+              <th>메모</th>
+              <td>{{receipt.memo}}</td>
+            </tr>
+            <tr v-if="receipt.rejectReason">
+              <th>반려사유</th>
+              <td>{{receipt.rejectReason}}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="receipt-button-wrapper">
+                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
+                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
         </article>
         <!-- 수금 내역-->
         <article class="tile is-child box collect-bills-wrapper" v-show="currentTab === tabType.collectBills">
@@ -638,8 +778,22 @@
           ct_pk: ''
         },
         wantMoveDate: '',
-        /* 결재 요청내역 */
+        /* 비용 수금 현황 */
         contractReceiptList: [],
+        contractPriceList: [],
+        contractCollectBills: [],
+        contractCollectSchedule: [],
+        contractTotalCosts: 0,
+        receiptTotalCosts: 0,
+        contractPrice: {
+          laborPrice: 0,
+          resourcePrice: 0,
+          etcPrice: 0,
+          totalPrice: 0
+        },
+        searchOptions: {
+          status: ''
+        },
         userPermit: '',
 
         /* 수금 내역 */
@@ -938,7 +1092,7 @@
             }
 
             openNotification({
-              message: '체크리스트가 정상적으로 이동하였습니다.',
+              message: '시공현황이 정상적으로 이동하였습니다.',
               type: 'success',
               duration: 1500
             })
@@ -975,14 +1129,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '체크리스트가 등록 중 오류가 발생하였습니다.',
+                message: '체크리스트 등록 중 오류가 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '체크리스트가 정상적으로 등록되었습니다.',
+              message: '시공현황이 정상적으로 등록되었습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1004,14 +1158,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '체크리스트가 삭제 중 오류가 발생하였습니다.',
+                message: '시공현황이 삭제 중 오류가 발생하였습니다.',
                 type: 'success',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '체크리스트가 정상적으로 삭제되었습니다.',
+              message: '시공현황이 정상적으로 삭제되었습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1025,14 +1179,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '체크리스트가 수정 중 이상이 발생하였습니다.',
+                message: '시공현황이 수정 중 이상이 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '체크리스트가 정상적으로 수정되었습니다.',
+              message: '시공현황이 정상적으로 수정되었습니다.',
               type: 'success',
               duration: 1500
             })
@@ -1045,19 +1199,50 @@
       changeContractStatus (status) {
         this.detailData.pc_status = status
       },
-      /* 결재 영수 조회 */
+      /* 비용 수금 현황 */
       loadContractReceipt () {
         const id = this.param.id
         this.checkPermission()
-        this.$http.get(`${queryApi}/${id}/receipt`)
+        this.$http.get(`${queryApi}/${id}/receipt?status=${this.searchOptions.status}`)
           .then((response) => {
             if (response.data.code !== 200) {
               this.contractReceiptList = []
               return
             }
             this.contractReceiptList = response.data.data.receipts
+            this.contractPriceList = response.data.data.priceList
+            this.contractCollectBills = response.data.data.collectBills
+            this.contractCollectSchedule = response.data.data.collectSchedule
+            this.contractTotalCosts = response.data.data.contractTotalCosts
+            this.receiptTotalCosts = response.data.data.receiptTotalCosts
 
-            this.contractReceiptList.map((item) => {
+            const reducer = (memo, num) => {
+              return memo + num
+            }
+
+            this.contractPrice = {
+              laborPrice: _.reduce(_.pluck(response.data.data.priceList, 'labor_price'), reducer, 0),
+              resourcePrice: _.reduce(_.pluck(response.data.data.priceList, 'resource_price'), reducer, 0),
+              etcPrice: _.reduce(_.pluck(response.data.data.priceList, 'etc_price'), reducer, 0),
+              totalPrice: _.reduce(_.pluck(response.data.data.priceList, 'total_price'), reducer, 0)
+            }
+
+            this.contractReceiptList.map(item => {
+              switch (item.type) {
+                case 0:
+                  item.typeToString = '인건비'
+                  break
+                case 1:
+                  item.typeToString = '자재비'
+                  break
+                case 2:
+                  item.typeToString = '기타잡비'
+                  break
+              }
+              return item
+            })
+
+            this.contractReceiptList.map(item => {
               let statusName = ''
               switch (item.status) {
                 case -1:
@@ -1078,7 +1263,16 @@
               }
               item.statusName = statusName
             })
+            this.$forceUpdate()
           })
+      },
+      getTotalAmount (bills) {
+        return bills.reduce((sum, bill) => { return sum + parseInt(bill.cb_amount) }, 0)
+      },
+      getCollectBillsPercent (bills, schedules) {
+        const collectBillsTotal = bills.reduce((sum, bill) => { return sum + parseInt(bill.cb_amount) }, 0)
+        const collectScheduleTotal = schedules.reduce((sum, schdule) => { return sum + parseInt(schdule.cb_amount) }, 0)
+        return (collectBillsTotal / collectScheduleTotal * 100).toFixed(1)
       },
       /* 수금 내역 조회 */
       loadCollectBills () {
@@ -1200,6 +1394,7 @@
 </script>
 
 <style scoped lang="scss">
+  $table-header-color: #dfdfdf;
   .tile.is-parent {
     width: 100%;
     .is-child {
@@ -1235,6 +1430,83 @@
 
         button.is-primary {
           background: #4285F4;
+        }
+      }
+    }
+  }
+  .search {
+    margin-top: 2rem;
+  }
+  .search-btn {
+    line-height: 60px;
+    a {
+      vertical-align: bottom;
+    }
+  }
+  .contract-row-summary {
+    background-color: $table-header-color;
+    color: black;
+    td {
+      border: 1px solid #cccccc;
+    }
+  }
+  .contract-column-summary {
+    background-color: $table-header-color;
+    border: 1px solid #cccccc;
+    color: black;
+  }
+
+  .contract-receipt-list {
+    padding: 0.5rem 0;
+    thead {
+      background-color: $table-header-color;
+      tr {
+        &:hover {
+          background-color: $table-header-color;
+        }
+        th{
+          color: black;
+          border: 1px solid #cccccc;
+          text-align: center;
+        }
+      }
+    }
+
+    tbody {
+      font-size: 0.9rem;
+
+      th {
+        background: $table-header-color;
+        color: black;
+        border: 1px solid #cccccc;
+      }
+      td {
+        border: 1px solid #cccccc;
+
+        button.is-primary {
+          background: #4285F4;
+        }
+
+        &.receipt-button-wrapper {
+          text-align: center;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+
+  .contract-receipt-wrapper {
+    .title-view {
+      margin-bottom: 1rem;
+      .subtitle {
+        float: left;
+        font-weight: bold;
+        margin: 0.5rem 0;
+      }
+      .summary-info {
+        float: right;
+        span {
+          margin: 0 0.5rem;
         }
       }
     }

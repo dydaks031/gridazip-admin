@@ -35,7 +35,7 @@
       <div class="tile is-parent">
         <article class="tile is-child box contract-receipt-wrapper">
           <div class="is-clearfix">
-            <p class="subtitle is-3 is-pulled-left">결재 요청내역</p>
+            <p class="subtitle is-3 is-pulled-left">비용 수금현황</p>
             <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
             <button class="button is-info is-pulled-right is-medium excel-btn" @click="excelExport('xlsx')">엑셀 다운로드</button>
           </div>
@@ -395,23 +395,6 @@
       }
     },
     methods: {
-      loadCollectBills () {
-        this.$http.get(`${queryApi}/53/schedule?isSchedule=0`)
-          .then(response => {
-            console.log(response)
-            if (response.data.code !== 200) {
-              console.log(response.data.data)
-            }
-          })
-        this.$http.get(`${queryApi}/53/schedule?isSchedule=1`)
-          .then(response => {
-            console.log(response)
-            if (response.data.code !== 200) {
-              console.log(response.data.data)
-            }
-          })
-      },
-
       /* 결재 영수 조회 */
       loadContractReceipt () {
         this.checkPermission()
@@ -589,7 +572,6 @@
     },
     mounted () {
       this.loadContractReceipt()
-      this.loadCollectBills()
     }
   }
 </script>

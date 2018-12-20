@@ -380,14 +380,14 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '체크리스트가 수정 중 이상이 발생하였습니다.',
+                message: '체크리스트 수정 중 이상이 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
               return
             }
             openNotification({
-              message: '체크리스트가 정상적으로 수정되었습니다.',
+              message: '시공현황이 정상적으로 수정되었습니다.',
               type: 'success',
               duration: 1500
             })
