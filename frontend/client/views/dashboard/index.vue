@@ -65,7 +65,7 @@
                   </table>
                 </div>
                 <div class="none-checklist-data" v-else>
-                  <span>체크리스트가 없습니다.</span>
+                  <span>시공 현황이 없습니다.</span>
                 </div>
               </div>
             </div>
@@ -380,7 +380,7 @@
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
-                message: '체크리스트 수정 중 이상이 발생하였습니다.',
+                message: '시공현황 수정 중 이상이 발생하였습니다.',
                 type: 'danger',
                 duration: 1500
               })
