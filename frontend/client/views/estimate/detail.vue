@@ -480,6 +480,7 @@
 
           <div class="is-clearfix">
             <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
+            <button class="button is-info is-pulled-right is-medium excel-btn" @click="excelExport('xlsx')">엑셀 다운로드</button>
           </div>
           <div class="title-view">
             <h1 class="subtitle">{{detailData.pc_name}} {{detailData.pc_nickname?'('+detailData.pc_nickname+')':''}} 현장 입금 요청내역</h1>
@@ -519,10 +520,10 @@
               <td>{{receipt.statusName}}</td>
               <td>{{receipt.memo}}</td>
               <td class="receipt-button-wrapper">
-                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(detailData.pc_pk, receipt, 0)">반려</button>
-                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(detailData.pc_pk, receipt, -1)">삭제</button>
-                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3" @click="changeReceiptStatus(detailData.pc_pk, receipt, 2)">승인</button>
-                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(detailData.pc_pk, receipt, 3)">입금완료</button>
+                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(receipt, 0)">반려</button>
+                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
               </td>
             </tr>
             <tr v-if="contractReceiptList.length === 0">
@@ -586,11 +587,48 @@
             </tr>
             <tr>
               <td colspan="2" class="receipt-button-wrapper">
-                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contract.pk, receipt, 0)">반려</button>
-                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contract.pk, receipt, -1)">삭제</button>
-                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contract.pk, receipt, 2)">승인</button>
-                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contract.pk, receipt, 3)">입금완료</button>
+                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(receipt, 0)">반려</button>
+                <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(receipt, 2)">승인</button>
+                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
               </td>
+            </tr>
+            </tbody>
+          </table>
+
+          <table class="table is-bordered contract-receipt" v-show="false" id="receiptTable">
+            <thead>
+            <tr>
+              <th>날짜</th>
+              <th>공사</th>
+              <th>구분</th>
+              <th>내용</th>
+              <th>금액</th>
+              <th>부가세</th>
+              <th>은행명</th>
+              <th>예금주</th>
+              <th>계좌번호</th>
+              <!--<th>첨부서류</th>-->
+              <th>진행상태</th>
+              <th>메모</th>
+              <th>반려사유</th>
+            </tr>
+            </thead>
+            <tbody v-for="receipt in contractReceiptList" v-if="receipt.status !== -1" >
+            <tr>
+              <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+              <td>{{receipt.ctName}}</td>
+              <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
+              <td>{{receipt.contents}}</td>
+              <td>{{addCommas(receipt.price)}}</td>
+              <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+              <td>{{receipt.accountBank}}</td>
+              <td>{{receipt.accountHolder}}</td>
+              <td t="s">{{receipt.accountNumber}}</td>
+              <!--<td><img v-for="image in getAttachmentUrl(receipt)" :src="image" /></td>-->
+              <td>{{receipt.statusName}}</td>
+              <td>{{receipt.memo}}</td>
+              <td>{{receipt.rejectReason}}</td>
             </tr>
             </tbody>
           </table>
@@ -699,6 +737,7 @@
   import moment from 'moment'
   import requestStatusConfig from '../../config/request-status-config'
   import ImageEnlargedView from '../customer/ImageEnlargedView'
+  import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -1274,6 +1313,28 @@
         const collectScheduleTotal = schedules.reduce((sum, schdule) => { return sum + parseInt(schdule.cb_amount) }, 0)
         return (collectBillsTotal / collectScheduleTotal * 100).toFixed(1)
       },
+      excelExport (type, fn) {
+        const receiptTable = document.getElementById('receiptTable')
+        const exportWb = XLSX.utils.book_new()
+        const receiptTableWs = XLSX.utils.table_to_sheet(receiptTable)
+        receiptTableWs['!cols'] = [
+          {wch: 10},
+          {wch: 10},
+          {wch: 10},
+          {wch: 25},
+          {wch: 15},
+          {wch: 10},
+          {wch: 10},
+          {wch: 20},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10},
+          {wch: 10}
+        ]
+        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재목록`)
+        return XLSX.writeFile(exportWb, fn || `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+      },
       /* 수금 내역 조회 */
       loadCollectBills () {
         const id = this.param.id
@@ -1510,6 +1571,10 @@
         }
       }
     }
+  }
+
+  .excel-btn {
+    margin-right:1rem;
   }
 
   .collect-bills-wrapper {
