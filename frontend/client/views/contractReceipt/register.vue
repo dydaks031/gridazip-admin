@@ -15,7 +15,7 @@
             <div class="select" :class="{'is-danger': $v.receipt.pcPk.$invalid }">
               <select v-model="receipt.pcPk" @change="loadContractConstruction">
                 <option value="" disabled class="disabled">선택</option>
-                <option v-for="contract in contractList" :value="contract.pc_pk">{{contract.pc_name}}</option>
+                <option v-for="contract in contractList" :value="contract.pc_pk">{{contract.pc_name}}({{contract.pc_nickname}})</option>
               </select>
             </div>
             <div>
