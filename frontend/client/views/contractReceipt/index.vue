@@ -70,7 +70,7 @@
             <ul class="proceeding-contract-list">
               <li class="contractItem box" v-for="contract in contractReceiptList">
                 <div class="title-view is-clearfix">
-                  <h1 class="subtitle">{{contract.name}} 고객({{contract.nickname}}) 현장 비용현황</h1>
+                  <h1 class="subtitle">{{contract.name}} {{contract.nickname?'('+contract.nickname+')':''}} 현장 비용현황</h1>
                   <div class="summary-info is-flex">
                     <span>당 현장 견적금액: {{addCommas(contract.contractTotalCosts)}}원</span>
                     <span>현 집행금액: {{addCommas(contract.receiptTotalCosts)}}원</span>
@@ -167,7 +167,7 @@
                   </div>
                 </div>
                 <div class="title-view">
-                  <h1 class="subtitle">{{contract.name}} 고객({{contract.nickname}}) 현장 입금 요청내역</h1>
+                  <h1 class="subtitle">{{contract.name}} {{contract.nickname?'('+contract.nickname+')':''}} 현장 입금 요청내역</h1>
                 </div>
                 <table class="table is-bordered contract-receipt-list is-hidden-touch">
                   <thead>
