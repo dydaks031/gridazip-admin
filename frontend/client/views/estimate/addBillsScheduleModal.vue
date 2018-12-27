@@ -184,7 +184,7 @@
           })
           return false
         }
-        this.$http.post(`${contractQueryApi}/${this.id}/schedule`, {billsScheduleList: this.billsScheduleList})
+        this.$http.post(`${contractQueryApi}/${this.id}/schedule/list`, {billsScheduleList: this.billsScheduleList})
           .then((response) => {
             console.log(response.data.data)
             if (response.data.code !== 200) {
