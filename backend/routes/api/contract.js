@@ -335,7 +335,6 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
         .first('pc_discount_amount')
         .where('pc_pk', reqPcPk)
         .then(row => {
-          console.log(row)
           beforeDC = parseInt(row.pc_discount_amount || 0);
           afterDC = parseInt(updateObj.pc_discount_amount);
           return cur('proceeding_contract_tbl')
@@ -3074,7 +3073,6 @@ router.put('/:pcpk([0-9]+)/receipt/:rcpk([0-9]+)', (req, res) => {
 router.get('/:pcpk([0-9]+)/schedule', (req, res) => {
   const reqPcPk = req.params.pcpk;
   const reqIsSchedule = parseInt(req.query.isSchedule);
-  console.log(reqIsSchedule)
   knexBuilder.getConnection()
     .then(cur => {
       cur('collect_bills_tbl')
@@ -3117,7 +3115,6 @@ router.post('/:pcpk([0-9]+)/schedule', (req, res) => {
       obj.cb_amount = req.body.cb_amount;
       obj.cb_reg_user = userPk;
 
-      console.log(obj)
       return cur('collect_bills_tbl').insert(obj)
     })
     .then(() => {
