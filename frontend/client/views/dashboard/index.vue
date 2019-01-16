@@ -23,7 +23,7 @@
             </div>
             <div class="construction-wrapper is-flex">
               <div class="construction-item" v-for="construction in constructionData">
-                  <h3 class="subtitle">{{construction.pc_name}}{{construction.pc_nickname?'('+construction.pc_nickname+')':''}}</h3>
+                  <h3 class="subtitle">{{construction.pc_name}} {{construction.pc_nickname?'('+construction.pc_nickname+')':''}}</h3>
                   <div class="percentage-wrapper">
                     <span class="">진행율</span>
                     <div class="doughnut">
