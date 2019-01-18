@@ -4,7 +4,13 @@ const Helper = {
   toDashedPhone: (phone) => {
     let value = String(phone).replace(/[^\d]/g, '');
 
-    if (value.length >= 11) {
+    if (value.startsWith('02')) {
+      if (value.length === 10)
+        return value.replace(/(\d{2})(\d{4})(\d)/, '$1-$2-$3');
+      else
+        return value.replace(/(\d{2})(\d{3})(\d)/, '$1-$2-$3');
+    }
+    else if (value.length >= 11) {
       return value.replace(/(\d{3})(\d{4})(\d)/, '$1-$2-$3');
     }
     else if(value.length >= 7) {
