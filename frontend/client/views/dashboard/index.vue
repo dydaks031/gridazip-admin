@@ -280,7 +280,6 @@
           this.channelUserList = _.sortBy(channelUserList, (item) => {
             return moment(item.date, 'YYYY-MM-DD').format('X')
           })
-          console.log(this.channelUserList)
           this.getCompletedCountData()
         })
         .catch(e => {
@@ -367,7 +366,6 @@
           })
           .then((response) => {
             this.constructionSales = response.data.data.sales
-            console.log(this.constructionSales)
           })
           .catch((e) => {
             console.error(e)
@@ -375,7 +373,6 @@
       },
       updateCheckListStatus (id, item) {
         item.cl_date = moment(item.cl_date, 'YYYY-MM-DD').format('X')
-        console.log(item)
         this.$http.put(`/api/contract/${id}/checklist/${item.cl_pk}`, item)
           .then((response) => {
             if (response.data.code !== 200) {

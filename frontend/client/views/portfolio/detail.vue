@@ -122,7 +122,7 @@
             this.data = response.data.data.data
             this.imageList = _.pluck(response.data.data.images, 'pi_after')
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       callFileUpload (index) {
@@ -155,7 +155,7 @@
             }
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       deletedImage (index) {
@@ -181,7 +181,7 @@
               this.$router.back()
               // this.data = response.data.data.data
             }).catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       }

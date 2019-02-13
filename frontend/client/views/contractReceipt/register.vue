@@ -200,7 +200,7 @@
             const dataList = response.data.data
             this.contractList = dataList.contractList
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       loadContractConstruction () {
@@ -306,7 +306,7 @@
               }
             })
             .catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       },

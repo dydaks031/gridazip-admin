@@ -313,7 +313,7 @@
           })
           this.$forceUpdate()
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       toggleRow (item) {
@@ -340,7 +340,7 @@
             })
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       createSkillRow () {
@@ -482,7 +482,7 @@
             })
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       createBrandRow () {

@@ -45,7 +45,7 @@ router.post('/upload', upload, (req, res) => {
       );
     }
     else {
-      const fileSplited = req.file.originalname.split();
+      const fileSplited = req.file.originalname.split('.');
       const fileExt = fileSplited[fileSplited.length - 1];
       const mimeSplited = req.file.mimetype.split('/');
 
@@ -142,7 +142,7 @@ router.post('/upload', upload, (req, res) => {
             );
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
             if (typeof error === 'object') {
               error = '파일 업로드 중 알 수 없는 오류가 발생하였습니다';
             }

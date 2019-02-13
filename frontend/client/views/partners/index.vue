@@ -86,7 +86,6 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
-        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`)
         this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
           page: this.page.get(),
           filter: this.filter.get()
@@ -98,11 +97,10 @@
           this.data = dataList.data
           this.page.set(dataList.page)
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       moveToPage (curItem) {
-        console.log(curItem)
         router.push({
           path: `/private/partner-list/${curItem.pn_pk}`,
           params: curItem
@@ -130,19 +128,16 @@
             this.loadData()
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       moveToPagination (index) {
-        console.log('curIndex' + index)
         this.page.setIndex(index)
         this.loadData()
       }
     },
     beforeRouteUpdate (to, from, next) {
       // just use `this`
-      console.log(`to: ${to}`)
-      console.log(`from: ${from}`)
       this.loadData()
       next()
     },

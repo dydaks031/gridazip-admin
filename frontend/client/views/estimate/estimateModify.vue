@@ -271,7 +271,7 @@
           }
           this.dataGroup = _.without(this.dataGroup, data)
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       updateRow (data) {
@@ -298,7 +298,7 @@
                 duration: 1500
               })
             }).catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       },
@@ -345,7 +345,7 @@
             this.$forceUpdate()
             data.isFirstSelectDataLoaded = true
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       changedDataToSelect2Data (metaData, keyList = {}, data = []) {

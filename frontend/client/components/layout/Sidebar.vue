@@ -80,7 +80,6 @@ export default {
     },
 
     toggle (index, item) {
-      console.log(item, index)
       this.expandMenu({
         index: index,
         expanded: !item.meta.expanded

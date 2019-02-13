@@ -343,7 +343,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
         })
         .then(() => {
           let query = null;
-          if (afterDC !== beforeDC) {
+            if (afterDC !== beforeDC) {
             query = cur('collect_bills_tbl')
               .update({
                 cb_amount: cur.raw('cb_amount + (??)', [beforeDC - afterDC])

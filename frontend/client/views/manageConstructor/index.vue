@@ -217,7 +217,7 @@
           this.pages[this.openTab].set(dataList.page)
           this.data[this.openTab] = dataList
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       moveToPagination (index) {

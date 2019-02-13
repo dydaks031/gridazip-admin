@@ -27,16 +27,6 @@ const state = {
       component: lazyLoading('requestList', true)
     },
     {
-      name: '포트폴리오',
-      path: '/private/portfolio',
-      meta: {
-        icon: 'fa-rocket',
-        link: 'portfolio/index.vue',
-        auth: true
-      },
-      component: lazyLoading('portfolio', true)
-    },
-    {
       name: '결재내역 조회',
       path: '/private/receipt',
       meta: {
@@ -55,6 +45,45 @@ const state = {
         auth: true
       },
       component: lazyLoading('partners', true)
+    },
+    {
+      name: '홈페이지 관리',
+      meta: {
+        icon: 'fa-table',
+        expanded: false
+      },
+      children: [
+        {
+          name: '포트폴리오 관리',
+          path: '/private/portfolio',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'portfolio/index.vue',
+            auth: true
+          },
+          component: lazyLoading('portfolio', true)
+        },
+        {
+          name: '매거진 관리',
+          path: '/private/magazine',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'magazine/index.vue',
+            auth: true
+          },
+          component: lazyLoading('magazine', true)
+        },
+        {
+          name: '회사연혁 관리',
+          path: '/private/manage-constructor',
+          meta: {
+            icon: 'fa-rocket',
+            link: 'manageConstructor/index.vue',
+            auth: true
+          },
+          component: lazyLoading('manageConstructor', true)
+        }
+      ]
     },
     {
       name: '견적보조시스템',

@@ -253,18 +253,15 @@
       submitData () {
         if (this.validate()) {
           this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
-
-          console.log(`${submitApi}/${this.id}`)
           this.$http.post(`${submitApi}`, this.data)
             .then((response) => {
-              console.log(response)
               if (response.data.code !== 200) {
                 return false
               }
 
               this.openModalCard()
             }).catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       },
