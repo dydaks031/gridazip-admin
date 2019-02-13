@@ -181,7 +181,7 @@ export default new Router({
           }
         },
         {
-          name: '매거진 관리',
+          name: '매거진 미리보기',
           path: 'magazine/:id([0-9]+)',
           component: require('../views/magazine/viewer'),
           meta: {
