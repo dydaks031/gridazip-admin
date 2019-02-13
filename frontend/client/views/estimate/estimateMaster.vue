@@ -166,7 +166,7 @@
             var data = response.data.data
             EventBus.$emit('updateMasterModifyView', data.estimateList)
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       createDeleteRow () {

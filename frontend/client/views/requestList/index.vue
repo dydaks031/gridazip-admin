@@ -186,14 +186,12 @@
         })
       },
       moveToPage (curItem) {
-        console.log(curItem)
         router.push({
           path: `/private/request-list/${curItem.rq_pk}`,
           params: curItem
         })
       },
       updateRowState: function (sendData = {}, key) {
-        console.log(`${queryApi}/${key}`)
         this.$http.put(`${queryApi}/${key}`, sendData)
           .then((data) => {
             if (data.data.code !== 200) {
@@ -207,7 +205,7 @@
             this.$forceUpdate()
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       updateRowValuable (curItem, key) {
@@ -238,7 +236,7 @@
             this.loadData()
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       doThis () {

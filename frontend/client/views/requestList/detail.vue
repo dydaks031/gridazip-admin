@@ -223,10 +223,8 @@
     },
     methods: {
       loadDetail (id) {
-        console.log(`${queryApi}/${id}`)
         this.$http.get(`${queryApi}/${id}`)
         .then((response) => {
-          console.log(response)
           if (response.data.code !== 200) {
             return
           }
@@ -245,12 +243,10 @@
           this.managerList = response.data.data.users
         })
         .catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       updateValue (newValue, oldValue) {
-        console.log(`newValue: ${newValue}`)
-        console.log(`oldValue: ${oldValue}`)
       },
       validate () {
         if (this.data.rq_name === '') {
@@ -276,7 +272,6 @@
           this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
           this.$http.put(`${queryApi}/${this.id}`, this.data)
             .then((response) => {
-              console.log(response)
               if (response.data.code !== 200) {
                 return false
               }
@@ -287,7 +282,7 @@
               })
               this.$router.back()
             }).catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       },
@@ -317,7 +312,7 @@
               duration: 2500
             })
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       }
     }

@@ -129,7 +129,7 @@
             var data = response.data.data
             EventBus.$emit('updateModifyView', data.estimateList)
           }).catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       }
     }

@@ -11,12 +11,11 @@ const authMiddleware = ((req, res, next) => {
 
   jwtHelper.verify(token)
     .then((plain) => {
-      console.log(plain)
       req.plain = plain
       next()
     })
     .catch((err) => {
-      console.log(err)
+      console.error(err)
       next()
     })
 })

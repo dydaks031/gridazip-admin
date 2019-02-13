@@ -64,7 +64,6 @@
     },
     methods: {
       loadDetail (id) {
-        console.log(`${queryApi}/${id}`)
         this.$http.get(`${queryApi}/${id}`)
           .then((response) => {
             if (response.data.code !== 200) {
@@ -73,7 +72,7 @@
             this.data = response.data.data.data
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       downloadImages (url) {

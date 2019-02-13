@@ -133,7 +133,7 @@
           this.page.set(dataList.page)
           this.contractList = dataList.contractList
         }).catch((error) => {
-          console.log(error)
+          console.error(error)
         })
       },
       moveToPage (curItem) {
@@ -150,7 +150,7 @@
 
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       updateRowValuable (curItem, key) {
@@ -180,7 +180,7 @@
             this.page.setLimit(20)
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       moveToPagination (index) {

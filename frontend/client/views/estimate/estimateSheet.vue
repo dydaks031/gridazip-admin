@@ -794,7 +794,7 @@
               resource: [],
               total: {}
             }
-            console.log(error)
+            console.error(error)
           })
       },
       getTabList () {
