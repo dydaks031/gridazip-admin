@@ -3,40 +3,31 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <h4 class="title">포트폴리오</h4>
+          <h4 class="title">매거진 목록</h4>
           <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
           <table class="table">
             <colgroup>
-              <col />
-              <col width="150px;"/>
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
+              <col width="14%" />
+              <col width="40%" />
+              <col width="16%" />
+              <col width="16%" />
+              <col width="14%" />
             </colgroup>
             <thead>
             <tr>
-              <th colspan="2">번호</th>
-              <th>주소</th>
-              <th>평수</th>
-              <th>금액</th>
+              <th>번호</th>
+              <th>제목</th>
               <th>등록일</th>
+              <th>수정일</th>
               <th>설정</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="(item, index) in data" v-on:click="moveToPage(item)">
-              <td>{{item.pf_pk}}</td>
-              <td>
-                <a :href="item.pi_after">
-                  <img :src="item.pi_after" />
-                </a>
-              </td>
-              <td>{{item.pf_address}}</td>
-              <td>{{item.pf_size}} 평</td>
-              <td>{{item.pf_price}} 만원</td>
-              <td>{{getComputedDate(item.pf_reg_dt)}}</td>
+              <td>{{item.mg_pk}}</td>
+              <td>{{item.mg_subject}}</td>
+              <td>{{getComputedDate(item.mg_reg_dt)}}</td>
+              <td>{{getComputedDate(item.mg_mod_dt)}}</td>
               <td><button class="button" v-on:click.stop="deleteRow(item)">삭제</button></td>
             </tr>
             </tbody>
@@ -52,7 +43,6 @@
 
 <script>
   import Pagenation from '../../services/pagination'
-  import Filter from '../../services/filter'
   import router from '../../router'
   import moment from 'moment'
   import PaginationVue from '../components/pagination'
@@ -76,10 +66,10 @@
     })
   }
 
-  const queryApi = '/api/portfolio'
+  const queryApi = '/api/magazine'
 
   export default {
-    name: 'portfolioList',
+    name: 'requestList',
     components: {
       PaginationVue
     },
@@ -87,7 +77,6 @@
     data () {
       return {
         page: new Pagenation(),
-        filter: new Filter(),
         data: [],
         isLoading: false,
         moment
@@ -97,9 +86,9 @@
       loadData () {
         this.isLoading = true
         this.data.length = 0
+        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`)
         this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}`, {
-          page: this.page.get(),
-          filter: this.filter.get()
+          page: this.page.get()
         }).then((response) => {
           if (response.data.code !== 200) {
             return
@@ -113,22 +102,23 @@
       },
       moveToPage (curItem) {
         router.push({
-          path: `/private/portfolio/${curItem.pf_pk}`,
-          params: curItem
+          path: `/private/magazine/${curItem.mg_pk}`
         })
       },
       moveToPagination (index) {
+        console.log('curIndex' + index)
         this.page.setIndex(index)
         this.loadData()
       },
       moveToRegister () {
         router.push({
-          path: `/private/portfolio/register`
+          path: `/private/magazine/register`
         })
       },
       deleteRow (curItem) {
-        this.$http.delete(`${queryApi}/${curItem.pf_pk}`, {})
-          .then((data) => {
+        this.$http.delete(`${queryApi}/${curItem.mg_pk}`, {})
+          .then(response => {
+            console.log(response)
             openNotification({
               message: '삭제되었습니다.',
               type: 'success',
@@ -151,6 +141,8 @@
     },
     beforeRouteUpdate (to, from, next) {
       // just use `this`
+      console.log(`to: ${to}`)
+      console.log(`from: ${from}`)
       this.loadData()
       next()
     },

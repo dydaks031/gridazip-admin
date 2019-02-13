@@ -162,6 +162,34 @@ export default new Router({
             authRedirect: 'login'
           }
         },
+        {
+          name: '매거진 관리',
+          path: 'magazine/register',
+          component: require('../views/magazine/register'),
+          meta: {
+            auth: true,
+            authRedirect: 'login'
+          }
+        },
+        {
+          name: '매거진 수정',
+          path: 'magazine/modify/:id([0-9]+)',
+          component: require('../views/magazine/register'),
+          meta: {
+            auth: true,
+            authRedirect: 'login'
+          }
+        },
+        {
+          name: '매거진 관리',
+          path: 'magazine/:id([0-9]+)',
+          component: require('../views/magazine/viewer'),
+          meta: {
+            auth: true,
+            authRedirect: 'login'
+          }
+        },
+
         ...generateRoutesFromMenu(menuModule.state.items),
         {
           path: '*',

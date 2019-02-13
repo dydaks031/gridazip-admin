@@ -137,7 +137,7 @@
             }
           })
           .catch((error) => {
-            console.log(error)
+            console.error(error)
           })
       },
       deletedImage (index) {
@@ -162,7 +162,7 @@
               })
               this.$router.back()
             }).catch((error) => {
-              console.log(error)
+              console.error(error)
             })
         }
       }
