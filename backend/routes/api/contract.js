@@ -411,11 +411,37 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
       .then(count => {
         let smsMsg = '';
         cur('proceeding_contract_tbl')
-          .first('pc_name', 'pc_phone', 'pc_password')
+          .first('pc_name', 'pc_phone', 'pc_password', 'pc_nickname')
           .where('pc_pk', reqPcPk)
           .then(row => {
-            if (count > 1) smsMsg = '견적서가 수정되었습니다. goo.gl/DU4v61 에서 변경사항을 확인해보세요.';
-            else smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. goo.gl/DU4v61 에서 상세견적을 확인해보세요.`;
+            let linkAddress = 'bit.ly/gRi25e';
+            if (count > 1) smsMsg = `견적서가 수정되었습니다. ${linkAddress} 에서 변경사항을 확인해보세요.`;
+            else smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. ${linkAddress} 에서 상세견적을 확인해보세요.`;
+
+            if (row.pc_nickname.indexOf('박람회') >= 0) {
+              linkAddress = '집닥숏링크주소';
+              smsMsg = `안녕하세요. 고객님.
+
+집닥 가상 견적서가 도착했습니다.
+고객님의 비밀번호는 [${row.pc_password}]입니다.
+${linkAddress} 에서 견적내용을 확인해보세요.
+
+인테리어 가상 견적서는 만족하셨나요?
+상담받으신 내용으로 집닥 파트너스와의 비교방문상담 신청이 접수되었습니다.
+파트너스 매칭 후, 집닥에서 1600-3069로 연락드릴 예정입니다.
+꼭 받아주세요!
+
+집닥과 함께 간편안심 인테리어 하세요!
+
+------------------------------------
+■ 집닥 Always Service
+1600-3069 (월-목,토,공휴일 10:00~18:00 / 금요일 10:00~17:00, 일요일 휴무)
+■ 집닥 앱 다운로드
+http://www.zipdoc.co.kr/store
+■ 집닥 홈페이지
+http://www.zipdoc.co.kr`;
+            }
+
             smsHelper.send(cryptoHelper.decrypt(row.pc_phone), smsMsg)
               .then(() => {
                 return cur('proceeding_contract_tbl')
