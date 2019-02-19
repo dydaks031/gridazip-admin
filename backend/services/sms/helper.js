@@ -7,6 +7,8 @@ const Helper = {
   send: (phone, message) => {
     return new Promise((resolve, reject) => {
       const phoneDashed = formatHelper.toDashedPhone(phone);
+      let smsType = 'S';
+      if (message.length > 80) smsType = 'L';
       const parameter = {
         form: {
           user_id: config.id,
@@ -16,7 +18,8 @@ const Helper = {
           sphone3: config.sphone3,
           rphone: phoneDashed,
           msg: message,
-          description: appConfig.site.name
+          description: appConfig.site.name,
+          smsType: smsType
         }
       };
 

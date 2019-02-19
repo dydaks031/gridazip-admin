@@ -1,24 +1,31 @@
 <template>
   <div class="wrapper">
     <div class="container guide">
+      <div class="logo-area">
+        <img class="logo" src="~assets/zipdoc_logo.png" />
+      </div>
       <div class="title-container is-hidden-touch is-clearfix">
         <h1 class="title is-hidden-mobile is-pulled-left">
-          실시간 <br> <b>인테리어 상세 견적서</b>
+          <span class="title-name"><b>집닥</b></span> <br> <b>인테리어 상세 견적서</b>
         </h1>
         <div class="is-pulled-right user-info-contents is-hidden-touch">
-          <h3 class="user-name"><b>{{userInfo.pc_name}}</b> 님</h3>
+          <div class="user-name-view">
+            <img class="user-image" src="~assets/user_image.png" />
+            <h3 class="user-name"><b>{{userInfo.pc_name}}</b> 님</h3>
+          </div>
+
           <div class="user-info is-clearfix">
-            <div class="label-view is-pulled-right has-text-right">
-              <p>연락처</p>
-              <p>이사일</p>
-              <p>평수</p>
-              <p>주소</p>
-            </div>
             <div class="contents is-pulled-right has-text-right">
               <p>{{userInfo.pc_phone}}</p>
               <p>{{(userInfo.pc_move_date === '0000-00-00 00:00:00' || !userInfo.pc_move_date ) ? '-' : moment(userInfo.pc_move_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p>
               <p>{{userInfo.pc_size}}</p>
               <p>{{userInfo.pc_address_brief}} {{userInfo.pc_address_detail}}</p>
+            </div>
+            <div class="label-view is-pulled-right has-text-right">
+              <p>연락처</p>
+              <p>이사일</p>
+              <p>평수</p>
+              <p>주소</p>
             </div>
           </div>
         </div>
@@ -288,7 +295,7 @@
               <div class="user-info-container">
                 <div class="user-name-view">
                   <div class="profile-image-view">
-                    <img src="~assets/user-profile.png" />
+                    <img src="~assets/user_image.png" />
                   </div>
                   <p class="user-name"><b>{{userInfo.pc_name}}</b> 님의 <br />고객정보</p>
                 </div>

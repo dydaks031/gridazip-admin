@@ -214,6 +214,22 @@ export default new Router({
       ]
     },
     {
+      path: '/zipdoc',
+      redirect: '/zipdoc/estimate',
+      component: require('../components/layout/PublicAppContainer'),
+      children: [
+        {
+          name: '견적서',
+          path: 'estimate',
+          component: require('../views/customer-zipdoc/estimate')
+        },
+        {
+          path: '*',
+          redirect: '/customer/estimate'
+        }
+      ]
+    },
+    {
       path: '*',
       redirect: '/private/login'
     }
