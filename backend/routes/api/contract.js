@@ -419,7 +419,7 @@ router.post('/:pcpk([0-9]+)/sms', (req, res) => {
             else smsMsg = `고객님의 비밀번호는 [${row.pc_password}]입니다. ${linkAddress} 에서 상세견적을 확인해보세요.`;
 
             if (row.pc_nickname.indexOf('박람회') >= 0) {
-              linkAddress = '집닥숏링크주소';
+              linkAddress = 'bit.ly/21PD0C';
               smsMsg = `안녕하세요. 고객님.
 
 집닥 가상 견적서가 도착했습니다.
