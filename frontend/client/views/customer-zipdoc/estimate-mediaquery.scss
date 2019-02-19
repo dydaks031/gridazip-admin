@@ -25,12 +25,11 @@ $font-color: #222222;
       }
       .outer {
         background: inherit;
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - 3.5rem - 81px);
       }
     }
     .logo-area {
       background-color: white;
-      margin: 0 auto;
       text-align: center;
       padding: 0;
       > img {
