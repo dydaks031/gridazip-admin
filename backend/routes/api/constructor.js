@@ -140,7 +140,7 @@ router.post('/', (req, res) => {
 
     reqSkillList.forEach(skill => {
       if (skill.cs_ctpk === undefined || skill.cs_ctpk === '') {
-        console.error(skill);
+
         return res.json(resHelper.getError('[0002] 파라메터가 올바르지 않습니다.'));
       }
       else if (skill.cs_skill_score === undefined || skill.cs_skill_score === '') {

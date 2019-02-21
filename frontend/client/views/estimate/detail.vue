@@ -308,7 +308,7 @@
                   <!--<input type="checkbox" class="checkbox">-->
                 </td>
                 <td>
-                  <datepicker v-model="newCheckList.date"/>
+                  <datepicker v-model="newCheckList.date" :config="{ wrap: true }"/>
                 </td>
                 <td>
                   <div class="select">
@@ -814,6 +814,7 @@
         currentConstructionList: [],
         isDatepickerOpen: false,
         newCheckList: {
+          date: null,
           ct_pk: ''
         },
         wantMoveDate: '',
@@ -1180,11 +1181,12 @@
               duration: 1500
             })
             this.newCheckList.ct_pk = ''
-            this.newCheckList.date = ''
             this.newCheckList.cl_constructor = ''
             this.newCheckList.cl_resource = ''
             this.newCheckList.cl_date = ''
+            this.newCheckList.cl_memo = ''
             this.isAddCheckList = false
+
             this.loadCheckList()
           })
           .catch((e) => {
