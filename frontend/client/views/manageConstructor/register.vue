@@ -90,13 +90,15 @@
           <h1 class="title">기본 정보</h1>
           <div class="block">
             <label class="label">가게명</label>
-            <p class="control">
-              <input class="input" type="text" v-model="newData.co_name" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.co_name" :class="{'is-danger': $v.newData.co_name.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.newData.co_name.required">가게명을 입력해 주십시오.</p>
+            </div>
             <label class="label">연락처</label>
-            <p class="control">
-              <input class="input" type="text" v-model="newData.co_contact" />
-            </p>
+            <div class="control">
+              <input class="input" type="text" v-model="newData.co_contact" :class="{'is-danger': $v.newData.co_contact.$invalid }"/>
+              <p class="help is-danger" v-if="!$v.newData.co_contact.required">연락처를 입력해 주십시오.</p>
+            </div>
             <label class="label">담당자</label>
             <p class="control">
               <input class="input" type="text" v-model="newData.co_manager_name" />
@@ -163,6 +165,7 @@
   import Notification from 'vue-bulma-notification'
   import StarRating from 'vue-star-rating'
   import { required } from 'vuelidate/lib/validators'
+  import deepClone from '../../services/deepClone'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -241,19 +244,10 @@
         },
         co_contact: {
           required
-        },
-        co_manager_name: {
-          required
-        },
-        co_location: {
-          required
-        },
-        co_memo: {
-          required
         }
       },
       constructor: ['newData.cr_name', 'newData.cr_contact', 'newData.cr_communication_score'],
-      correspondent: ['newData.co_name', 'newData.co_contact', 'newData.co_manager_name', 'newData.co_location', 'newData.co_memo']
+      correspondent: ['newData.co_name', 'newData.co_contact']
     },
     created () {
       const url = this.$route.path
@@ -302,11 +296,16 @@
       },
       createData (validator) {
         if (validator.$invalid) {
+          openNotification({
+            message: `필수 항목을 입력해 주세요.`,
+            type: 'danger',
+            duration: 1500
+          })
           return false
         }
         switch (this.type) {
           case 'constructor':
-            if (this.newData.constructorSkillList.length === 0) {
+            if (this.newData.constructorSkillList.length === 1) {
               openNotification({
                 message: `최소 1개 이상의 보유기술을 등록해 주십시오.`,
                 type: 'danger',
@@ -316,7 +315,7 @@
             }
             break
           case 'correspondent':
-            if (this.newData.correspondentItemList.length === 0) {
+            if (this.newData.correspondentItemList.length === 1) {
               openNotification({
                 message: `최소 1개 이상의 취급품목을 등록해 주십시오.`,
                 type: 'danger',
@@ -326,7 +325,15 @@
             }
             break
         }
-        this.$http.post(`${queryApi}/${this.type}`, this.newData)
+        const cloneData = deepClone(this.newData)
+        if (!cloneData.constructorSkillList[cloneData.constructorSkillList.length - 1].cs_ctpk) {
+          cloneData.constructorSkillList.pop()
+        }
+        if (!cloneData.correspondentItemList[cloneData.correspondentItemList.length - 1].ci_rcpk) {
+          cloneData.correspondentItemList.pop()
+        }
+
+        this.$http.post(`${queryApi}/${this.type}`, cloneData)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
