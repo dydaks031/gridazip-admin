@@ -129,7 +129,7 @@ router.post('/', (req, res) => {
   const reqMemo = req.body.co_memo || '';
   const reqItemList = req.body.correspondentItemList || [];
 
-  if (reqName.trim() === '' || reqContact.trim() === '' || reqManagerName.trim() === '' || reqItemList.length === 0) {
+  if (reqName.trim() === '' || reqContact.trim() === '' || reqItemList.length === 0) {
     res.json(resHelper.getError('[0001] 필수 파라메터가 누락되었습니다.'));
   }
   else {
