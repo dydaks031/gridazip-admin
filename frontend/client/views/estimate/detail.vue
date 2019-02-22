@@ -520,10 +520,10 @@
               <td>{{receipt.statusName}}</td>
               <td>{{receipt.memo}}</td>
               <td class="receipt-button-wrapper">
-                <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(receipt, 0)">반려</button>
+                <button class="button is-danger is-medium" v-if="(userPermit === 'C' && receipt.status !== 3) || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(receipt, 0)">반려</button>
                 <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(receipt, -1)">삭제</button>
                 <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3" @click="changeReceiptStatus(receipt, 2)">승인</button>
-                <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
+                <button class="button is-primary is-medium" v-if="(userPermit === 'C' && receipt.status !== 3)" @click="changeReceiptStatus(receipt, 3)">입금완료</button>
               </td>
             </tr>
             <tr v-if="contractReceiptList.length === 0">

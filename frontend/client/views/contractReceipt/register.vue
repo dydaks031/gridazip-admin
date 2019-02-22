@@ -192,7 +192,7 @@
     },
     methods: {
       loadProceedingContract () {
-        this.$http.get(`${contractQueryApi}?isPage=false`)
+        this.$http.get(`${contractQueryApi}?isPage=false&isAdopted=true`)
           .then((response) => {
             if (response.data.code !== 200) {
               return

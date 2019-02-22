@@ -57,7 +57,8 @@ router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
   let point = req.query.point;
   let pageIndex = req.query.page;
-  let isNotUsingPage = req.query.isPage === false || req.query.isPage === 'false';
+  let isNotUsingPage = req.query.isPage === true || req.query.isPage === 'true';
+  let isAdopted = req.query.isAdopted === true || req.query.isAdopted === 'true';
   let pageInst = new paginationService();
   let pageData = pageInst.get();
   if (pageInst.isEnd() === true) {
@@ -108,6 +109,10 @@ router.get('/', (req, res) => {
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
 
+    if (isAdopted) {
+      query = query
+        .whereIn('pc_status', [2,3,4,5])
+    }
     if (!isNotUsingPage) {
       query = query
         .limit(pageData.limit)
@@ -118,7 +123,10 @@ router.get('/', (req, res) => {
       }
     }
 
+
+
     let list = [];
+    // console.log(query.toSQL().toNative());
 
     query
       .then(response => {
