@@ -111,7 +111,7 @@ router.get('/', (req, res) => {
 
     if (isAdopted) {
       query = query
-        .whereIn('pc_status', [2,3,4,5])
+        .whereIn('pc_status', [3,4,5,9])
     }
     if (!isNotUsingPage) {
       query = query
