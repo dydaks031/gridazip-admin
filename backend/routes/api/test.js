@@ -430,4 +430,10 @@ router.get('/crypt', (req,res) => {
   );
 });
 
+router.get('/decrypt', (req,res) => {
+  res.json(
+      resHelper.getJson(cryptoHelper.decrypt(req.query.msg))
+  );
+});
+
 module.exports = router;
