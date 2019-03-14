@@ -278,10 +278,9 @@
       },
       onFileChanged (event, index) {
         const files = event.target.files
-        console.log(files)
         for (let i = 0; i < files.length; i++) {
           const formData = new FormData()
-          formData.append('file_upload_path', 'portfolio')
+          formData.append('file_upload_path', 'receipt')
           formData.append('filedata', files[i])
 
           this.$http.post(fileUploadApi, formData)
