@@ -55,13 +55,18 @@ router.post('/pk', (req, res) => {
 
 router.get('/', (req, res) => {
   const completed = req.query.completed || '0';
-  let point = req.query.point;
-  let pageIndex = req.query.page;
-  let isNotUsingPage = req.query.isPage === true || req.query.isPage === 'true';
-  let isAdopted = req.query.isAdopted === true || req.query.isAdopted === 'true';
-  let pageInst = new paginationService();
+  const point = req.query.point;
+  const pageIndex = req.query.page;
+  const isNotUsingPage = req.query.isPage === true || req.query.isPage === 'true';
+  const isAdopted = req.query.isAdopted === true || req.query.isAdopted === 'true';
+  const selectedStatus = req.query.selected || '';
+  const contractStatus = req.query.status || '';
+  const searchWord = req.query.search || '';
+  const pageInst = new paginationService();
   let pageData = pageInst.get();
-  if (pageInst.isEnd() === true) {
+  let countQuery;
+
+    if (pageInst.isEnd() === true) {
     res.json(
       resHelper.getJson({
         data: [],
@@ -108,12 +113,38 @@ router.get('/', (req, res) => {
       .where('pc_deleted', false)
       .andWhere('pc_completed', completed)
       .orderBy('pc_recency');
+    if (selectedStatus === 'B') {
+      if (contractStatus) {
+        query = query.where('pc_status', contractStatus)
+      } else {
+        query = query.whereIn('pc_status', [0,1,2])
+      }
+    } else if(selectedStatus === 'A') {
+      if (contractStatus) {
+        query = query.where('pc_status', contractStatus)
+      } else {
+        query = query.whereIn('pc_status', [3,4,5,9])
+      }
+    } else if(selectedStatus === 'F') {
+      query = query.where('pc_status', -1)
+    }
+
+    if (searchWord.trim()) {
+      query = query.where(function() {
+        this.where('pc_name', 'like', `%${searchWord}%`)
+          .orWhere('pc_nickname', 'like', `%${searchWord}%`)
+          .orWhere('pc_address_brief', 'like', `%${searchWord}%`)
+          .orWhere('pc_address_detail', 'like', `%${searchWord}%`)
+      })
+    }
 
     if (isAdopted) {
       query = query
         .whereIn('pc_status', [3,4,5,9])
     }
+
     if (!isNotUsingPage) {
+      countQuery = query.clone();
       query = query
         .limit(pageData.limit)
         .offset(pageData.page);
@@ -122,8 +153,6 @@ router.get('/', (req, res) => {
         query = query.where('pc_pk', '<=', pageData.point);
       }
     }
-
-
 
     let list = [];
     // console.log(query.toSQL().toNative());
@@ -155,13 +184,11 @@ router.get('/', (req, res) => {
           if (list.length < pageInst.limit) {
             pageInst.setEnd(true);
           }
-
-          return cur('proceeding_contract_tbl').count('* as count');
+          return countQuery.count('* as count')
         }
       })
       .then(response => {
         pageInst.setCount(response[0].count);
-
         res.json(
           resHelper.getJson({
             contractList: list,
