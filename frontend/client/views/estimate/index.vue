@@ -158,23 +158,23 @@
         console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}&selected=${this.searchData.contractSelectedStatus}&status=${this.searchData.contractStatus}&search=${this.searchData.searchWord}`)
         this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}&selected=${this.searchData.contractSelectedStatus}&status=${this.searchData.contractStatus}&search=${this.searchData.searchWord}`)
           .then((response) => {
-          if (response.data.code !== 200) {
-            return
-          }
-          const dataList = response.data.data
-          this.page.set(dataList.page)
-          this.contractList = dataList.contractList
-        })
+            if (response.data.code !== 200) {
+              return
+            }
+            const dataList = response.data.data
+            this.page.set(dataList.page)
+            this.contractList = dataList.contractList
+          })
           .then(() => {
-          window.scrollTo(0,0)
-        })
+            window.scrollTo(0, 0)
+          })
           .catch(error => {
-          console.error(error)
-        })
+            console.error(error)
+          })
           .finally(() => {
             this.isLoading = false
             this.isSearch = false
-        })
+          })
       },
       changeProcessStatus () {
         const selectedData = _.find(this.requestStatusConfig.splitedContractStatusList, (item) => {
@@ -191,7 +191,7 @@
         this.$forceUpdate()
         this.clickSearchButton(true)
       },
-      clickSearchButton(filterSearch) {
+      clickSearchButton (filterSearch) {
         this.isSearch = true
         if (!filterSearch) {
           this.searchData.contractSelectedStatus = ''

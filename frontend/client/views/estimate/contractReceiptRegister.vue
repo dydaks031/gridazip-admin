@@ -88,9 +88,14 @@
           <td>
             <span class="input-group">
               <button class="button" v-on:click="callFileUpload('file_upload_new')">업로드</button>
-              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" multiple accept="image/*,.jpg,.gif,.png,.jpeg"/>
+              <input type="file" name="new_file" placeholder="new File" style="display:none;" :ref='"file_upload_new"' v-on:change="onFileChanged($event, 'new')" accept="image/*" multiple/>
             </span>
-            <img v-for="image in imageList" :src="image.url" />
+            <div class="upload-image-wrapper" v-for="(image, index) in imageList" >
+              <img :src="image.url" style="max-width:50%;"/>
+              <input type="file" :name='"receipt_upload[" + index + "]"' style="display:none;" :ref='"receipt_upload_" + index' v-on:change="onFileChanged($event, index)" />
+              <button class="button is-danger" @click="deleteFiles(image)">삭제</button>
+              <button class="button is-info" @click="callFileUpload('receipt_upload_' + index)">수정</button>
+            </div>
           </td>
         </tr>
         <tr>
@@ -109,6 +114,7 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import FormData from 'form-data'
+  import _ from 'underscore'
 
   const queryApi = '/api/contract'
   const fileUploadApi = '/api/file/upload'
@@ -214,7 +220,7 @@
         console.log(files)
         for (let i = 0; i < files.length; i++) {
           const formData = new FormData()
-          formData.append('file_upload_path', 'portfolio')
+          formData.append('file_upload_path', 'receipt')
           formData.append('filedata', files[i])
 
           this.$http.post(fileUploadApi, formData)
@@ -242,6 +248,9 @@
               console.error(error)
             })
         }
+      },
+      deleteFiles (image) {
+        this.imageList = _.without(this.imageList, image)
       }
     },
     mounted () {
