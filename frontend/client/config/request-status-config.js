@@ -42,6 +42,52 @@ export default {
     '5': '공사 종료',
     '9': '공사 마감'
   },
+  splitedContractStatusList: [
+    {
+      label: '채택 전',
+      value: 'B',
+      children: [
+        {
+          label: '가견적 작성 필요',
+          value: '0'
+        },
+        {
+          label: '가견적 작성중',
+          value: '1'
+        },
+        {
+          label: '가견적서 제출',
+          value: '2'
+        }
+      ]
+    },
+    {
+      label: '채택 후',
+      value: 'A',
+      children: [
+        {
+          label: '계약 완료',
+          value: '3'
+        },
+        {
+          label: '공사 중',
+          value: '4'
+        },
+        {
+          label: '공사 종료',
+          value: '5'
+        },
+        {
+          label: '공사 마감',
+          value: '9'
+        }
+      ]
+    },
+    {
+      label: '계약실패',
+      value: 'F'
+    }
+  ],
   contractFailReasonList: [{
     label: '견적 비용 초과'
   }, {
