@@ -424,10 +424,17 @@ router.get('/qt', (req,res) => {
   })
 });
 
-router.get('/crypt', (req,res) => {
+router.get('/encrypt', (req,res) => {
   res.json(
     resHelper.getJson(cryptoHelper.encrypt(req.query.msg))
   );
 });
+
+router.get('/decrypt', (req,res) => {
+  res.json(
+    resHelper.getJson(cryptoHelper.decrypt(req.query.msg))
+  );
+});
+
 
 module.exports = router;
