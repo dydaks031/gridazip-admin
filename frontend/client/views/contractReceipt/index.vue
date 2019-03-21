@@ -14,7 +14,7 @@
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
               <div class="select">
-                <select v-model="searchOptions.status">
+                <select v-model="searchOptions.status" @change="loadContractReceipt">
                   <option value="" selected="selected">선택</option>
                   <!--<option value="-1">삭제</option>-->
                   <option value="0">반려</option>
@@ -24,10 +24,20 @@
                 </select>
               </div>
             </div>
+            <div class="control is-inline-block">
+              <label class="label">현장 검색</label>
+              <div class="select">
+                <select v-model="selectedContract">
+                  <option value="" selected="selected">전체</option>
+                  <!--<option value="-1">삭제</option>-->
+                  <option v-for="(contract,index) in contractReceiptList" :value="index">{{contract.name}} {{contract.nickname?'('+contract.nickname+')':''}}</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div class="is-pulled-right search-btn">
-            <a class="button is-info" @click="loadContractReceipt">검색</a>
-          </div>
+          <!--<div class="is-pulled-right search-btn">-->
+            <!--<a class="button is-info" @click="loadContractReceipt">검색</a>-->
+          <!--</div>-->
         </div>
       </div>
     </div>
@@ -67,7 +77,7 @@
             </table>
           </div>
           <div>
-            <ul class="proceeding-contract-list">
+            <ul class="proceeding-contract-list" v-if="selectedContract === ''">
               <li class="contractItem box" v-for="contract in contractReceiptList">
                 <div class="title-view is-clearfix">
                   <h1 class="subtitle">{{contract.name}} {{contract.nickname?'('+contract.nickname+')':''}} 현장 비용현황</h1>
@@ -278,6 +288,217 @@
                 </table>
               </li>
             </ul>
+            <ul class="proceeding-contract-list" v-else>
+              <li class="contractItem box">
+                <div class="title-view is-clearfix">
+                  <h1 class="subtitle">{{contractReceiptList[selectedContract].name}} {{contractReceiptList[selectedContract].nickname?'('+contractReceiptList[selectedContract].nickname+')':''}} 현장 비용현황</h1>
+                  <div class="summary-info is-flex">
+                    <span>당 현장 견적금액: {{addCommas(contractReceiptList[selectedContract].contractTotalCosts)}}원</span>
+                    <span>현 집행금액: {{addCommas(contractReceiptList[selectedContract].receiptTotalCosts)}}원</span>
+                    <span>집행률: {{(contractReceiptList[selectedContract].receiptTotalCosts/contractReceiptList[selectedContract].contractTotalCosts * 100).toFixed(2)}}%</span>
+                  </div>
+                </div>
+                <table class="table is-bordered contract-summary">
+                  <thead>
+                  <tr>
+                    <th>공사</th>
+                    <th class="is-hidden-mobile">인건비</th>
+                    <th class="is-hidden-mobile">자재비</th>
+                    <th class="is-hidden-mobile">기타잡비</th>
+                    <th class="contract-column-summary">계</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr v-for="price in contractReceiptList[selectedContract].priceList">
+                    <td>{{addCommas(price.ct_name)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.labor_price)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.resource_price)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(price.etc_price)}}</td>
+                    <td class="contract-column-summary">{{addCommas(price.total_price)}}</td>
+                  </tr>
+                  <tr class="contract-row-summary">
+                    <td>계</td>
+                    <td class="is-hidden-mobile">{{addCommas(contractReceiptList[selectedContract].priceSummary.laborPrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(contractReceiptList[selectedContract].priceSummary.resourcePrice)}}</td>
+                    <td class="is-hidden-mobile">{{addCommas(contractReceiptList[selectedContract].priceSummary.etcPrice)}}</td>
+                    <td>{{addCommas(contractReceiptList[selectedContract].priceSummary.totalPrice)}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+
+                <div class="level title-view">
+                  <div class="level-left">
+                    <h1 class="subtitle" v-if="contractReceiptList[selectedContract].collectSchedule.length !== 0">수금예정현황</h1>
+                  </div>
+                  <div class="level-right">
+                    <h1 class="subtitle" v-if="contractReceiptList[selectedContract].collectBills.length !== 0">실제수금현황 / 수금률: {{getCollectBillsPercent(contract)}}%</h1>
+
+                  </div>
+                </div>
+                <div class="level title-view collect-bills">
+                  <div class="level-left" v-if="contractReceiptList[selectedContract].collectSchedule.length !== 0">
+                    <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                      <thead>
+                      <tr>
+                        <th>No.</th>
+                        <th>구분</th>
+                        <th>수금예정일</th>
+                        <th>금액</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(schedule, i) in contractReceiptList[selectedContract].collectSchedule">
+                        <td class="has-text-centered">{{i+1}}</td>
+                        <td>{{schedule.cb_type}}</td>
+                        <td>{{schedule.cb_date===null?'':moment(schedule.cb_date).format('YYYY-MM-DD')}}</td>
+                        <td class="has-text-right">{{addCommas(schedule.cb_amount)}}</td>
+                      </tr>
+                      <tr>
+                        <td>합계</td>
+                        <td colspan="2"></td>
+                        <td class="has-text-right">{{addCommas(getTotalAmount(contractReceiptList[selectedContract].collectSchedule))}}</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="level-right" v-if="contractReceiptList[selectedContract].collectBills.length !== 0">
+                    <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                      <thead>
+                      <tr>
+                        <th>No.</th>
+                        <th>실제수금일</th>
+                        <th>예금주</th>
+                        <th>금액</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(bills, i) in contractReceiptList[selectedContract].collectBills">
+                        <td class="has-text-centered">{{i+1}}</td>
+                        <td>{{bills.cb_date===null?'':moment(bills.cb_date).format('YYYY-MM-DD')}}</td>
+                        <td>{{bills.cb_sender}}</td>
+                        <td class="has-text-right">{{addCommas(bills.cb_amount)}}</td>
+                      </tr>
+                      <tr>
+                        <td>합계</td>
+                        <td colspan="2"></td>
+                        <td class="has-text-right">{{addCommas(getTotalAmount(contractReceiptList[selectedContract].collectBills))}}</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="title-view">
+                  <h1 class="subtitle">{{contractReceiptList[selectedContract].name}} {{contractReceiptList[selectedContract].nickname?'('+contractReceiptList[selectedContract].nickname+')':''}} 현장 입금 요청내역</h1>
+                </div>
+                <table class="table is-bordered contract-receipt-list is-hidden-touch">
+                  <thead>
+                  <tr>
+                    <th>기안자</th>
+                    <th>비용청구일자</th>
+                    <th>공사</th>
+                    <th>비용구분</th>
+                    <th>비용상세내역</th>
+                    <th>청구금액</th>
+                    <th>부가세</th>
+                    <th>입금정보</th>
+                    <th>첨부서류</th>
+                    <th>결재상태</th>
+                    <th>메모</th>
+                    <th>결재</th>
+                  </tr>
+                  </thead>
+                  <tbody v-for="receipt in contractReceiptList[selectedContract].receipt" v-if="receipt.status !== -1" >
+                  <tr>
+                    <td>{{receipt.drafter}}</td>
+                    <td t="d">{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YY-MM-DD')}}</td>
+                    <td>{{receipt.ctName}}</td>
+                    <td>{{receipt.typeToString}}</td>
+                    <td>{{receipt.contents}}</td>
+                    <td>{{addCommas(receipt.price)}}</td>
+                    <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+                    <td t="s">
+                      {{receipt.accountNumber}}<br />
+                      {{receipt.accountBank}}<br />
+                      {{receipt.accountHolder}}
+                    </td>
+                    <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
+                    <td>{{receipt.statusName}}</td>
+                    <td>{{receipt.memo}}</td>
+                    <td class="receipt-button-wrapper">
+                      <button class="button is-danger is-medium" v-if="(userPermit === 'C' && receipt.status !== 3) || (userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3)" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2 && receipt.status !== 3" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="(userPermit === 'C' && receipt.status !== 3)" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 3)">입금완료</button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+                <table class="table is-bordered contract-receipt-list is-hidden-desktop" v-if="contractReceiptList.length !== 0">
+                  <tbody v-for="receipt in contractReceiptList[selectedContract].receipt" v-if="receipt.status !== -1" >
+                  <tr>
+                    <th>날짜</th>
+                    <td>{{moment(receipt.date, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD')}}</td>
+                  </tr>
+                  <tr>
+                    <th>공사</th>
+                    <td>{{receipt.ctName}}</td>
+                  </tr>
+                  <tr>
+                    <th>구분</th>
+                    <td>{{receipt.typeToString}}</td>
+                  </tr>
+                  <tr>
+                    <th>내용</th>
+                    <td>{{receipt.contents}}</td>
+                  </tr>
+                  <tr>
+                    <th>금액</th>
+                    <td>{{addCommas(receipt.price)}}</td>
+                  </tr>
+                  <tr>
+                    <th>부가세</th>
+                    <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
+                  </tr>
+                  <tr>
+                    <th>은행명</th>
+                    <td>{{receipt.accountBank}}</td>
+                  </tr>
+                  <tr>
+                    <th>예금주</th>
+                    <td>{{receipt.accountHolder}}</td>
+                  </tr>
+                  <tr>
+                    <th>계좌번호</th>
+                    <td>{{receipt.accountNumber}}</td>
+                  </tr>
+                  <tr>
+                    <th>첨부서류</th>
+                    <td><a href="#" @click="openImageEnlargedView(receipt)">링크</a></td>
+                  </tr>
+                  <tr>
+                    <th>진행상태</th>
+                    <td>{{receipt.statusName}}</td>
+                  </tr>
+                  <tr v-if="!receipt.rejectReason">
+                    <th>메모</th>
+                    <td>{{receipt.memo}}</td>
+                  </tr>
+                  <tr v-if="receipt.rejectReason">
+                    <th>반려사유</th>
+                    <td>{{receipt.rejectReason}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" class="receipt-button-wrapper">
+                      <button class="button is-danger is-medium" v-if="userPermit === 'C' || (userPermit === 'B' && receipt.status !== 2)" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 0)">반려</button>
+                      <button class="button is-danger is-medium" v-if="receipt.status === 0" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, -1)">삭제</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'B' && receipt.status !== 2" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 2)">승인</button>
+                      <button class="button is-primary is-medium" v-if="userPermit === 'C'" @click="changeReceiptStatus(contractReceiptList[selectedContract].pk, receipt, 3)">입금완료</button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </li>
+            </ul>
             <table class="table is-bordered contract-receipt" v-show="false" id="receiptTable">
               <thead>
               <tr>
@@ -391,7 +612,8 @@
           image: {},
           imageGroup: [],
           index: 0
-        }
+        },
+        selectedContract: ''
       }
     },
     methods: {
@@ -471,6 +693,9 @@
                 }
               })
             })
+          })
+          .finally(() => {
+            this.selectedContract = ''
           })
       },
       changeReceiptStatus (id, item, status) {

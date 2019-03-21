@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node ./node_modules/.bin/pm2 start bin/www --name gridazip-admin-site --watch",
     "poststart": "node ./node_modules/.bin/pm2 logs",
-    "dev": "NODE_ENV=development nodemon ./bin/www",
+    "dev": "NODE_ENV=development PORT=3001 nodemon ./bin/www",
     "local": "NODE_ENV=local PORT=3001 nodemon ./bin/www",
     "real": "NODE_ENV=production nodemon ./bin/www",
     "restart": "node ./node_modules/.bin/pm2 restart gridazip-admin-site"
