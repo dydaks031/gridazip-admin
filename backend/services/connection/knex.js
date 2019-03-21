@@ -2,7 +2,7 @@ const knex = require('knex');
 const helper = require('./helper');
 
 
-const connectionInfo = helper.getInfo(process.env.NODE_ENV === 'development' ? 'development' : 'default');
+const connectionInfo = helper.getInfo(process.env.NODE_ENV);
 
 const Knex = {
   getConnection: () => {
