@@ -331,7 +331,7 @@
                     <h1 class="subtitle" v-if="contractReceiptList[selectedContract].collectSchedule.length !== 0">수금예정현황</h1>
                   </div>
                   <div class="level-right">
-                    <h1 class="subtitle" v-if="contractReceiptList[selectedContract].collectBills.length !== 0">실제수금현황 / 수금률: {{getCollectBillsPercent(contract)}}%</h1>
+                    <h1 class="subtitle" v-if="contractReceiptList[selectedContract].collectBills.length !== 0">실제수금현황 / 수금률: {{getCollectBillsPercent(contractReceiptList[selectedContract])}}%</h1>
 
                   </div>
                 </div>
