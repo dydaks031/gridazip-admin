@@ -14,7 +14,7 @@
             <div class="control is-inline-block">
               <label class="label">진행상태</label>
               <div class="select">
-                <select v-model="searchOptions.status" @change="loadContractReceipt">
+                <select v-model="searchOptions.status" @change="changeStatusOption">
                   <option value="" selected="selected">선택</option>
                   <!--<option value="-1">삭제</option>-->
                   <option value="0">반려</option>
@@ -617,6 +617,10 @@
       }
     },
     methods: {
+      changeStatusOption () {
+        this.selectedContract = ''
+        this.loadContractReceipt()
+      },
       /* 결재 영수 조회 */
       loadContractReceipt () {
         this.checkPermission()
@@ -693,9 +697,6 @@
                 }
               })
             })
-          })
-          .finally(() => {
-            this.selectedContract = ''
           })
       },
       changeReceiptStatus (id, item, status) {

@@ -23,52 +23,59 @@ router.post('/login', (req, res) => {
     );
   }
 
+  let passwordQuery = 'user_pw = PASSWORD(?)';
+  if (process.env.NODE_ENV === 'local') {
+    passwordQuery = 'user_pw = MD5(?)';
+  }
   const session = req.session
-
   knexBuilder.getConnection()
   .then(cur => {
-    cur('user_tbl')
+    const query = cur('user_tbl')
+      .select('*')
       .where({
         user_id: user_id
       })
       .whereNull('user_oauth_type')
-      .whereRaw('user_pw = PASSWORD(?)', [user_pw]).limit(1)
-      .then(response => {
-        if (response.length > 0) {
-          userResult = response[0];
-          return appHelper.setUser(userResult, session)
-            .then(() => {
-              return jwtHelper.sign({
-                user_pk: userResult.user_pk,
-                user_permit: userResult.user_permit,
-                user_name: userResult.user_name,
-                user_id,
-              })
+      .whereRaw(passwordQuery, [user_pw]).limit(1);
+
+    // console.log(query.toSQL().toNative());
+
+    query.then(response => {
+      if (response.length > 0) {
+        userResult = response[0];
+        return appHelper.setUser(userResult, session)
+          .then(() => {
+            return jwtHelper.sign({
+              user_pk: userResult.user_pk,
+              user_permit: userResult.user_permit,
+              user_name: userResult.user_name,
+              user_id,
             })
-            .catch(() => {
-              return res.json(
-                resHelper.getError('로그인 처리 중 알수 없는 오류가 발생하였습니다.')
-              )
-            })
-        }
-        else {
-          return res.json(
-            resHelper.getError('해당 아이디와 패스워드에 일치하는 사용자가 없습니다.')
-          );
-        }
-      })
-      .then((token) => {
-        res.json({
-          message: 'success',
-          token
-        })
-      })
-      .catch(reason => {
-        res.json(
-          resHelper.getError('로그인 도중 알 수 없는 문제가 발생했습니다.')
+          })
+          .catch(() => {
+            return res.json(
+              resHelper.getError('로그인 처리 중 알수 없는 오류가 발생하였습니다.')
+            )
+          })
+      }
+      else {
+        return res.json(
+          resHelper.getError('해당 아이디와 패스워드에 일치하는 사용자가 없습니다.')
         );
-        throw reason;
-      });
+      }
+    })
+    .then((token) => {
+      res.json({
+        message: 'success',
+        token
+      })
+    })
+    .catch(reason => {
+      res.json(
+        resHelper.getError('로그인 도중 알 수 없는 문제가 발생했습니다.')
+      );
+      throw reason;
+    });
   });
 })
 
