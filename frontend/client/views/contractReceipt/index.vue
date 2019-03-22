@@ -48,6 +48,7 @@
             <p class="subtitle is-3 is-pulled-left">비용 수금현황</p>
             <a class="button is-primary is-pulled-right is-medium" @click="moveToRegisterReceipt">등록</a>
             <button class="button is-info is-pulled-right is-medium excel-btn" @click="excelExport('xlsx')">엑셀 다운로드</button>
+            <button class="button is-info is-pulled-right is-medium excel-btn" @click="depositDataExcelExport('xlsx')">입금자료 다운로드</button>
           </div>
           <div class="receiptAccount" v-if="userPermit === 'C'">
             <h1 class="subtitle">입금 요청 내역 집계</h1>
@@ -62,7 +63,7 @@
               </thead>
               <tbody>
                 <tr v-for="account in receiptAccount">
-                  <td>{{account.accountBank}}</td>
+                  <td>{{getBankNameByCode(account.accountBank)}}</td>
                   <td>{{account.accountNumber}}</td>
                   <td>{{account.accountHolder}}</td>
                   <td>{{addCommas(account.price)}}</td>
@@ -207,7 +208,7 @@
                     <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
                     <td t="s">
                       {{receipt.accountNumber}}<br />
-                      {{receipt.accountBank}}<br />
+                      {{getBankNameByCode(receipt.accountBank)}}<br />
                       {{receipt.accountHolder}}
                     </td>
                     <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
@@ -250,7 +251,7 @@
                     </tr>
                     <tr>
                       <th>은행명</th>
-                      <td>{{receipt.accountBank}}</td>
+                      <td>{{getBankNameByCode(receipt.accountBank)}}</td>
                     </tr>
                     <tr>
                       <th>예금주</th>
@@ -418,7 +419,7 @@
                     <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
                     <td t="s">
                       {{receipt.accountNumber}}<br />
-                      {{receipt.accountBank}}<br />
+                      {{getBankNameByCode(receipt.accountBank)}}<br />
                       {{receipt.accountHolder}}
                     </td>
                     <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
@@ -461,7 +462,7 @@
                   </tr>
                   <tr>
                     <th>은행명</th>
-                    <td>{{receipt.accountBank}}</td>
+                    <td>{{getBankNameByCode(receipt.accountBank)}}</td>
                   </tr>
                   <tr>
                     <th>예금주</th>
@@ -525,9 +526,9 @@
                 <td>{{receipt.ctName}}</td>
                 <td>{{receipt.type === 1 ? '자재비' : '인건비'}}</td>
                 <td>{{receipt.contents}}</td>
-                <td>{{addCommas(receipt.price)}}</td>
+                <td t="s">{{addCommas(receipt.price)}}</td>
                 <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-                <td>{{receipt.accountBank}}</td>
+                <td>{{getBankNameByCode(receipt.accountBank)}}</td>
                 <td>{{receipt.accountHolder}}</td>
                 <td t="s">{{receipt.accountNumber}}</td>
                 <!--<td><img v-for="image in getAttachmentUrl(receipt)" :src="image" /></td>-->
@@ -535,6 +536,35 @@
                 <td>{{receipt.memo}}</td>
                 <td>{{receipt.rejectReason}}</td>
               </tr>
+              </tbody>
+            </table>
+
+            <table class="table is-bordered contract-receipt" v-show="false" id="depositDataTable">
+              <thead>
+                <tr>
+                  <th>*입금은행</th>
+                  <th>*입금계좌</th>
+                  <th>고객관리성명</th>
+                  <th>*입금액</th>
+                  <th>출금통장표시내용</th>
+                  <th>입금통장표시내용</th>
+                  <th>입금인코드</th>
+                  <th>비고</th>
+                  <th>업체사용key</th>
+                </tr>
+              </thead>
+              <tbody v-for="receipt in receiptList" v-if="receipt.status !== -1" >
+                <tr>
+                  <td t="s">{{receipt.accountBank}}</td>
+                  <td t="s">{{receipt.accountNumber}}</td>
+                  <td>{{receipt.accountHolder}}</td>
+                  <td t="s">{{addCommas(receipt.price)}}</td>
+                  <td></td>
+                  <td>(주)그리다집</td>
+                  <td></td>
+                  <td>{{receipt.contents}}</td>
+                  <td></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -566,6 +596,7 @@
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
+  import BankCode from '../../config/bank-code'
 
   const queryApi = '/api/contract'
 
@@ -596,6 +627,7 @@
     mixins: [mixin],
     data () {
       return {
+        bankCodeList: BankCode.bankCodeList,
         moment,
         priceSummaryByAccount: 0,
         page: new Pagenation(),
@@ -617,6 +649,12 @@
       }
     },
     methods: {
+      getBankNameByCode (code) {
+        let bank = _.find(this.bankCodeList, (item) => {
+          return item.id === code
+        })
+        return bank.text
+      },
       changeStatusOption () {
         this.selectedContract = ''
         this.loadContractReceipt()
@@ -776,6 +814,24 @@
         ]
         XLSX.utils.book_append_sheet(exportWb, receiptTableWs, '결재목록')
         return XLSX.writeFile(exportWb, fn || `결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+      },
+      depositDataExcelExport (type, fn) {
+        const depositDataTable = document.getElementById('depositDataTable')
+        const exportWb = XLSX.utils.book_new()
+        const depositDataTableWs = XLSX.utils.table_to_sheet(depositDataTable)
+        depositDataTableWs['!cols'] = [
+          {wch: 8},
+          {wch: 20},
+          {wch: 20},
+          {wch: 10},
+          {wch: 15},
+          {wch: 15},
+          {wch: 10},
+          {wch: 40},
+          {wch: 12}
+        ]
+        XLSX.utils.book_append_sheet(exportWb, depositDataTableWs, '은행입금자료목록')
+        return XLSX.writeFile(exportWb, fn || `은행입금자료-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
       },
       getAttachmentUrl (receipt) {
         const attachment = receipt.attachment

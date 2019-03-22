@@ -513,7 +513,7 @@
               <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
               <td t="s">
                 {{receipt.accountNumber}}<br />
-                {{receipt.accountBank}}<br />
+                {{getBankNameByCode(receipt.accountBank)}}<br />
                 {{receipt.accountHolder}}
               </td>
               <td><a href="#" @click="openImageEnlargedView(receipt)" v-if="receipt.attachment.length > 0">링크</a></td>
@@ -559,7 +559,7 @@
             </tr>
             <tr>
               <th>은행명</th>
-              <td>{{receipt.accountBank}}</td>
+              <td>{{getBankNameByCode(receipt.accountBank)}}</td>
             </tr>
             <tr>
               <th>예금주</th>
@@ -622,7 +622,7 @@
               <td>{{receipt.contents}}</td>
               <td>{{addCommas(receipt.price)}}</td>
               <td>{{receipt.isVatIncluded === 0 ? '미포함' : '포함'}}</td>
-              <td>{{receipt.accountBank}}</td>
+              <td>{{getBankNameByCode(receipt.accountBank)}}</td>
               <td>{{receipt.accountHolder}}</td>
               <td t="s">{{receipt.accountNumber}}</td>
               <!--<td><img v-for="image in getAttachmentUrl(receipt)" :src="image" /></td>-->
@@ -738,6 +738,7 @@
   import requestStatusConfig from '../../config/request-status-config'
   import ImageEnlargedView from '../customer/ImageEnlargedView'
   import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
+  import BankCode from '../../config/bank-code'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -772,6 +773,7 @@
     },
     data () {
       return {
+        bankCodeList: BankCode.bankCodeList,
         requestStatusConfig,
         router,
         moment,
@@ -1336,6 +1338,12 @@
         ]
         XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재목록`)
         return XLSX.writeFile(exportWb, fn || `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+      },
+      getBankNameByCode (code) {
+        let bank = _.find(this.bankCodeList, (item) => {
+          return item.id === code
+        })
+        return bank.text
       },
       /* 수금 내역 조회 */
       loadCollectBills () {
