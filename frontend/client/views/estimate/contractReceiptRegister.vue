@@ -120,7 +120,7 @@
   import _ from 'underscore'
   import BankCode from '../../config/bank-code'
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
   const fileUploadApi = '/api/file/upload'
 
   const NotificationComponent = Vue.extend(Notification)

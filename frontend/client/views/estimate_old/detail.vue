@@ -19,74 +19,86 @@
           <div class="block">
             <label class="label">고객명</label>
             <div class="control">
-              <input class="input" type="text" v-model="detailData.customer_name" :class="{'is-danger': $v.detailData.customer_name.$invalid }" />
-              <p class="help is-danger" v-if="!$v.detailData.customer_name.required">고객명을 입력해 주십시오.</p>
+              <input class="input" type="text" v-model="detailData.pc_name" :class="{'is-danger': $v.detailData.pc_name.$invalid }" />
+              <p class="help is-danger" v-if="!$v.detailData.pc_name.required">고객명을 입력해 주십시오.</p>
             </div>
             <label class="label">별칭</label>
             <div class="control">
-              <input class="input" type="text" v-model="detailData.customer_nickname" />
+              <input class="input" type="text" v-model="detailData.pc_nickname" />
             </div>
             <label class="label">연락처</label>
             <div class="control">
-              <input class="input" type="text" v-model="detailData.customer_phone_no" :class="{'is-danger': $v.detailData.customer_phone_no.$invalid }" />
-              <p class="help is-danger" v-if="!$v.detailData.customer_phone_no.required">전화번호를 입력해 주십시오.</p>
+              <input class="input" type="text" v-model="detailData.pc_phone" :class="{'is-danger': $v.detailData.pc_phone.$invalid }" />
+              <p class="help is-danger" v-if="!$v.detailData.pc_phone.required">전화번호를 입력해 주십시오.</p>
             </div>
             <label class="label">현장감독</label>
             <div class="select is-fullwidth">
-              <select v-model="detailData.supervisor" id="pcSupervisor">
+              <select v-model="detailData.pc_supervisor" id="pcSupervisor">
                 <option value="" selected="selected">선택</option>
                 <option v-for="supervisor in detailData.supervisorList" :value="supervisor.user_pk">{{supervisor.user_name}}</option>
               </select>
             </div>
             <label class="label">계약상태</label>
             <p class="control">
-                {{detailData.status_name}}
+                {{requestStatusConfig.contractStatusList[detailData.pc_status]}}
+                <button class="button" @click="changeContractStatus(-1)" v-if="[0, 1, 2].indexOf(detailData.pc_status) > 0">계약 실패</button>
+                <button class="button" @click="changeContractStatus(9)" v-if="detailData.pc_status === 5">공사 마감</button>
+            </p>
+            <label class="label" v-if="detailData.pc_status === -1">계약 실패사유</label>
+            <div class="select" v-if="detailData.pc_status === -1">
+              <select v-model="detailData.pc_fail_reason">
+                <option value="" selected="selected">선택</option>
+                <option v-for="status in requestStatusConfig.contractFailReasonList" :value="status.label">{{status.label}}</option>
+              </select>
+            </div>
+            <p class="control" v-if="detailData.pc_fail_reason === '기타'">
+              <textarea class="textarea" v-model="detailData.pc_fail_reason_text"></textarea>
             </p>
             <label class="label">접속코드</label>
-            <p class="control" v-text="detailData.password"></p>
+            <p class="control" v-text="detailData.pc_password"></p>
             <label class="label">평수</label>
             <p class="control">
-              <input class="input" type="text" v-model="detailData.space_size" />
+              <input class="input" type="text" v-model="detailData.pc_size" />
             </p>
             <label class="label">주소</label>
             <p class="control">
-              <input class="input" type="text" v-model="detailData.address" />
+              <input class="input" type="text" v-model="detailData.pc_address_brief" />
             </p>
             <label class="label">상세 주소</label>
             <p class="control">
-              <input class="input" type="text" v-model="detailData.address_detail" />
+              <input class="input" type="text" v-model="detailData.pc_address_detail" />
             </p>
             <label class="label">공사 시작일</label>
             <p class="control">
-              <datepicker placeholder="공사 시작일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.construction_start_date"></datepicker>
+              <datepicker placeholder="공사 시작일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.pc_construction_start_date"></datepicker>
             </p>
             <label class="label">이사일</label>
             <p class="control">
-              <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.moving_date"></datepicker>
+              <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="detailData.pc_move_date"></datepicker>
             </p>
             <label class="label">예산</label>
             <p class="control">
-              <input class="input" type="text" v-model="detailData.budget"/>
+              <input class="input" type="text" v-model="detailData.pc_budget"/>
             </p>
             <label class="label">메모</label>
             <p class="control">
-              <textarea class="textarea" v-model="detailData.memo"></textarea>
+              <textarea class="textarea" v-model="detailData.pc_memo"></textarea>
             </p>
             <label class="label">공과잡비(%)</label>
             <p class="control">
-              <input class="input" v-model="detailData.etc_costs_ratio" />
+              <input class="input" v-model="detailData.pc_etc_costs_ratio" />
             </p>
             <label class="label">디자인 및 설계비(%)</label>
             <p class="control">
-              <input class="input" v-model="detailData.design_costs_ratio" />
+              <input class="input" v-model="detailData.pc_design_costs_ratio" />
             </p>
             <label class="label">감리비(%)</label>
             <p class="control">
-              <input class="input" v-model="detailData.supervision_costs_ratio" />
+              <input class="input" v-model="detailData.pc_supervision_costs_ratio" />
             </p>
             <label class="label">할인금액</label>
             <p class="control">
-              <input class="input" v-model="detailData.discount_amount" />
+              <input class="input" v-model="detailData.pc_discount_amount" />
             </p>
             <p class="control">
               <button class="button is-primary" @click="updateContract">등록</button>
@@ -364,7 +376,7 @@
             </div>
           </div>
           <div class="title-view is-clearfix">
-            <h1 class="subtitle">{{detailData.customer_name}} {{detailData.customer_nickname?'('+detailData.customer_nickname+')':''}} 현장 비용현황</h1>
+            <h1 class="subtitle">{{detailData.pc_name}} {{detailData.pc_nickname?'('+detailData.pc_nickname+')':''}} 현장 비용현황</h1>
             <div class="summary-info is-flex">
               <span>당 현장 견적금액: {{addCommas(contractTotalCosts)}}원</span>
               <span>현 집행금액: {{addCommas(receiptTotalCosts)}}원</span>
@@ -471,7 +483,7 @@
             <button class="button is-info is-pulled-right is-medium excel-btn" @click="excelExport('xlsx')">엑셀 다운로드</button>
           </div>
           <div class="title-view">
-            <h1 class="subtitle">{{detailData.customer_name}} {{detailData.customer_nickname?'('+detailData.customer_nickname+')':''}} 현장 입금 요청내역</h1>
+            <h1 class="subtitle">{{detailData.pc_name}} {{detailData.pc_nickname?'('+detailData.pc_nickname+')':''}} 현장 입금 요청내역</h1>
           </div>
           <table class="table is-bordered contract-receipt-list is-hidden-touch">
             <thead>
@@ -744,7 +756,7 @@
     })
   }
 
-  const queryApi = '/api/estimate'
+  const queryApi = '/api/contract'
   const userQueryApi = '/api/user'
 
   export default {
@@ -778,7 +790,7 @@
         currentTab: '',
         param: {},
         detailData: {
-          moving_date: '',
+          pc_move_date: '',
           supervisorList: []
         },
         estimateData: {
@@ -844,10 +856,10 @@
     },
     validations: {
       detailData: {
-        customer_name: {
+        pc_name: {
           required
         },
-        customer_phone_no: {
+        pc_phone: {
           required
         }
       }
@@ -861,7 +873,7 @@
     },
     computed: {
       getFullAddress () {
-        return `${this.detailData.address} ${this.detailData.address_detail}`
+        return `${this.detailData.pc_address_brief} ${this.detailData.pc_address_detail}`
       },
       totalAmount () {
         return this.collectBillsList.reduce((sum, o) => { return sum + parseInt(o.cb_amount) }, 0)
@@ -910,13 +922,9 @@
             if (response.data.code !== 200) {
               return false
             }
-            response.data.data.estimate.status_name = _.find(requestStatusConfig.contractStatusList, contractStatus => {
-              return contractStatus.value === response.data.data.estimate.status
-            }).text
-            this.detailData = response.data.data.estimate
-            if (!this.detailData.supervisor) this.detailData.supervisor = ''
-            this.detailData.moving_date = (this.detailData.moving_date === '0000-00-00 00:00:00' || !this.detailData.moving_date) ? '' : moment(this.detailData.moving_date, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')
-
+            this.detailData = response.data.data.contract
+            if (!this.detailData.pc_supervisor) this.detailData.pc_supervisor = ''
+            this.detailData.pc_move_date = (this.detailData.pc_move_date === '0000-00-00 00:00:00' || !this.detailData.pc_move_date) ? '' : moment(this.detailData.pc_move_date, 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')
             return this.$http.get(userQueryApi)
           }).then(response => {
             if (response.data.code !== 200) {
@@ -942,8 +950,7 @@
               type: 'success',
               duration: 1500
             })
-            this.detailData.status = response.data.data.data.status
-            window.scrollTo(0, 0)
+            this.detailData.pc_status = response.data.data.data.pc_status
           })
           .catch((error) => {
             console.error(error)
@@ -1232,6 +1239,9 @@
             console.error(e)
           })
       },
+      changeContractStatus (status) {
+        this.detailData.pc_status = status
+      },
       /* 비용 수금 현황 */
       loadContractReceipt () {
         const id = this.param.id
@@ -1326,8 +1336,8 @@
           {wch: 10},
           {wch: 10}
         ]
-        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${this.detailData.customer_name}${this.detailData.customer_nickname ? '(' + this.detailData.customer_nickname + ')' : ''} 결재목록`)
-        return XLSX.writeFile(exportWb, fn || `${this.detailData.customer_name}${this.detailData.customer_nickname ? '(' + this.detailData.customer_nickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재목록`)
+        return XLSX.writeFile(exportWb, fn || `${this.detailData.pc_name}${this.detailData.pc_nickname ? '(' + this.detailData.pc_nickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
       },
       getBankNameByCode (code) {
         let bank = _.find(this.bankCodeList, (item) => {
