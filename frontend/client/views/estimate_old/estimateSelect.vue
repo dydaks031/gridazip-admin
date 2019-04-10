@@ -97,7 +97,7 @@
     })
   }
 
-  const queryApi = '/api/estimate/'
+  const queryApi = '/api/contract/'
 
   export default {
     name: 'estimate-select',
@@ -309,7 +309,7 @@
             isAddedBySelf: true
           })
         } else {
-          this.$http.post(`${queryApi}/${id}/sheet/${esPk}`, this.selected)
+          this.$http.post(`${queryApi}/${id}/estimate/${esPk}`, this.selected)
             .then((response) => {
               if (response.data.code !== 200) {
                 openNotification({

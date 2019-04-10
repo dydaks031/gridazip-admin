@@ -856,7 +856,7 @@
       },
       getTabList () {
         const id = this.pc_pk
-        return this.$http.get(`${queryApi}/${id}/customer/estimate/tabs`)
+        return this.$http.get(`${queryApi}/${id}/customer/sheet/tabs`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false

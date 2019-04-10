@@ -17,7 +17,7 @@ const state = {
       component: lazyLoading('dashboard', true)
     },
     {
-      name: '상담요청조회',
+      name: '견적상담요청 목록',
       path: '/private/request-list',
       meta: {
         icon: 'fa-rocket',
@@ -25,6 +25,16 @@ const state = {
         auth: true
       },
       component: lazyLoading('requestList', true)
+    },
+    {
+      name: '진행중인계약 목록',
+      path: '/private/estimate',
+      meta: {
+        icon: 'fa-rocket',
+        link: 'estimate/index.vue',
+        auth: true
+      },
+      component: lazyLoading('estimate', true)
     },
     {
       name: '결재내역 조회',
@@ -72,17 +82,18 @@ const state = {
             auth: true
           },
           component: lazyLoading('magazine', true)
-        },
-        {
-          name: '회사연혁 관리',
-          path: '/private/manage-constructor',
-          meta: {
-            icon: 'fa-rocket',
-            link: 'manageConstructor/index.vue',
-            auth: true
-          },
-          component: lazyLoading('manageConstructor', true)
         }
+        // ,
+        // {
+        //   name: '회사연혁 관리',
+        //   path: '/private/manage-constructor',
+        //   meta: {
+        //     icon: 'fa-rocket',
+        //     link: 'manageConstructor/index.vue',
+        //     auth: true
+        //   },
+        //   component: lazyLoading('manageConstructor', true)
+        // }
       ]
     },
     {
@@ -92,16 +103,16 @@ const state = {
         expanded: false
       },
       children: [
-        {
-          name: '진행계약 목록',
-          path: '/private/estimate',
-          meta: {
-            icon: 'fa-rocket',
-            link: 'estimate/index.vue',
-            auth: true
-          },
-          component: lazyLoading('estimate', true)
-        },
+        // {
+        //   name: '진행계약 목록',
+        //   path: '/private/estimate_old',
+        //   meta: {
+        //     icon: 'fa-rocket',
+        //     link: 'estimate_old/index.vue',
+        //     auth: true
+        //   },
+        //   component: lazyLoading('estimate_old', true)
+        // },
         {
           name: '메타데이터 등록',
           path: '/private/meta-register',

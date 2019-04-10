@@ -10,20 +10,6 @@
           </td>
         </tr>
         <tr>
-          <th>현장</th>
-          <td>
-            <div class="select" :class="{'is-danger': $v.receipt.pcPk.$invalid }">
-              <select v-model="receipt.pcPk" @change="loadContractConstruction">
-                <option value="" disabled class="disabled">선택</option>
-                <option v-for="contract in contractList" :value="contract.estimate_no">{{contract.customer_name}}{{contract.customer_nickname?' - ' + contract.customer_nickname:''}}</option>
-              </select>
-            </div>
-            <div>
-              <p class="help is-danger" v-if="!$v.receipt.pcPk.required">현장을 선택해 주십시오.</p>
-            </div>
-          </td>
-        </tr>
-        <tr>
           <th>공사</th>
           <td>
             <div class="select" :class="{'is-danger': $v.receipt.ctPk.$invalid }">
@@ -42,7 +28,6 @@
           <td>
             <label>인건비</label><input class="radio" type="radio" v-model="receipt.type" value="0" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <label>자재비</label><input class="radio" type="radio" v-model="receipt.type" value="1" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
-            <label>기타잡비</label><input class="radio" type="radio" v-model="receipt.type" value="2" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <div>
               <p class="help is-danger" v-if="!$v.receipt.type.required">구분을 입력해 주십시오.</p>
             </div>
@@ -83,7 +68,7 @@
           <td>
             <input class="input" type="text" v-model="receipt.accountHolder" :class="{'is-danger': $v.receipt.accountHolder.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.accountHolder.required">예금주를 입력해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountHolder.required">예금주를입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -135,8 +120,7 @@
   import _ from 'underscore'
   import BankCode from '../../config/bank-code'
 
-  // const constructionQueryApi = '/api/construction'
-  const contractQueryApi = '/api/estimate'
+  const queryApi = '/api/contract'
   const fileUploadApi = '/api/file/upload'
 
   const NotificationComponent = Vue.extend(Notification)
@@ -162,20 +146,16 @@
     },
     data () {
       return {
+        bankCodeList: BankCode.bankCodeList,
         receipt: {},
         id: '',
         constructionList: [],
-        contractList: [],
-        imageList: [],
-        bankCodeList: BankCode.bankCodeList
+        imageList: []
       }
     },
     validations: {
       receipt: {
         type: {
-          required
-        },
-        pcPk: {
           required
         },
         ctPk: {
@@ -199,33 +179,9 @@
       }
     },
     methods: {
-      loadProceedingContract () {
-        this.$http.get(`${contractQueryApi}?menu=contract&isPage=false`)
-          .then((response) => {
-            if (response.data.code !== 200) {
-              return
-            }
-            const dataList = response.data.data
-            this.contractList = dataList.contractList
-          }).catch((error) => {
-            console.error(error)
-          })
-      },
-      loadContractConstruction () {
-        this.receipt.ctPk = ''
-        this.constructionList.length = 0
-        this.constructionList = []
-
-        this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/construction`)
-          .then((response) => {
-            this.constructionList = response.data.data.constructionList
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      },
       registerReceipt () {
         this.receipt.attachedList = this.imageList
+
         if (!this.receipt.isVatIncluded) {
           this.receipt.isVatIncluded = false
         }
@@ -238,24 +194,8 @@
         this.receipt.accountNumber = this.receipt.accountNumber.toString().replace(/-/gi, '')
         this.receipt.price = this.receipt.price.toString().replace('/,/gi', '')
 
-        this.$http.get(`${contractQueryApi}/${this.receipt.pcPk}/receipt/isExist?price=${this.receipt.price}&accountNumber=${this.receipt.accountNumber}`)
-          .then(response => {
-            console.log(response)
-            const isExist = response.data.data.isExist === 'true' || response.data.data.isExist === true
-            if (isExist) {
-              if (window.confirm('동일한 내용의 결재 건이 존재합니다.\n그래도 올리시겠습니까?')) {
-                return this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
-              } else {
-                return null
-              }
-            } else {
-              return this.$http.post(`${contractQueryApi}/${this.receipt.pcPk}/receipt`, this.receipt)
-            }
-          })
+        this.$http.post(`${queryApi}/${this.id}/receipt`, this.receipt)
           .then((response) => {
-            if (!response) {
-              return
-            }
             if (response.data.code !== 200) {
               openNotification({
                 message: '결재 등록 중 오류가 발생했습니다.',
@@ -264,7 +204,6 @@
               })
               return
             }
-
             openNotification({
               message: '결재가 등록되었습니다.',
               type: 'success',
@@ -323,13 +262,19 @@
       }
     },
     mounted () {
-      this.loadProceedingContract()
+      this.id = this.$route.params.id
+      this.$http.get(`${queryApi}/${this.id}/construction`)
+        .then((response) => {
+          this.constructionList = response.data.data.constructionList
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     }
   }
 </script>
 
 <style scoped lang="scss">
-
   table {
     tbody {
       th {

@@ -5,20 +5,20 @@
         <div class="is-clearfix">
           <div class="is-pulled-left is-horizontal searchbox">
             <div class="control is-inline-block">
-              <label class="label">계약상태</label>
+              <label class="label">1차 필터링</label>
               <div class="select">
                 <select v-model="searchData.contractSelectedStatus" @change="changeProcessStatus">
                   <option value="" selected="selected">전체</option>
-                  <option v-for="selectedStatus in requestStatusConfig.contractStatusList" :value="selectedStatus.value">{{selectedStatus.text}}</option>
+                  <option v-for="selectedStatus in requestStatusConfig.splitedContractStatusList" :value="selectedStatus.value">{{selectedStatus.label}}</option>
                 </select>
               </div>
-              <!--<label class="label">2차 필터링</label>-->
-              <!--<div class="select">-->
-                <!--<select v-model="searchData.contractStatus" @change="clickSearchButton(true)">-->
-                  <!--<option value="" selected="selected">전체</option>-->
-                  <!--<option v-for="status in contractStatusList" :value="status.value">{{status.label}}</option>-->
-                <!--</select>-->
-              <!--</div>-->
+              <label class="label">2차 필터링</label>
+              <div class="select">
+                <select v-model="searchData.contractStatus" @change="clickSearchButton(true)">
+                  <option value="" selected="selected">전체</option>
+                  <option v-for="status in contractStatusList" :value="status.value">{{status.label}}</option>
+                </select>
+              </div>
             </div>
             <div class="is-pulled-right search-btn">
               <div class="is-pulled-right">
@@ -67,14 +67,14 @@
             </thead>
             <tbody>
             <tr v-for="contract in contractList" @click="moveToPage(contract)">
-              <td>{{contract.customer_name}}</td>
-              <td>{{contract.customer_nickname}}</td>
-              <td>{{contract.customer_phone_no}}</td>
-              <td>{{contract.supervisor_name}}</td>
-              <td>{{contract.address + contract.address_detail}}</td>
-              <td>{{getComputedDate(contract.construction_start_date)}}</td>
-              <td>{{getComputedDate(contract.moving_date)}}</td>
-              <td>{{contract.status_name}}</td>
+              <td>{{contract.pc_name}}</td>
+              <td>{{contract.pc_nickname}}</td>
+              <td>{{contract.pc_phone}}</td>
+              <td>{{contract.pc_supervisor_name}}</td>
+              <td>{{contract.pc_address_brief + contract.pc_address_detail}}</td>
+              <td>{{getComputedDate(contract.pc_construction_start_date)}}</td>
+              <td>{{getComputedDate(contract.pc_move_date)}}</td>
+              <td>{{requestStatusConfig.contractStatusList[contract.pc_status]}}</td>
             </tr>
             <tr v-if="contractList.length === 0">
               <td class="has-text-centered" colspan=8>조회된 건이 없습니다.</td>
@@ -104,7 +104,7 @@
 
   const NotificationComponent = Vue.extend(Notification)
 
-  const queryApi = '/api/estimate'
+  const queryApi = '/api/contract'
 
   const openNotification = (propsData = {
     title: '',
@@ -154,23 +154,16 @@
         this.data.length = 0
         if (this.isSearch) {
           this.page.setPoint(null)
-          this.page.setPoint(0)
-          this.page.setPage(0)
         }
-        console.log(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}`)
-        this.$http.get(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}`)
+        console.log(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}&selected=${this.searchData.contractSelectedStatus}&status=${this.searchData.contractStatus}&search=${this.searchData.searchWord}`)
+        this.$http.get(`${queryApi}?point=${this.page.getPoint()}&page=${this.page.getPage()}&selected=${this.searchData.contractSelectedStatus}&status=${this.searchData.contractStatus}&search=${this.searchData.searchWord}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             const dataList = response.data.data
             this.page.set(dataList.page)
-            this.contractList = dataList.estimateList.map(estimate => {
-              estimate.status_name = _.find(this.requestStatusConfig.contractStatusList, status => {
-                return status.value === estimate.status
-              }).text
-              return estimate
-            })
+            this.contractList = dataList.contractList
           })
           .then(() => {
             window.scrollTo(0, 0)
@@ -184,9 +177,19 @@
           })
       },
       changeProcessStatus () {
-        this.page.setPoint(0)
-        this.page.setPage(0)
-        this.loadData()
+        const selectedData = _.find(this.requestStatusConfig.splitedContractStatusList, (item) => {
+          return item.value === this.searchData.contractSelectedStatus
+        })
+        this.searchData.contractStatus = ''
+        if (selectedData.hasOwnProperty('children')) {
+          this.contractStatusList = selectedData.children
+          this.hasStatusChildren = true
+        } else {
+          this.contractStatusList = []
+          this.hasStatusChildren = false
+        }
+        this.$forceUpdate()
+        this.clickSearchButton(true)
       },
       clickSearchButton (filterSearch) {
         this.isSearch = true
@@ -198,7 +201,7 @@
       },
       moveToPage (curItem) {
         router.push({
-          path: `/private/estimate/${curItem.estimate_no}`,
+          path: `/private/estimate/${curItem.pc_pk}`,
           params: curItem
         })
       },
@@ -214,15 +217,15 @@
       updateRowValuable (curItem, key) {
         const sendData = {}
         sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.estimate_no)
+        this.updateRowState(sendData, curItem.pc_pk)
       },
       updateRowContracted (curItem, key) {
         const sendData = {}
         sendData[key] = curItem[key]
-        this.updateRowState(sendData, curItem.estimate_no)
+        this.updateRowState(sendData, curItem.pc_pk)
       },
       deleteRow (curItem) {
-        this.$http.delete(`${queryApi}/${curItem.estimate_no}`, {})
+        this.$http.delete(`${queryApi}/${curItem.pc_pk}`, {})
           .then((data) => {
             openNotification({
               message: '삭제되었습니다.',

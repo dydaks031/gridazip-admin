@@ -598,7 +598,7 @@
   import XLSX from '../../thirdparty/js-xlsx/xlsx.full.min'
   import BankCode from '../../config/bank-code'
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
 
   const NotificationComponent = Vue.extend(Notification)
 
