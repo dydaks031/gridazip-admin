@@ -73,42 +73,6 @@ export default new Router({
           }
         },
         {
-          name: '진행계약 상세(구)',
-          path: 'estimate_old/:id([0-9]+)',
-          component: require('../views/estimate_old/detail'),
-          meta: {
-            auth: true,
-            authRedirect: 'login'
-          }
-        },
-        {
-          name: '진행계약 등록(구)',
-          path: 'estimate_old/register',
-          component: require('../views/estimate_old/register'),
-          meta: {
-            auth: true,
-            authRedirect: 'login'
-          }
-        },
-        {
-          name: '상세견적서 등록(구)',
-          path: 'estimate_old/:id([0-9]+)/register/:es_pk([0-9]+)',
-          component: require('../views/estimate_old/estimateRegister'),
-          meta: {
-            auth: true,
-            authRedirect: 'login'
-          }
-        },
-        {
-          name: '상세견적서 신규 버전 추가(구)',
-          path: 'estimate_old/:id([0-9]+)/register/tabs',
-          component: require('../views/estimate_old/estimateMaster'),
-          meta: {
-            auth: true,
-            authRedirect: 'login'
-          }
-        },
-        {
           name: '진행계약 상세',
           path: 'estimate/:id([0-9]+)',
           component: require('../views/estimate/detail'),
@@ -183,7 +147,7 @@ export default new Router({
         {
           name: '현장 결재 등록',
           path: 'estimate/:id/receipt/register',
-          component: require('../views/estimate_old/contractReceiptRegister'),
+          component: require('../views/estimate/contractReceiptRegister'),
           meta: {
             auth: true,
             authRedirect: 'login'
