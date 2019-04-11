@@ -41,6 +41,7 @@
             <label class="label">계약상태</label>
             <p class="control">
                 {{detailData.status_name}}
+                <button class="button" @click="finishContract" v-if="parseInt(detailData.status) === 8">공사 마감</button>
             </p>
             <label class="label">접속코드</label>
             <p class="control" v-text="detailData.password"></p>
@@ -928,6 +929,10 @@
           .catch(error => {
             console.error(error)
           })
+      },
+      finishContract () {
+        this.detailData.status = 99
+        this.detailData.status_name = '공사마감'
       },
       updateContract () {
         const id = this.param.id
