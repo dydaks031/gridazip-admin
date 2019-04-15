@@ -67,7 +67,7 @@
 
   const NotificationComponent = Vue.extend(Notification)
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
   const userQueryApi = '/api/user'
 
   const openNotification = (propsData = {

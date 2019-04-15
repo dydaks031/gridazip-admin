@@ -35,7 +35,7 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child box">
-          <a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>
+          <!--<a class="button is-primary is-pulled-right is-medium" id="addBtn" @click="moveToRegister">등록</a>-->
           <!--<a class="button is-primary is-pulled-right is-medium" id="testBtn" @click="queryReports">테스트</a>-->
           <!-- The Sign-in button. This will run `queryReports()` on success. -->
           <!--<p class="g-signin2" data-onsuccess="queryReports"></p>-->

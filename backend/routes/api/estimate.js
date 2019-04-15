@@ -317,6 +317,9 @@ router.post('/', (req, res) => {
     return result;
   };
 
+  console.log('----------');
+  console.log(req.body);
+
   if (reqName.trim() === '') {
     res.json(resHelper.getError('고객명은 반드시 입력해야 합니다.'));
   }
