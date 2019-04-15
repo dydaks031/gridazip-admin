@@ -325,10 +325,14 @@ router.post('/', (req, res) => {
   }
   else {
     let insertObj = {};
+    req.body.construction_start_date = req.body.construction_start_date === '' ? null : req.body.construction_start_date;
+    req.body.moving_date = req.body.moving_date === '' ? null : req.body.moving_date;
+    req.body.visit_date = req.body.visit_date === '' ? null : req.body.visit_date;
+
     insertObj.customer_name = reqName;
     insertObj.counselor = req.body.counselor || null;
     insertObj.site_type = req.body.site_type || null;
-    insertObj.visit_date = req.body.visit_date || null;
+    insertObj.visit_date = req.body.visit_date !== null ? moment(req.body.visit_date).format('YYYY-MM-DD') : null;
     insertObj.visit_time = req.body.visit_time || null;
     insertObj.space_size = req.body.space_size || null;
     insertObj.customer_requests = req.body.customer_requests || null;
@@ -372,6 +376,9 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
   const reqPcPk = req.params.pcpk || '';
   const reqName = req.body.customer_name || '';
   const reqPhone = req.body.customer_phone_no || '';
+  req.body.construction_start_date = req.body.construction_start_date === '' ? null : req.body.construction_start_date;
+  req.body.moving_date = req.body.moving_date === '' ? null : req.body.moving_date;
+  req.body.visit_date = req.body.visit_date === '' ? null : req.body.visit_date;
 
   if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
@@ -391,7 +398,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.space_size = req.body.space_size || null;
     updateObj.counselor = req.body.counselor || null;
     updateObj.site_type = req.body.site_type || null;
-    updateObj.visit_date = req.body.visit_date || null;
+    updateObj.visit_date = req.body.visit_date !== null ? moment(req.body.visit_date).format('YYYY-MM-DD') : null;
     updateObj.visit_time = req.body.visit_time || null;
     updateObj.customer_requests = req.body.customer_requests || null;
     updateObj.address = req.body.address || '';

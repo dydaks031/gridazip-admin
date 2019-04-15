@@ -183,7 +183,7 @@
   }
 
   // const queryApi = '/api/request'
-  const submitApi = '/api/request'
+  const submitApi = '/api/estimate'
   const userQueryApi = '/api/user'
 
   export default {
