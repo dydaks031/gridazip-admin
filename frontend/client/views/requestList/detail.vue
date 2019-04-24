@@ -159,6 +159,10 @@
                 <textarea class="textarea" name="memo" v-model="data.memo"></textarea>
               </div>
             </div>
+            <label class="label">할인금액</label>
+            <p class="control">
+              <input class="input" v-model="data.discount_amount" />
+            </p>
             <p class="control">
               <button class="button is-primary" v-on:click="submitData">수정</button>
             </p>
