@@ -159,6 +159,18 @@
                 <textarea class="textarea" name="memo" v-model="data.memo"></textarea>
               </div>
             </div>
+            <label class="label">공과잡비(%)</label>
+            <p class="control">
+              <input class="input" v-model="data.etc_costs_ratio" />
+            </p>
+            <label class="label">디자인 및 설계비(%)</label>
+            <p class="control">
+              <input class="input" v-model="data.design_costs_ratio" />
+            </p>
+            <label class="label">감리비(%)</label>
+            <p class="control">
+              <input class="input" v-model="data.supervision_costs_ratio" />
+            </p>
             <label class="label">할인금액</label>
             <p class="control">
               <input class="input" v-model="data.discount_amount" />
