@@ -53,6 +53,7 @@ const apiCorrespondent = require('./routes/api/correspondent');
 const apiWebhook = require('./routes/api/webhook');
 const apiDashboard = require('./routes/api/dashboard');
 const apiMagazine = require('./routes/api/magazine');
+const apiEstimate = require('./routes/api/estimate');
 
 const authMiddleware = require('./middlewares/auth');
 
@@ -119,6 +120,7 @@ app.use('/api/correspondent', apiCorrespondent);
 app.use('/api/webhook', apiWebhook);
 app.use('/api/dashboard', apiDashboard);
 app.use('/api/magazine', apiMagazine);
+app.use('/api/estimate', apiEstimate);
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {

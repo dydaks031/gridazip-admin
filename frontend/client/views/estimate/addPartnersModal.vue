@@ -170,7 +170,7 @@
         if (!this.searchOptions.searchResourceCategory) {
           this.searchOptions.searchResourceCategory = this.getAllSearchOption(this.resourceCategoryList, 'rc_pk')
         }
-        let url = `${queryApi}/${this.type}?pc_pk=${this.id}&ct_pk=${this.searchOptions.searchConstruction}&rc_pk=${this.searchOptions.searchResourceCategory}`
+        let url = `${queryApi}/${this.type}?estimate_no=${this.id}&ct_pk=${this.searchOptions.searchConstruction}&rc_pk=${this.searchOptions.searchResourceCategory}`
         switch (this.type) {
           case 'constructor':
             url = `${url}&cr_name=${this.searchOptions.name}`

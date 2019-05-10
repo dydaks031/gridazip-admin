@@ -219,7 +219,7 @@
     })
   }
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
 
   export default {
     name: 'estimate-sheet',
@@ -301,11 +301,11 @@
       },
       createNewTab () {
         router.push({
-          path: `/private/estimate/${this.param.id}/register/tabs`
+          path: `/private/sheet/${this.param.id}/register/tabs`
         })
       },
       duplicateTab () {
-        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+        this.$http.post(`${queryApi}/${this.param.id}/sheet/tabs`, {
           es_is_pre: true,
           es_pk: this.selectedTab
         })
@@ -329,7 +329,7 @@
         if (!this.estimateIsPre) {
           return false
         }
-        this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+        this.$http.post(`${queryApi}/${this.param.id}/sheet/tabs`, {
           es_is_pre: false,
           es_pk: this.selectedTab
         })
@@ -347,7 +347,7 @@
       },
       moveToRegister () {
         if (this.estimateCurrentTabs.length === 0) {
-          this.$http.post(`${queryApi}/${this.param.id}/estimate/tabs`, {
+          this.$http.post(`${queryApi}/${this.param.id}/sheet/tabs`, {
             es_is_pre: true
           })
             .then((response) => {
@@ -750,27 +750,27 @@
           return false
         }
 
-        this.$http.get(`${queryApi}/${id}/estimate/${esPk}/general?es_is_pre=${isPre}`)
+        this.$http.get(`${queryApi}/${id}/sheet/${esPk}/general?es_is_pre=${isPre}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
             }
             general = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/labor?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet/${esPk}/labor?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/resource?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet/${esPk}/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate/${esPk}/total?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet/${esPk}/total?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
@@ -799,7 +799,7 @@
       },
       getTabList () {
         const id = this.$route.params.id
-        return this.$http.get(`${queryApi}/${id}/estimate/tabs?es_is_pre=${this.estimateIsPre}`)
+        return this.$http.get(`${queryApi}/${id}/sheet/tabs?es_is_pre=${this.estimateIsPre}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
@@ -840,7 +840,6 @@
       })
 
       EventBus.$on('selectionCurrentTab', () => {
-        console.log('estimateSheet.vue 839 selectionCurrentTab eventbus')
         this.selectionTab()
       })
     },

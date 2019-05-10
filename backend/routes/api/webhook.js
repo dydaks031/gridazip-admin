@@ -89,7 +89,7 @@ router.post('/listener', (req, res) => {
           const requestInsertData = {
             rq_name: userInfo.name,
             rq_phone: cryptoHelper.encrypt(userInfo.mobileNumber.split('-').join('').replace('+82', '0')),
-            rq_nickname: `채팅 상담 건 - 채팅 기록: https\:\/\/desk.channel.io/#/channels/4680/user_chats/${userChat.id}`,
+            rq_nickname: `채팅 상담건`,
             rq_family: '',
             rq_size: size,
             rq_address_brief: profile.address || '',
@@ -100,7 +100,7 @@ router.post('/listener', (req, res) => {
             rq_date: '',
             rq_time: '',
             rq_request: '',
-            rq_memo: '',
+            rq_memo: `채팅 기록: https\\:\\/\\/desk.channel.io/#/channels/4680/user_chats/${userChat.id}`,
             rq_construction_type: '',
             rq_consulting_result: '',
             rq_manager: '',

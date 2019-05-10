@@ -29,7 +29,7 @@
             <label>인건비</label><input class="radio" type="radio" v-model="receipt.type" value="0" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <label>자재비</label><input class="radio" type="radio" v-model="receipt.type" value="1" name="type" :class="{'is-danger': $v.receipt.type.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.type.required">구분을 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.type.required">구분을 입력해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -42,7 +42,7 @@
           <td>
             <input class="input" type="number" v-model="receipt.price" :class="{'is-danger': $v.receipt.price.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.price.required">금액을 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.price.required">금액을 입력해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -55,9 +55,11 @@
         <tr>
           <th>은행명</th>
           <td>
-            <input class="input" type="text" v-model="receipt.accountBank" :class="{'is-danger': $v.receipt.accountBank.$invalid }"/>
+            <select2 :options="bankCodeList" v-model="receipt.accountBank">
+              <option value="" disabled>선택</option>
+            </select2>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.accountBank.required">은행을 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountBank.required">은행을 입력해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -66,7 +68,7 @@
           <td>
             <input class="input" type="text" v-model="receipt.accountHolder" :class="{'is-danger': $v.receipt.accountHolder.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.accountHolder.required">예금주를 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountHolder.required">예금주를입력 해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -75,7 +77,7 @@
           <td>
             <input class="input" type="text" v-model="receipt.accountNumber" :class="{'is-danger': $v.receipt.accountNumber.$invalid }"/>
             <div>
-              <p class="help is-danger" v-if="!$v.receipt.accountNumber.required">계좌번호를 입력 해 주십시오.</p>
+              <p class="help is-danger" v-if="!$v.receipt.accountNumber.required">계좌번호를 입력해 주십시오.</p>
             </div>
           </td>
         </tr>
@@ -110,13 +112,15 @@
 </template>
 
 <script>
+  import select2 from '../components/select2Component'
   import { required } from 'vuelidate/lib/validators'
   import Notification from 'vue-bulma-notification'
   import Vue from 'vue'
   import FormData from 'form-data'
   import _ from 'underscore'
+  import BankCode from '../../config/bank-code'
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
   const fileUploadApi = '/api/file/upload'
 
   const NotificationComponent = Vue.extend(Notification)
@@ -137,8 +141,12 @@
 
   export default {
     name: 'contract-receipt-register',
+    components: {
+      select2
+    },
     data () {
       return {
+        bankCodeList: BankCode.bankCodeList,
         receipt: {},
         id: '',
         constructionList: [],
@@ -217,6 +225,7 @@
       },
       onFileChanged (event, index) {
         const files = event.target.files
+        console.log(files)
         for (let i = 0; i < files.length; i++) {
           const formData = new FormData()
           formData.append('file_upload_path', 'receipt')

@@ -100,7 +100,7 @@
     })
   }
 
-  const contractQueryApi = '/api/contract'
+  const contractQueryApi = '/api/estimate'
   export default {
     name: 'add-bills-schedule-modal',
     components: {
@@ -162,7 +162,6 @@
           this.billsScheduleData.cb_type = ''
           this.billsScheduleData.cb_amount = ''
 
-          console.log(this.billsScheduleList)
           openNotification({
             message: '수금 예정이 등록 되었습니다.',
             type: 'success'
@@ -175,8 +174,6 @@
         this.$forceUpdate()
       },
       insertBillsSchedule () {
-        console.log(this.billsScheduleList)
-        console.log(`${contractQueryApi}/${this.id}/schedule/list`)
         if (this.totalAmount !== this.estimateTotalAmount) {
           openNotification({
             message: `채택하실 견적서 금액[${this.addCommas(this.estimateTotalAmount)}]과 일치하지 않습니다.`,
@@ -186,7 +183,6 @@
         }
         this.$http.post(`${contractQueryApi}/${this.id}/schedule/list`, {billsScheduleList: this.billsScheduleList})
           .then((response) => {
-            console.log(response.data.data)
             if (response.data.code !== 200) {
               openNotification({
                 message: `수금예정표 등록에 실패하였습니다.`,

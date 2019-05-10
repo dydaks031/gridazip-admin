@@ -140,7 +140,7 @@
       propsData
     })
   }
-  const queryApi = '/api/contract/'
+  const queryApi = '/api/estimate/'
 
   export default {
     name: 'estimateModify',
@@ -217,7 +217,7 @@
           const id = this.$route.params.id
           const selectedData = this.getNewTabDataByDiffOriginData()
 
-          this.$http.post(`${queryApi}/${id}/estimate/master`, {
+          this.$http.post(`${queryApi}/${id}/sheet/master`, {
             estimateList: selectedData
           })
           .then((response) => {
@@ -264,7 +264,7 @@
           this.dataGroup = _.without(this.dataGroup, data)
           return
         }
-        this.$http.delete(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`)
+        this.$http.delete(`${queryApi}/${id}/sheet/${esPk}/${sendData.ed_pk}`)
         .then((response) => {
           if (response.data.code !== 200) {
             return false
@@ -282,7 +282,7 @@
           data.selectedData = this.estimateAmountCalculation(sendData)
           data.isModify = false
         } else {
-          this.$http.put(`${queryApi}/${id}/estimate/${esPk}/${sendData.ed_pk}`, sendData)
+          this.$http.put(`${queryApi}/${id}/sheet/${esPk}/${sendData.ed_pk}`, sendData)
             .then((response) => {
               if (response.data.code !== 200) {
                 return
@@ -309,7 +309,7 @@
         }
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
-        let apiUrl = `${queryApi}/${id}/estimate/${esPk}/${data.selectedData.ed_pk}`
+        let apiUrl = `${queryApi}/${id}/sheet/${esPk}/${data.selectedData.ed_pk}`
         if (data.selectedData.isAddedBySelf) {
           return
         } else if (!data.selectedData.isAddedBySelf && this.estimateAmountCalculation) {
@@ -319,7 +319,7 @@
             rc_pk: data.selectedData.rc_pk,
             rt_pk: data.selectedData.ed_rtpk
           }
-          apiUrl = `${queryApi}/${id}/estimate/master/row?${utils.getQueryString(param)}`
+          apiUrl = `${queryApi}/${id}/sheet/master/row?${utils.getQueryString(param)}`
         }
 
         this.$http.get(apiUrl)

@@ -69,13 +69,13 @@ const webpackConfig = merge(baseWebpackConfig, {
       chunksSortMode: 'dependency'
     }),
     new HtmlWebpackPlugin({
-      title: '이루다솔루션 표준견적',
+      title: '그리다집 표준견적',
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
         : config.build.index,
       template: 'index.html',
       inject: true,
-      favicon: 'client/assets/favicon-iruda.ico',
+      favicon: 'client/assets/favicon-2.ico',
       minify: {
         removeComments: true,
         collapseWhitespace: true,
