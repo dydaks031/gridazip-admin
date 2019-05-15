@@ -49,7 +49,7 @@
   }
 
   const fileUploadApi = '/api/file/upload'
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
 
   export default {
     name: 'add-site-image-modal',

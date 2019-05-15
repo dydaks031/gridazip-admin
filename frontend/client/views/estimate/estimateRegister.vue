@@ -68,7 +68,7 @@
   import estimateSheet from './estimateSheet'
   import EventBus from '../../services/eventBus'
 
-  const queryApi = '/api/contract/'
+  const queryApi = '/api/estimate/'
 
   export default {
     name: 'estimateRegister',
@@ -121,7 +121,7 @@
         const id = this.$route.params.id
         const esPk = this.$route.params.es_pk
 
-        this.$http.get(`${queryApi}/${id}/estimate/${esPk}`)
+        this.$http.get(`${queryApi}/${id}/sheet/${esPk}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false

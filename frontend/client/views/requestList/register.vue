@@ -5,34 +5,44 @@
         <div class="block">
           <label class="label">상담 진행상태</label>
           <div class="select is-fullwidth">
-            <select v-model="data.rq_process_status" v-on:change="changeProcessStatus">
-              <option v-for="status in requestStatusConfig.statusList">{{status.label}}</option>
+            <select v-model="data.status" @change="changeProcessStatus">
+              <option v-for="status in requestStatusConfig.statusList" :value="status.value">{{status.text}}</option>
             </select>
           </div>
-          <label class="label" v-if="hasStatusChildren">상담 실패사유</label>
-          <div class="select is-fullwidth" v-if="hasStatusChildren">
-            <select v-model="data.rq_fail_reason">
+          <label class="label" v-if="parseInt(data.status) === -1">상담 실패사유</label>
+          <div class="select is-fullwidth" v-if="data.status === -1">
+            <select v-model="data.fail_code" @change="changeProcessStatus">
               <option value="" selected="selected">선택</option>
-              <option v-for="failStatus in failStatusList" :value="failStatus.label">{{failStatus.label}}</option>
+              <option v-for="counselFailCode in requestStatusConfig.counselFailCodeList" :value="counselFailCode.value">{{counselFailCode.text}}</option>
             </select>
           </div>
+          <label class="label" v-if="parseInt(data.status) === -2">계약 실패사유</label>
+          <div class="select is-fullwidth" v-if="data.status === -2">
+            <select v-model="data.fail_code" @change="changeProcessStatus">
+              <option value="" selected="selected">선택</option>
+              <option v-for="contractFailCode in requestStatusConfig.contractFailCodeList" :value="contractFailCode.value">{{contractFailCode.text}}</option>
+            </select>
+          </div>
+          <p class="control" v-if="parseInt(data.fail_code) === 999">
+            <textarea class="textarea" v-model="data.fail_reason" placeholder="기타 사유를 입력해주세요."></textarea>
+          </p>
           <label class="label" for="rqName">이름</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.rq_name" id="rqName"/>
+            <input class="input" type="text" v-model="data.customer_name" id="rqName"/>
           </p>
           <label class="label">연락처</label>
           <p class="control">
-            <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr' }" v-model="data.rq_phone">
+            <cleave class="input" type="tel" placeholder="Enter phone number" :options="{ phone: true, phoneRegionCode: 'kr' }" v-model="data.customer_phone_no">
 
             </cleave>
           </p>
           <label class="label" for="rqNickname">별칭</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.rq_nickname" id="rqNickname"/>
+            <input class="input" type="text" v-model="data.customer_nickname" id="rqNickname"/>
           </p>
           <label class="label" for="rqManager">담당자</label>
           <div class="select is-fullwidth">
-            <select v-model="data.rq_manager" id="rqManager">
+            <select v-model="data.counselor" id="rqManager">
               <option value="" selected="selected">선택</option>
               <option v-for="manager in managerList" :value="manager.user_pk">{{manager.user_name}}</option>
             </select>
@@ -40,16 +50,16 @@
           <label class="label">현장 구분</label>
           <div class="control">
             <div class="select is-fullwidth">
-              <select v-model="data.rq_site_type">
+              <select v-model="data.site_type">
                 <option value="">선택</option>
-                <option v-for="siteType in requestStatusConfig.siteTypeList" :value="siteType.label">{{siteType.label}}</option>
+                <option v-for="siteType in requestStatusConfig.siteTypeList" :value="siteType.value">{{siteType.text}}</option>
               </select>
             </div>
           </div>
           <label class="label">평수</label>
           <div class="control">
             <div class="select is-fullwidth">
-              <select v-model="data.rq_size">
+              <select v-model="data.space_size">
                 <option value="">평수 선택</option>
                 <option value="lt20">20평대 미만</option>
                 <option value="eq20">20평대</option>
@@ -64,7 +74,7 @@
           <label class="label">예산</label>
           <div class="control">
             <div class="select is-fullwidth">
-              <select v-model="data.rq_budget">
+              <select v-model="data.budget">
                 <option value=''>예산 선택안함</option>
                 <option value='1500~2000'>1500~2000만원</option>
                 <option value='2000~2500'>2000~2500만원</option>
@@ -100,22 +110,22 @@
           <label class="label">주소</label>
           <p class="control">
             <label>기본주소</label>
-            <input class="input" type="text" v-model="data.rq_address_brief" />
+            <input class="input" type="text" v-model="data.address" />
             <label>상세주소</label>
-            <input class="input" type="text" v-model="data.rq_address_detail" />
+            <input class="input" type="text" v-model="data.address_detail" />
           </p>
           <label class="label">원하시는 입주날짜</label>
           <p class="control">
-            <datepicker v-model="data.rq_move_date" />
+            <datepicker v-model="data.moving_date" />
           </p>
           <label class="label">방문 상담일</label>
           <p class="control">
-            <datepicker v-model="data.rq_date" />
+            <datepicker v-model="data.visit_date" />
           </p>
           <label class="label">방문 시간</label>
           <div class="control">
             <div class="select is-fullwidth">
-              <select v-model="data.rq_time">
+              <select v-model="data.visit_time">
                 <option value="">없음</option>
                 <option value="09:00 - 11:00">09:00 - 11:00</option>
                 <option value="11:00 - 13:00">11:00 - 13:00</option>
@@ -125,24 +135,34 @@
               </select>
             </div>
           </div>
-          <label class="label">공사종류</label>
+          <label class="label">고객 요청사항</label>
           <div class="control">
             <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_construction_type"></textarea>
+              <textarea class="textarea" name="request_memo" v-model="data.customer_requests"></textarea>
             </div>
           </div>
-          <label class="label">상담결과</label>
+          <label class="label">메모</label>
           <div class="control">
             <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_consulting_result"></textarea>
+              <textarea class="textarea" name="request_memo" v-model="data.memo"></textarea>
             </div>
           </div>
-          <label class="label">공사내용</label>
-          <div class="control">
-            <div class="is-fullwidth">
-              <textarea class="textarea" name="request_memo" v-model="data.rq_memo"></textarea>
-            </div>
-          </div>
+          <label class="label">공과잡비(%)</label>
+          <p class="control">
+            <input class="input" v-model="data.etc_costs_ratio" />
+          </p>
+          <label class="label">디자인 및 설계비(%)</label>
+          <p class="control">
+            <input class="input" v-model="data.design_costs_ratio" />
+          </p>
+          <label class="label">감리비(%)</label>
+          <p class="control">
+            <input class="input" v-model="data.supervision_costs_ratio" />
+          </p>
+          <label class="label">할인금액</label>
+          <p class="control">
+            <input class="input" v-model="data.discount_amount" />
+          </p>
           <p class="control">
             <button class="button is-primary" v-on:click="submitData">Submit</button>
             <button class="button is-link">Cancel</button>
@@ -161,7 +181,6 @@
   import Vue from 'vue'
   import Notification from 'vue-bulma-notification'
   import requestStatusConfig from '../../config/request-status-config'
-  import _ from 'underscore'
 
   const NotificationComponent = Vue.extend(Notification)
 
@@ -180,7 +199,7 @@
   }
 
   // const queryApi = '/api/request'
-  const submitApi = '/api/request'
+  const submitApi = '/api/estimate'
   const userQueryApi = '/api/user'
 
   export default {
@@ -193,22 +212,21 @@
     data () {
       return {
         data: {
-          rq_is_valuable: '',
-          rq_is_contracted: '',
-          rq_name: '',
-          rq_manager: '',
-          rq_size: '',
-          rq_budget: '',
-          rq_address_brief: '',
-          rq_address_detail: '',
-          rq_move_date: '',
-          rq_date: '',
-          rq_time: '',
-          rq_memo: '',
-          rq_phone: '',
-          rq_fail_reason: '',
-          rq_process_status: '신규신청',
-          rq_site_type: ''
+          customer_name: '',
+          counselor: '',
+          space_size: '',
+          budget: '',
+          address: '',
+          address_detail: '',
+          moving_date: '',
+          visit_date: '',
+          visit_time: '',
+          memo: '',
+          customer_phone_no: '',
+          fail_code: '',
+          fail_reason: '',
+          status: '',
+          site_type: ''
         },
         hasStatusChildren: false,
         failStatusList: [],
@@ -232,14 +250,14 @@
           })
       },
       validate () {
-        if (this.data.rq_name === '') {
+        if (this.data.customer_name === '') {
           openNotification({
             message: '이름을 입력해 주십시오.',
             type: 'danger',
             duration: 2500
           })
           return false
-        } else if (this.data.rq_phone === '') {
+        } else if (this.data.customer_phone_no === '') {
           openNotification({
             message: '전화번호를 입력해 주십시오.',
             type: 'danger',
@@ -252,7 +270,7 @@
       },
       submitData () {
         if (this.validate()) {
-          this.data.rq_phone = this.data.rq_phone.replace(/\s/gi, '')
+          this.data.customer_phone_no = this.data.customer_phone_no.replace(/\s/gi, '')
           this.$http.post(`${submitApi}`, this.data)
             .then((response) => {
               if (response.data.code !== 200) {
@@ -266,22 +284,18 @@
         }
       },
       changeProcessStatus () {
-        const selectedData = _.find(this.requestStatusConfig.statusList, (item) => {
-          return item.label === this.data.rq_process_status
-        })
-        this.data.rq_fail_reason = ''
-        if (selectedData.hasOwnProperty('children')) {
-          this.failStatusList = selectedData.children
-          this.hasStatusChildren = true
-        } else {
-          this.failStatusList = []
-          this.hasStatusChildren = false
+        if (this.data.status >= 0) {
+          this.data.fail_code = ''
+          this.data.fail_reason = ''
         }
-        this.$forceUpdate()
+
+        if (this.data.fail_code !== 999) {
+          this.data.fail_reason = ''
+        }
       },
       openModalCard () {
         openNotification({
-          message: '상담신청 등록이 완료되었습니다.',
+          message: '견적상담 등록이 완료되었습니다.',
           type: 'success',
           duration: 2500
         })

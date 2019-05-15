@@ -11,32 +11,32 @@ const ContractStatusUpdateBatch = schedule.scheduleJob('0 0 0 * * *', today => {
     let constructionStartPks = [];
     let constructionStartPksTotalCount = 0;
 
-    cur('proceeding_contract_tbl')
-      .select('pc_pk')
-      .where('pc_deleted', false)
-      .andWhere('pc_status', 4)
-      .andWhere('pc_move_date', '<=', today)
+    cur('estimate_tbl')
+      .select('estimate_no')
+      .where('deleted', false)
+      .andWhere('status', 7)
+      .andWhere('moving_date', '<=', today)
       .then(response => {
-        moveDateExpiredPks = response.map(o => o.pc_pk);
-        return cur('proceeding_contract_tbl')
-          .update('pc_status', 5)
-          .whereIn('pc_pk', moveDateExpiredPks);
+        moveDateExpiredPks = response.map(o => o.estimate_no);
+        return cur('estimate_tbl')
+          .update('status', 8)
+          .whereIn('estimate_no', moveDateExpiredPks);
       })
       .then(count => {
         moveDateExpiredPksTotalCount = count;
-        const query = cur('proceeding_contract_tbl')
-          .select('pc_pk')
-          .where('pc_deleted', false)
-          .andWhere('pc_status', 3)
-          .andWhere('pc_construction_start_date', '<=', today);
+        const query = cur('estimate_tbl')
+          .select('estimate_no')
+          .where('deleted', false)
+          .andWhere('status', 6)
+          .andWhere('construction_start_date', '<=', today);
         console.log(query.toSQL().toNative());
         return query;
       })
       .then(response => {
-        constructionStartPks = response.map(o => o.pc_pk);
-        return cur('proceeding_contract_tbl')
-          .update('pc_status', 4)
-          .whereIn('pc_pk', constructionStartPks);
+        constructionStartPks = response.map(o => o.estimate_no);
+        return cur('estimate_tbl')
+          .update('status', 7)
+          .whereIn('estimate_no', constructionStartPks);
       })
       .then(count => {
         constructionStartPksTotalCount = count;

@@ -6,7 +6,7 @@ const cryptoHelper = require('../../services/crypto/helper');
 const moment = require('moment');
 const calc = require('calculator');
 const httpClient = require('request');
-const _ = require('underscore')
+const _ = require('underscore');
 
 router.post('/moment', (req, res) => {
   let now = moment();
@@ -424,7 +424,7 @@ router.get('/qt', (req,res) => {
   })
 });
 
-router.get('/crypt', (req,res) => {
+router.get('/encrypt', (req,res) => {
   res.json(
     resHelper.getJson(cryptoHelper.encrypt(req.query.msg))
   );
@@ -432,8 +432,34 @@ router.get('/crypt', (req,res) => {
 
 router.get('/decrypt', (req,res) => {
   res.json(
-      resHelper.getJson(cryptoHelper.decrypt(req.query.msg))
+    resHelper.getJson(cryptoHelper.decrypt(req.query.msg))
   );
 });
+
+router.get('/encrypt-request', (req,res) => {
+  knexBuilder.getConnection().then(cur => {
+    cur('request_tbl')
+      .select('rq_pk', 'rq_phone')
+      .whereRaw('length(rq_phone) < 12')
+      .limit(20)
+      .then(response => {
+        console.log('response!');
+        console.log(response);
+        let queries = [];
+        response.forEach(item => {
+          console.log(item);
+          queries.push(
+            cur('request_tbl').update('rq_phone', cryptoHelper.encrypt(item.rq_phone)).where('rq_pk', item.rq_pk)
+          );
+        })
+
+        Promise.all(queries);
+      })
+      .catch(error => {
+        console.error(error);
+      })
+  })
+});
+
 
 module.exports = router;

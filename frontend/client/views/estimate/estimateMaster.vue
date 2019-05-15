@@ -115,7 +115,7 @@
   import deepClone from '../../services/deepClone'
   import calculator from 'calculator'
   import Vue from 'vue'
-  const queryApi = '/api/contract/'
+  const queryApi = '/api/estimate/'
 
   export default {
     components: {
@@ -158,7 +158,7 @@
       },
       loadData () {
         const id = this.$route.params.id
-        this.$http.get(`${queryApi}/${id}/estimate/master?es_is_pre=false`)
+        this.$http.get(`${queryApi}/${id}/sheet/master?es_is_pre=false`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false

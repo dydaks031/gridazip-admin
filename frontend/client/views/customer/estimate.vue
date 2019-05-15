@@ -6,7 +6,7 @@
           실시간 <br> <b>인테리어 상세 견적서</b>
         </h1>
         <div class="is-pulled-right user-info-contents is-hidden-touch">
-          <h3 class="user-name"><b>{{userInfo.pc_name}}</b> 님</h3>
+          <h3 class="user-name"><b>{{userInfo.customer_name}}</b> 님</h3>
           <div class="user-info is-clearfix">
             <div class="label-view is-pulled-right has-text-right">
               <p>연락처</p>
@@ -15,10 +15,10 @@
               <p>주소</p>
             </div>
             <div class="contents is-pulled-right has-text-right">
-              <p>{{userInfo.pc_phone}}</p>
-              <p>{{(userInfo.pc_move_date === '0000-00-00 00:00:00' || !userInfo.pc_move_date ) ? '-' : moment(userInfo.pc_move_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p>
-              <p>{{userInfo.pc_size}}</p>
-              <p>{{userInfo.pc_address_brief}} {{userInfo.pc_address_detail}}</p>
+              <p>{{userInfo.customer_phone_no}}</p>
+              <p>{{(userInfo.moving_date === '0000-00-00 00:00:00' || !userInfo.moving_date ) ? '-' : moment(userInfo.moving_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p>
+              <p>{{userInfo.space_size}}</p>
+              <p>{{userInfo.address}} {{userInfo.address_detail}}</p>
             </div>
           </div>
         </div>
@@ -290,24 +290,24 @@
                   <div class="profile-image-view">
                     <img src="~assets/user-profile.png" />
                   </div>
-                  <p class="user-name"><b>{{userInfo.pc_name}}</b> 님의 <br />고객정보</p>
+                  <p class="user-name"><b>{{userInfo.customer_name}}</b> 님의 <br />고객정보</p>
                 </div>
                 <div class="user-info">
                   <div>
                     <h4 class="subtitle">연락처</h4>
-                    <span>{{userInfo.pc_phone}}</span>
+                    <span>{{userInfo.customer_phone_no}}</span>
                   </div>
                   <div>
                     <h4 class="subtitle">이사일</h4>
-                    <span><p>{{(userInfo.pc_move_date === '0000-00-00 00:00:00' || !userInfo.pc_move_date ) ? '-' : moment(userInfo.pc_move_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p></span>
+                    <span><p>{{(userInfo.moving_date === '0000-00-00 00:00:00' || !userInfo.moving_date ) ? '-' : moment(userInfo.moving_date , 'YYYY-MM-DDTHH:mm:ss').format('YYYY-MM-DD')}}</p></span>
                   </div>
                   <div>
                     <h4 class="subtitle">평수</h4>
-                    <span>{{userInfo.pc_size}}</span>
+                    <span>{{userInfo.space_size}}</span>
                   </div>
                   <div>
                     <h4 class="subtitle">주소</h4>
-                    <span>{{userInfo.pc_address_brief}} {{userInfo.pc_address_detail}}</span>
+                    <span>{{userInfo.address}} {{userInfo.address_detail}}</span>
                   </div>
                 </div>
               </div>
@@ -342,7 +342,7 @@
   import { Carousel, Slide } from 'vue-carousel'
   import ImageEnlargedView from './ImageEnlargedView'
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
 
   export default {
     components: {
@@ -764,7 +764,7 @@
         this.$forceUpdate()
       },
       loadEstimateView () {
-        const id = this.pc_pk
+        const id = this.estimate_no
         const isPre = this.selectionFlag
         const esPk = this.selectedTab
         let userInfo
@@ -781,23 +781,22 @@
             if (response.data.code !== 200) {
               return false
             }
-            userInfo = response.data.data.contract
-
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/resource?es_is_pre=${isPre}`)
+            userInfo = response.data.data.estimate
+            return this.$http.get(`${queryApi}/${id}/sheet${esPk ? ('/' + esPk) : ''}/resource?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             resource = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/labor?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet${esPk ? ('/' + esPk) : ''}/labor?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
               return
             }
             labor = response.data.data.estimateList
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/general?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet${esPk ? ('/' + esPk) : ''}/general?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
@@ -829,7 +828,7 @@
                 return moment(item, 'YYYY-MM-DD').format('X')
               })
               .value()
-            return this.$http.get(`${queryApi}/${id}/estimate${esPk ? ('/' + esPk) : ''}/total?es_is_pre=${isPre}`)
+            return this.$http.get(`${queryApi}/${id}/sheet${esPk ? ('/' + esPk) : ''}/total?es_is_pre=${isPre}`)
           })
           .then((response) => {
             if (response.data.code !== 200) {
@@ -855,8 +854,8 @@
           })
       },
       getTabList () {
-        const id = this.pc_pk
-        return this.$http.get(`${queryApi}/${id}/customer/estimate/tabs`)
+        const id = this.estimate_no
+        return this.$http.get(`${queryApi}/${id}/customer/sheet/tabs`)
           .then((response) => {
             if (response.data.code !== 200) {
               return false
@@ -877,7 +876,7 @@
       },
       changeCloseModalStatus (result) {
         if (window.hasOwnProperty('sessionStorage')) {
-          window.sessionStorage.setItem('pc_pk', result.pc_pk)
+          window.sessionStorage.setItem('estimate_no', result.estimate_no)
 
           if (result.hasOwnProperty('pc_encrypt_phone')) {
             window.sessionStorage.setItem('pc_encrypt_phone', result.pc_encrypt_phone)
@@ -887,7 +886,7 @@
           }
         }
         this.isCloseModal = result.closeStatus
-        this.pc_pk = result.pc_pk
+        this.estimate_no = result.estimate_no
         if (this.isCloseModal) {
           this.getTabList()
             .then(() => {
@@ -963,7 +962,7 @@
     },
     mounted () {
       if (window.hasOwnProperty('sessionStorage')) {
-        const pcPk = window.sessionStorage.getItem('pc_pk')
+        const pcPk = window.sessionStorage.getItem('estimate_no')
         const phone = window.sessionStorage.getItem('pc_encrypt_phone')
         const password = window.sessionStorage.getItem('password')
 
@@ -972,26 +971,26 @@
             phone,
             password
           }
-          this.$http.post('/api/contract/pk', sendData)
+          this.$http.post('/api/estimate/pk', sendData)
             .then((response) => {
               if (response.data.code !== 200) {
                 window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
-                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('estimate_no')
                 window.sessionStorage.removeItem('pc_encrypt_phone')
                 window.sessionStorage.removeItem('password')
                 this.$modal.show('estimateAuthView')
                 return false
               }
-              const resultPcPk = response.data.data.pc_pk
+              const resultPcPk = response.data.data.estimate_no
 
               if (parseInt(resultPcPk, 10) === parseInt(pcPk, 10)) {
                 this.changeCloseModalStatus({
                   closeStatus: true,
-                  pc_pk: pcPk
+                  estimate_no: pcPk
                 })
               } else {
                 window.alert('로컬 데이터의 변경이 감지되었습니다. 정보를 다시 입력해 주시기 바랍니다.')
-                window.sessionStorage.removeItem('pc_pk')
+                window.sessionStorage.removeItem('estimate_no')
                 window.sessionStorage.removeItem('pc_encrypt_phone')
                 window.sessionStorage.removeItem('password')
                 this.$modal.show('estimateAuthView')

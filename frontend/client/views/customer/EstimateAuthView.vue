@@ -27,7 +27,7 @@
 </template>
 
 <script>
-  const api = '/api/contract/pk'
+  const api = '/api/estimate/pk'
 
   export default {
     name: 'estimate-auth-view',
@@ -42,14 +42,14 @@
           phone: '',
           password: ''
         },
-        pc_pk: ''
+        estimate_no: ''
       }
     },
     methods: {
       beforeCloseEvent () {
         this.$emit('changeCloseModalStatus', {
           closeStatus: true,
-          pc_pk: this.pc_pk,
+          estimate_no: this.estimate_no,
           password: this.userData.password,
           pc_encrypt_phone: this.pc_encrypt_phone
         })
@@ -64,8 +64,8 @@
             }
 
             const data = response.data.data
-            this.pc_pk = data.pc_pk
-            this.pc_encrypt_phone = data.pc_phone
+            this.estimate_no = data.estimate_no
+            this.pc_encrypt_phone = data.customer_phone_no
             this.$modal.hide('estimateAuthView')
           })
       }

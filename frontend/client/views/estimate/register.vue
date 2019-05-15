@@ -5,48 +5,48 @@
         <div class="block">
           <label class="label">고객명</label>
           <div class="control">
-            <input class="input" type="text" v-model="data.pc_name" :class="{'is-danger': $v.data.pc_name.$invalid }" />
-            <p class="help is-danger" v-if="!$v.data.pc_name.required">고객명을 입력해 주십시오.</p>
+            <input class="input" type="text" v-model="data.customer_name" :class="{'is-danger': $v.data.customer_name.$invalid }" />
+            <p class="help is-danger" v-if="!$v.data.customer_name.required">고객명을 입력해 주십시오.</p>
           </div>
           <label class="label">연락처</label>
           <div class="control">
-            <input class="input" type="text" v-model="data.pc_phone" :class="{'is-danger': $v.data.pc_phone.$invalid }" />
-            <p class="help is-danger" v-if="!$v.data.pc_phone.required">전화번호를 입력해 주십시오.</p>
+            <input class="input" type="text" v-model="data.customer_phone_no" :class="{'is-danger': $v.data.customer_phone_no.$invalid }" />
+            <p class="help is-danger" v-if="!$v.data.customer_phone_no.required">전화번호를 입력해 주십시오.</p>
           </div>
           <label class="label">현장감독</label>
           <div class="select is-fullwidth">
-            <select v-model="data.pc_supervisor" id="pcSupervisor">
+            <select v-model="data.supervisor" id="pcSupervisor">
               <option value="" selected="selected">선택</option>
               <option v-for="supervisor in supervisorList" :value="supervisor.user_pk">{{supervisor.user_name}}</option>
             </select>
           </div>
           <label class="label">평수</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.pc_size" />
+            <input class="input" type="text" v-model="data.space_size" />
           </p>
           <label class="label">주소</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.pc_address_brief" />
+            <input class="input" type="text" v-model="data.address" />
           </p>
           <label class="label">상세 주소</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.pc_address_detail" />
+            <input class="input" type="text" v-model="data.address_detail" />
           </p>
           <label class="label">공사시작일</label>
           <p class="control">
-            <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.pc_construction_start_date"></datepicker>
+            <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.construction_start_date"></datepicker>
           </p>
           <label class="label">이사일</label>
           <p class="control">
-             <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.pc_move_date"></datepicker>
+             <datepicker placeholder="이사일 입력" :config="{ dateFormat: 'Y-m-d', static: true }" v-model="data.moving_date"></datepicker>
           </p>
           <label class="label">예산</label>
           <p class="control">
-            <input class="input" type="text" v-model="data.pc_budget"/>
+            <input class="input" type="text" v-model="data.budget"/>
           </p>
           <label class="label">메모</label>
           <p class="control">
-            <textarea class="textarea" v-model="data.pc_memo"></textarea>
+            <textarea class="textarea" v-model="data.memo"></textarea>
           </p>
           <p class="control">
             <button class="button is-link" @click="backPage">취소</button>
@@ -67,7 +67,7 @@
 
   const NotificationComponent = Vue.extend(Notification)
 
-  const queryApi = '/api/contract'
+  const queryApi = '/api/estimate'
   const userQueryApi = '/api/user'
 
   const openNotification = (propsData = {
@@ -92,19 +92,19 @@
     data () {
       return {
         data: {
-          pc_name: '',
-          pc_phone: '',
-          pc_supervisor: ''
+          customer_name: '',
+          customer_phone_no: '',
+          supervisor: ''
         },
         supervisorList: []
       }
     },
     validations: {
       data: {
-        pc_name: {
+        customer_name: {
           required
         },
-        pc_phone: {
+        customer_phone_no: {
           required
         }
       }

@@ -28,7 +28,7 @@ export default new Router({
           component: require('../views/auth/Login')
         },
         {
-          name: '상담요청내역 상세',
+          name: '견적상담요청 상세',
           path: 'request-list/:id([0-9]+)',
           component: require('../views/requestList/detail'),
           meta: {
@@ -37,7 +37,7 @@ export default new Router({
           }
         },
         {
-          name: '상담요청내용 등록',
+          name: '견적상담요청 등록',
           path: 'request-list/register',
           component: require('../views/requestList/register'),
           meta: {
@@ -91,7 +91,7 @@ export default new Router({
           }
         },
         {
-          name: '상세견적서 등록',
+          name: '견적서 등록/수정',
           path: 'estimate/:id([0-9]+)/register/:es_pk([0-9]+)',
           component: require('../views/estimate/estimateRegister'),
           meta: {
