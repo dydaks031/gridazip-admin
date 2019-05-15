@@ -1416,17 +1416,36 @@
             this.loadCollectBills()
           })
       },
-
       changeReceiptStatus (item, status) {
         this.checkPermission()
         const id = this.param.id
-
+        let rejectReason
+        if (status === 0) {
+          rejectReason = window.prompt('반려사유를 입력해 주십시오.')
+          if (!rejectReason) {
+            return
+          }
+        }
         this.$http.put(`${queryApi}/${id}/receipt/${item.pk}`, {
-          status: status
+          status: status,
+          rejectReason
         })
-        .then((response) => {
-          this.loadContractReceipt()
-        })
+          .then(response => {
+            if (response.data.code !== 200) {
+              openNotification({
+                message: '결재 진행 중 오류가 발생하였습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+              return
+            }
+            openNotification({
+              message: '결재가 정상적으로 처리되었습니다.',
+              type: 'success',
+              duration: 1500
+            })
+            this.loadContractReceipt()
+          })
       },
       moveToRegisterReceipt () {
         router.push({
