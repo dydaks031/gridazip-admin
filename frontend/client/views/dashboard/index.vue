@@ -3,8 +3,48 @@
     <div class="tabs is-boxed">
       <ul>
         <li @click="changeTabs('trafficData')" :class="{'is-active': tabInfo.trafficData}"><a>Dashboard</a></li>
-        <li @click="changeTabs('constructionData')" :class="{'is-active': tabInfo.constructionData}" ><a>시공관리</a></li>
+        <!--<li @click="changeTabs('constructionData')" :class="{'is-active': tabInfo.constructionData}" ><a>시공관리</a></li>-->
+        <li @click="changeTabs('interestConstruction')" :class="{'is-active': tabInfo.interestConstruction}" ><a>관심공사목록</a></li>
       </ul>
+    </div>
+    <div class="traffic-data-view" v-if="tabInfo.trafficData">
+      <div class="datepicker-view">
+        <datepicker v-model="dateRange.startDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
+        ~
+        <datepicker v-model="dateRange.endDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
+        <button class="search-btn button" @click="queryReports">조회</button>
+      </div>
+      <div class="tile is-ancestor">
+        <div class="tile is-parent">
+          <article class="tile is-child box">
+            <p class="title">일별 사용자</p>
+            <analytics-users-chart :chart-data="lineData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+          </article>
+        </div>
+        <div class="tile is-parent">
+          <article class="tile is-child box">
+            <p class="title">이탈율</p>
+            <analytics-users-chart :chart-data="bounceRateData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+          </article>
+        </div>
+        <div class="tile is-parent">
+          <article class="tile is-child box">
+            <p class="title">세션 시간</p>
+            <analytics-users-chart :chart-data="avgSessionDurationData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+          </article>
+        </div>
+      </div>
+
+      <div class="tile is-ancestor">
+        <div class="tile is-parent is-12">
+          <article class="tile is-child box">
+            <h4 class="title">일별 문의 건수</h4>
+            <div class="content">
+              <analytics-users-chart :chart-data="completedCountData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+            </div>
+          </article>
+        </div>
+      </div>
     </div>
     <div class="construction-info-view" v-if="tabInfo.constructionData">
       <div class="datepicker-view">
@@ -23,7 +63,7 @@
             </div>
             <div class="construction-wrapper is-flex">
               <div class="construction-item" v-for="construction in constructionData">
-                  <h3 class="subtitle">{{construction.pc_name}} {{construction.pc_nickname?'('+construction.pc_nickname+')':''}}</h3>
+                  <h3 class="subtitle">{{construction.customer_name}} {{construction.customer_nickname?'('+construction.customer_nickname+')':''}}</h3>
                   <div class="percentage-wrapper">
                     <span class="">진행율</span>
                     <div class="doughnut">
@@ -73,41 +113,56 @@
         </div>
       </div>
     </div>
-
-    <div class="traffic-data-view" v-if="tabInfo.trafficData">
-      <div class="datepicker-view">
-        <datepicker v-model="dateRange.startDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
-        ~
-        <datepicker v-model="dateRange.endDate" class="datepicker" :config="{dateFormat:'Y-m-d'}"/>
-        <button class="search-btn button" @click="queryReports">조회</button>
-      </div>
+    <div class="interested-construction-view" v-if="tabInfo.interestConstruction">
       <div class="tile is-ancestor">
         <div class="tile is-parent">
           <article class="tile is-child box">
-            <p class="title">일별 사용자</p>
-            <analytics-users-chart :chart-data="lineData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
-          </article>
-        </div>
-        <div class="tile is-parent">
-          <article class="tile is-child box">
-            <p class="title">이탈율</p>
-            <analytics-users-chart :chart-data="bounceRateData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
-          </article>
-        </div>
-        <div class="tile is-parent">
-          <article class="tile is-child box">
-            <p class="title">세션 시간</p>
-            <analytics-users-chart :chart-data="avgSessionDurationData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
-          </article>
-        </div>
-      </div>
-
-      <div class="tile is-ancestor">
-        <div class="tile is-parent is-12">
-          <article class="tile is-child box">
-            <h4 class="title">일별 문의 건수</h4>
-            <div class="content">
-              <analytics-users-chart :chart-data="completedCountData" :options="{maintainAspectRatio: false}"></analytics-users-chart>
+            <p class="title">관심있는 공사 목록</p>
+            <div class="construction-info">
+              <p>총 공사 건수: {{interestConstruction.length}} 건</p>
+            </div>
+            <!--<div class="construction-info">-->
+              <!--<p>총 매출: {{addCommas(constructionSales)}} 만원</p>-->
+            <!--</div>-->
+            <div class="construction-wrapper is-flex">
+              <div class="construction-item" v-for="construction in interestConstruction">
+                <h3 class="subtitle has-text-right close-button"><span @click="updateInterestedStatus(construction)">X</span></h3>
+                <h3 class="subtitle">{{construction.customer_name}} {{construction.customer_nickname?'('+construction.customer_nickname+')':''}}</h3>
+                <div class="info-wrapper">
+                  <label class="label">공사일정</label>
+                  <p class="control">
+                    {{construction.construction_start_date !== null ? moment(construction.construction_start_date).format('YYYY-MM-DD') : ''}} {{construction.construction_start_date !== null || construction.moving_date !== null ? '~' : '-'}} {{construction.moving_date !== null ? moment(construction.moving_date).format('YYYY-MM-DD') : ''}}
+                  </p>
+                  <label class="label">계약금액</label>
+                  <p class="control">
+                    {{addCommas(construction.contractTotalCosts)}}원
+                  </p>
+                  <label class="label">수금예정</label>
+                  <p class="control">
+                    {{addCommas(construction.collectSchedule)}}원
+                  </p>
+                  <label class="label">수금액</label>
+                  <p class="control">
+                    {{addCommas(construction.collectBills)}}원
+                  </p>
+                  <label class="label">미수금</label>
+                  <p class="control">
+                    {{addCommas(construction.collectSchedule - construction.collectBills < 0 ? 0 : construction.collectSchedule - construction.collectBills)}}원
+                  </p>
+                  <label class="label">집행비용</label>
+                  <p class="control">
+                    {{addCommas(construction.receiptTotalCosts)}}원
+                  </p>
+                  <label class="label">계약금액 대비 집행률</label>
+                  <p class="control">
+                    {{parseFloat(construction.receiptTotalCosts / construction.contractTotalCosts * 100).toFixed(2)}}%
+                  </p>
+                  <label class="label">수금 대비 집행률</label>
+                  <p class="control">
+                    {{parseFloat(construction.receiptTotalCosts / construction.collectBills * 100).toFixed(2)}}%
+                  </p>
+                </div>
+              </div>
             </div>
           </article>
         </div>
@@ -149,6 +204,7 @@
     mixins: [mixin],
     data () {
       return {
+        moment,
         rowDataList: {},
         labelList: [],
         backgroundColor_3: [
@@ -168,10 +224,12 @@
         channelUserList: [],
         completedCountData: null,
         tabInfo: {
-          constructionData: true,
-          trafficData: false
+          constructionData: false,
+          trafficData: false,
+          interestConstruction: true
         },
         constructionData: [],
+        interestConstruction: [],
         constructionSales: 0
       }
     },
@@ -296,6 +354,9 @@
           case 'constructionData':
             this.getConstructionDashboardData()
             break
+          case 'interestConstruction':
+            this.getInterestConstruction()
+            break
           default:
             break
         }
@@ -371,9 +432,36 @@
             console.error(e)
           })
       },
+      getInterestConstruction () {
+        this.$http.get(`/api/dashboard/construction/interested`)
+          .then(response => {
+            this.interestConstruction = response.data.data
+          })
+      },
+      updateInterestedStatus (contract) {
+        contract.interested = false
+        this.$http.put(`/api/estimate/${contract.estimate_no}`, contract)
+          .then(response => {
+            console.log(response)
+            if (response.data.code === 200) {
+              openNotification({
+                message: '관심공사에서 삭제되었습니다.',
+                type: 'success',
+                duration: 1500
+              })
+            } else {
+              openNotification({
+                message: '관심공사에서 삭제하는 중 오류가 발생했습니다.',
+                type: 'danger',
+                duration: 1500
+              })
+            }
+            this.getInterestConstruction()
+          })
+      },
       updateCheckListStatus (id, item) {
         item.cl_date = moment(item.cl_date, 'YYYY-MM-DD').format('X')
-        this.$http.put(`/api/contract/${id}/checklist/${item.cl_pk}`, item)
+        this.$http.put(`/api/estimate/${id}/checklist/${item.cl_pk}`, item)
           .then((response) => {
             if (response.data.code !== 200) {
               openNotification({
@@ -397,6 +485,7 @@
       this.dateRange.endDate = moment().add(-1, 'days').format('YYYY-MM-DD')
 
       this.constructionDate = moment().format('YYYY-MM-DD')
+      this.getInterestConstruction()
       setTimeout(() => {
         this.getConstructionDashboardData()
       }, 10)
@@ -435,6 +524,30 @@
     }
   }
 
+  .interested-construction-view {
+    .subtitle {
+      font-weight: 500;
+    }
+    .close-button {
+      span {
+        cursor: pointer;
+        font-weight: bold;
+      }
+      margin-bottom: 0.5rem;
+    }
+    .construction-wrapper {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+
+      .construction-item {
+        flex: 0 0 25rem;
+        border: 1px solid #dbdbdb;
+        padding: 0.5rem;
+        margin: 0.5rem;
+      }
+    }
+  }
+
   .none-checklist-data {
     width: 100%;
     min-height: 15rem;
@@ -447,12 +560,20 @@
 
   // mobile
   @media screen and (max-width: 999px) {
+
     .traffic-data-view {
       .tile {
         &.is-child {
           width: auto;
         }
       }
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .construction-item {
+      flex: 0 0 100% !important;
+      margin: 0 !important;
     }
   }
 </style>

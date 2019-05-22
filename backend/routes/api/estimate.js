@@ -50,7 +50,6 @@ router.post('/pk', (req, res) => {
 
 // get customer's pk :end
 
-console.log('estimate api');
 // proceeding contract CRUD :start
 
 router.get('/', (req, res) => {
@@ -65,6 +64,8 @@ router.get('/', (req, res) => {
   // const selectedStatus = req.query.selected || '';
   // const contractStatus = req.query.status || '';
   const searchWord = req.query.search || '';
+  const reqYear = req.query.year || null;
+  const reqMonth = req.query.month || null;
   const pageInst = new paginationService();
   let pageData = pageInst.get();
   let countQuery;
@@ -111,6 +112,7 @@ router.get('/', (req, res) => {
         'status',
         'fail_reason',
         'password',
+        'interested',
         'reg_dt',
         'mod_dt'
       )
@@ -143,7 +145,7 @@ router.get('/', (req, res) => {
       if (reqMenu === 'request') {
         query = query.whereIn('status', [-1,-2,-1,0,1,2,3,4,5]);
       } else if (reqMenu === 'contract') {
-        query = query.whereIn('status', [6,7,8]);
+        query = query.whereIn('status', [6,7,8,99]);
       }
       if (!includeDeleted) {
         query = query.whereNotIn('status', [-2,-1]);
@@ -165,6 +167,13 @@ router.get('/', (req, res) => {
           .orWhere('address', 'like', `%${searchWord}%`)
           .orWhere('address_detail', 'like', `%${searchWord}%`)
       })
+    }
+
+    if(reqYear) {
+      query = query.whereRaw(`DATE_FORMAT(construction_start_date, '%Y') = ${reqYear}`)
+    }
+    if(reqMonth) {
+      query = query.whereRaw(`DATE_FORMAT(construction_start_date, '%m') = ${reqMonth}`)
     }
 
     // if (isAdopted) {
@@ -379,7 +388,6 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
   req.body.construction_start_date = req.body.construction_start_date === '' ? null : req.body.construction_start_date;
   req.body.moving_date = req.body.moving_date === '' ? null : req.body.moving_date;
   req.body.visit_date = req.body.visit_date === '' ? null : req.body.visit_date;
-
   if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
   }
@@ -413,6 +421,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.discount_amount = req.body.discount_amount || 0;
     updateObj.status = req.body.status;
     updateObj.fail_code = req.body.fail_code;
+    updateObj.interested = req.body.interested;
     updateObj.fail_reason = req.body.fail_reason || '';
     updateObj.customer_nickname = req.body.customer_nickname || '';
     updateObj.status = getContractStatus(updateObj.construction_start_date, updateObj.moving_date, updateObj.status);
