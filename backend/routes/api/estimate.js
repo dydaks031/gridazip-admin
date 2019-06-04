@@ -50,7 +50,6 @@ router.post('/pk', (req, res) => {
 
 // get customer's pk :end
 
-console.log('estimate api');
 // proceeding contract CRUD :start
 
 router.get('/', (req, res) => {
@@ -65,6 +64,8 @@ router.get('/', (req, res) => {
   // const selectedStatus = req.query.selected || '';
   // const contractStatus = req.query.status || '';
   const searchWord = req.query.search || '';
+  const reqYear = req.query.year || null;
+  const reqMonth = req.query.month || null;
   const pageInst = new paginationService();
   let pageData = pageInst.get();
   let countQuery;
@@ -111,6 +112,7 @@ router.get('/', (req, res) => {
         'status',
         'fail_reason',
         'password',
+        'interested',
         'reg_dt',
         'mod_dt'
       )
@@ -143,7 +145,7 @@ router.get('/', (req, res) => {
       if (reqMenu === 'request') {
         query = query.whereIn('status', [-1,-2,-1,0,1,2,3,4,5]);
       } else if (reqMenu === 'contract') {
-        query = query.whereIn('status', [6,7,8]);
+        query = query.whereIn('status', [6,7,8,99]);
       }
       if (!includeDeleted) {
         query = query.whereNotIn('status', [-2,-1]);
@@ -165,6 +167,13 @@ router.get('/', (req, res) => {
           .orWhere('address', 'like', `%${searchWord}%`)
           .orWhere('address_detail', 'like', `%${searchWord}%`)
       })
+    }
+
+    if(reqYear) {
+      query = query.whereRaw(`DATE_FORMAT(construction_start_date, '%Y') = ${reqYear}`)
+    }
+    if(reqMonth) {
+      query = query.whereRaw(`DATE_FORMAT(construction_start_date, '%m') = ${reqMonth}`)
     }
 
     // if (isAdopted) {
@@ -379,7 +388,6 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
   req.body.construction_start_date = req.body.construction_start_date === '' ? null : req.body.construction_start_date;
   req.body.moving_date = req.body.moving_date === '' ? null : req.body.moving_date;
   req.body.visit_date = req.body.visit_date === '' ? null : req.body.visit_date;
-
   if (reqPcPk === '') {
     res.json(resHelper.getError('전달받은 파라메터가 옳바르지 않습니다.'));
   }
@@ -413,6 +421,7 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
     updateObj.discount_amount = req.body.discount_amount || 0;
     updateObj.status = req.body.status;
     updateObj.fail_code = req.body.fail_code;
+    updateObj.interested = req.body.interested;
     updateObj.fail_reason = req.body.fail_reason || '';
     updateObj.customer_nickname = req.body.customer_nickname || '';
     updateObj.status = getContractStatus(updateObj.construction_start_date, updateObj.moving_date, updateObj.status);
@@ -431,9 +440,12 @@ router.put('/:pcpk([0-9]+)', (req, res) => {
             .update(updateObj)
             .where('estimate_no', reqPcPk);
         })
-        .then(() => {
+        .then(async () => {
           let query = null;
-            if (afterDC !== beforeDC) {
+          if (afterDC !== beforeDC) {
+            // const userInfo = await jwtHelper.verify(req.token);
+            // query = cur.table('collect_bills_tbl')
+            //     .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: beforeDC - afterDC, cb_reg_user: userInfo.user_pk, cb_pcpk: reqPcPk})
             query = cur('collect_bills_tbl')
               .update({
                 cb_amount: cur.raw('cb_amount + (??)', [beforeDC - afterDC])
@@ -961,12 +973,14 @@ router.post('/:pcpk([0-9]+)/sheet/master', (req, res) => {
             let currentBillsSum = 0;
             let currentEstimateSum = 0;
             let query = null;
-
-            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk).andWhere('cb_is_schedule', true)
             total = await getContractTotalCosts(cur, reqPcPk, 0);
             result = total[0][0];
             currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
             currentBillsSum = bills[0].currentBillsSum;
+            // const userInfo = await jwtHelper.verify(req.token);
+            // query = cur.table('collect_bills_tbl')
+            //     .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: currentEstimateSum - currentBillsSum, cb_reg_user: userInfo.user_pk, cb_pcpk: reqPcPk})
             query = cur('collect_bills_tbl')
               .update({
                 cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
@@ -1100,11 +1114,14 @@ router.post('/:pcpk([0-9]+)/sheet/:espk([0-9]+)', (req, res) => {
 
           const estimate = await cur('estimate_sheet_tbl').first('es_is_pre').where('es_pk', reqEsPk);
           if (parseInt(estimate.es_is_pre) === 0) {
-            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk).andWhere('cb_is_schedule', true)
             total = await getContractTotalCosts(cur, reqPcPk, 0);
             result = total[0][0];
             currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
             currentBillsSum = bills[0].currentBillsSum;
+            // const userInfo = await jwtHelper.verify(req.token);
+            // query = cur.table('collect_bills_tbl')
+            //     .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: currentEstimateSum - currentBillsSum, cb_reg_user: userInfo.user_pk, cb_pcpk: reqPcPk})
             query = cur('collect_bills_tbl')
               .update({
                 cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
@@ -1235,17 +1252,20 @@ router.put('/:pcpk([0-9]+)/sheet/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => {
 
           const estimate = await cur('estimate_sheet_tbl').first('es_is_pre').where('es_pk', reqEsPk);
           if (parseInt(estimate.es_is_pre) === 0) {
-            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk).andWhere('cb_is_schedule', true)
             total = await getContractTotalCosts(cur, reqPcPk, 0);
             result = total[0][0];
             currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
             currentBillsSum = bills[0].currentBillsSum;
+            // const userInfo = await jwtHelper.verify(req.token);
+            // query = cur.table('collect_bills_tbl')
+            //     .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: currentEstimateSum - currentBillsSum, cb_reg_user: userInfo.user_pk, cb_pcpk: reqPcPk})
             query = cur('collect_bills_tbl')
-              .update({
-                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
-              })
-              .where('cb_pcpk', reqPcPk)
-              .andWhere('cb_type', '조정')
+                .update({
+                  cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+                })
+                .where('cb_pcpk', reqPcPk)
+                .andWhere('cb_type', '조정')
           }
           return query;
         })
@@ -1289,17 +1309,20 @@ router.delete('/:pcpk([0-9]+)/sheet/:espk([0-9]+)/:edpk([0-9]+)', (req, res) => 
           changeContractStatusWhenPre(reqEsPk);
           const estimate = await cur('estimate_sheet_tbl').first('es_is_pre').where('es_pk', reqEsPk);
           if (parseInt(estimate.es_is_pre) === 0) {
-            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk)
+            bills = await cur('collect_bills_tbl').sum('cb_amount as currentBillsSum').where('cb_pcpk', reqPcPk).andWhere('cb_is_schedule', true)
             total = await getContractTotalCosts(cur, reqPcPk, 0);
             result = total[0][0];
             currentEstimateSum = Math.floor((result.resource_costs + result.labor_costs + result.etc_costs + result.design_costs + result.supervision_costs - result.discount_amount) * 0.001) * 1000;
             currentBillsSum = bills[0].currentBillsSum;
+            // const userInfo = await jwtHelper.verify(req.token);
+            // query = cur.table('collect_bills_tbl')
+            //     .insert({cb_is_schedule: 1, cb_type: '조정', cb_amount: currentEstimateSum - currentBillsSum, cb_reg_user: userInfo.user_pk, cb_pcpk: reqPcPk})
             query = cur('collect_bills_tbl')
-              .update({
-                cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
-              })
-              .where('cb_pcpk', reqPcPk)
-              .andWhere('cb_type', '조정')
+                .update({
+                  cb_amount: cur.raw('cb_amount + (??)', [currentEstimateSum - currentBillsSum ])
+                })
+                .where('cb_pcpk', reqPcPk)
+                .andWhere('cb_type', '조정')
           }
           return query;
         })

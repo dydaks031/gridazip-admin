@@ -115,7 +115,7 @@
   import deepClone from '../../services/deepClone'
   import calculator from 'calculator'
   import Vue from 'vue'
-  const queryApi = '/api/contract/'
+  const queryApi = '/api/estimate/'
 
   export default {
     components: {

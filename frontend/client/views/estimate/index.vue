@@ -5,6 +5,34 @@
         <div class="is-clearfix">
           <div class="is-pulled-left is-horizontal searchbox">
             <div class="control is-inline-block">
+              <label class="label">계약연월</label>
+              <div class="select">
+                <select v-model="searchData.constructionYear" @change="changeProcessStatus">
+                  <option value="" selected="selected">년</option>
+                  <option value="2019">2019</option>
+                  <option value="2018">2018</option>
+                </select>
+              </div>
+              <div class="select">
+                <select v-model="searchData.constructionMonth" @change="changeProcessStatus">
+                  <option value="" selected="selected">월</option>
+                  <option value="01">01</option>
+                  <option value="02">02</option>
+                  <option value="03">03</option>
+                  <option value="04">04</option>
+                  <option value="05">05</option>
+                  <option value="06">06</option>
+                  <option value="07">07</option>
+                  <option value="08">08</option>
+                  <option value="09">09</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                </select>
+              </div>
+              <!--<div class="select">-->
+                <!--<datepicker v-model="searchData.constructionDate" class="datepicker" :config="{dateFormat:'Y-m'}"/>-->
+              <!--</div>-->
               <label class="label">계약상태</label>
               <div class="select">
                 <select v-model="searchData.contractSelectedStatus" @change="changeProcessStatus">
@@ -51,9 +79,11 @@
               <col width="auto" />
               <col width="auto" />
               <col width="auto" />
+              <col width="auto" />
             </colgroup>
             <thead>
             <tr>
+              <th>대시보드</th>
               <th>고객명</th>
               <th>별칭</th>
               <th>전화번호</th>
@@ -66,7 +96,8 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="contract in contractList" @click="moveToPage(contract)">
+            <tr v-for="contract in contractList" @click.stop.prevent="moveToPage(contract, $event)">
+              <td><input type="checkbox" class="checkbox" v-model="contract.interested" @click.stop="updateDashboard(contract)" /></td>
               <td>{{contract.customer_name}}</td>
               <td>{{contract.customer_nickname}}</td>
               <td>{{contract.customer_phone_no}}</td>
@@ -100,6 +131,7 @@
   import Notification from 'vue-bulma-notification'
   import mixin from '../../services/mixin'
   import requestStatusConfig from '../../config/request-status-config'
+  import datepicker from 'vue-bulma-datepicker'
   import _ from 'underscore'
 
   const NotificationComponent = Vue.extend(Notification)
@@ -124,7 +156,8 @@
     name: 'estimateList',
     components: {
       PaginationVue,
-      Notification
+      Notification,
+      datepicker
     },
     mixins: [mixin],
     data () {
@@ -132,7 +165,9 @@
         searchData: {
           contractSelectedStatus: '',
           contractStatus: '',
-          searchWord: ''
+          searchWord: '',
+          constructionYear: '',
+          constructionMonth: ''
         },
         isSearch: false,
         contractStatusList: [],
@@ -157,8 +192,8 @@
           this.page.setPoint(0)
           this.page.setPage(0)
         }
-        console.log(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}`)
-        this.$http.get(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}`)
+        console.log(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}&year=${this.searchData.constructionYear}&month=${this.searchData.constructionMonth}`)
+        this.$http.get(`${queryApi}?menu=contract&isPage=true&page=${this.page.getPage()}&status=${this.searchData.contractSelectedStatus}&search=${this.searchData.searchWord}&year=${this.searchData.constructionYear}&month=${this.searchData.constructionMonth}`)
           .then((response) => {
             if (response.data.code !== 200) {
               return
@@ -183,6 +218,27 @@
             this.isSearch = false
           })
       },
+      updateDashboard (contract) {
+        this.$nextTick(() => {
+          this.$http.put(`${queryApi}/${contract.estimate_no}`, contract)
+            .then(response => {
+              if (response.data.code === 200) {
+                openNotification({
+                  message: '관심공사에 추가되었습니다.',
+                  type: 'success',
+                  duration: 1500
+                })
+              } else {
+                openNotification({
+                  message: '관심공사에 추가하는 중 오류가 발생했습니다.',
+                  type: 'danger',
+                  duration: 1500
+                })
+                this.loadData()
+              }
+            })
+        })
+      },
       changeProcessStatus () {
         this.page.setPoint(0)
         this.page.setPage(0)
@@ -193,10 +249,14 @@
         if (!filterSearch) {
           this.searchData.contractSelectedStatus = ''
           this.searchData.contractStatus = ''
+          this.searchData.constructionYear = ''
+          this.searchData.constructionMonth = ''
         }
         this.loadData()
       },
-      moveToPage (curItem) {
+      moveToPage (curItem, event) {
+        console.log(curItem)
+        console.log(event)
         router.push({
           path: `/private/estimate/${curItem.estimate_no}`,
           params: curItem

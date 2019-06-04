@@ -301,7 +301,7 @@
       },
       createNewTab () {
         router.push({
-          path: `/private/sheet/${this.param.id}/register/tabs`
+          path: `/private/estimate/${this.param.id}/register/tabs`
         })
       },
       duplicateTab () {

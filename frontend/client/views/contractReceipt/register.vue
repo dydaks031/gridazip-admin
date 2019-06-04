@@ -286,7 +286,6 @@
       },
       onFileChanged (event, index) {
         const files = event.target.files
-        console.log(files)
         for (let i = 0; i < files.length; i++) {
           const formData = new FormData()
           formData.append('file_upload_path', 'receipt')
