@@ -1316,6 +1316,10 @@
         const receiptTable = document.getElementById('receiptTable')
         const exportWb = XLSX.utils.book_new()
         const receiptTableWs = XLSX.utils.table_to_sheet(receiptTable)
+        let customerName = this.detailData.customer_name
+        let cutomerNickname = this.detailData.customer_nickname
+        customerName = customerName.replace('\\', '-').replace('/', '-').replace('?', '').replace('*', '').replace('[', '(').replace(']', ')')
+        cutomerNickname = cutomerNickname.replace('\\', '-').replace('/', '-').replace('?', '').replace('*', '').replace('[', '(').replace(']', ')')
         receiptTableWs['!cols'] = [
           {wch: 10},
           {wch: 10},
@@ -1331,8 +1335,8 @@
           {wch: 10},
           {wch: 10}
         ]
-        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${this.detailData.customer_name}${this.detailData.customer_nickname ? '(' + this.detailData.customer_nickname + ')' : ''} 결재목록`)
-        return XLSX.writeFile(exportWb, fn || `${this.detailData.customer_name}${this.detailData.customer_nickname ? '(' + this.detailData.customer_nickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
+        XLSX.utils.book_append_sheet(exportWb, receiptTableWs, `${customerName}${cutomerNickname ? '(' + cutomerNickname + ')' : ''} 결재목록`)
+        return XLSX.writeFile(exportWb, fn || `${customerName}${cutomerNickname ? '(' + cutomerNickname + ')' : ''} 결재내역-${this.moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`)
       },
       getBankNameByCode (code) {
         let bank = _.find(this.bankCodeList, (item) => {
