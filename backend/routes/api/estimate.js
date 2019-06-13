@@ -2953,6 +2953,7 @@ router.get('/:pcpk([0-9]+)/receipt', (req, res) => {
         if (availableStatus.indexOf(reqStatus) > -1 || reqStatus === 3) query.where('rc_status', reqStatus);
         else  throw new Error('NO_AUTHORITY');
       }
+      //console.log(query.toSQL().toNative());
       return knexnest(query);
     })
     .then(response => {
