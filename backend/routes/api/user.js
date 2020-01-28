@@ -10,6 +10,7 @@ router.get('/', (req, res) => {
     cur('user_tbl')
       .select('user_pk', 'user_name')
       .whereNot('user_id', 'admin')
+      .where('user_deleted', 0)
       .then(response => {
         res.json(
           resHelper.getJson({
